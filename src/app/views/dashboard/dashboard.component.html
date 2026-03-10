@@ -1,0 +1,151 @@
+<c-card class="my-4">
+  <c-card-body>
+
+    <c-row>
+
+      <c-col sm="6" xl="3">
+        <c-widget-stat-a class="mb-4" color="primary" [title]="'Total de Usuarios'">
+          <ng-template cTemplateId="widgetValueTemplate" ngPreserveWhitespaces>
+            {{ users.length }}
+          </ng-template>
+          <ng-template cTemplateId="widgetChartTemplate">
+            <c-chart [data]="data" [options]="options" class="mt-3 mx-3" height="110" type="line" />
+          </ng-template>
+        </c-widget-stat-a>
+      </c-col>
+
+      <c-col sm="6" xl="3">
+        <c-widget-stat-a class="mb-4" color="info" [title]="'Total de Inscripciones'">
+          <ng-template cTemplateId="widgetValueTemplate" ngPreserveWhitespaces>
+            {{ totalInscripciones }}
+          </ng-template>
+          <ng-template cTemplateId="widgetChartTemplate">
+            <c-chart [data]="inscripcionesChartData" [options]="inscripcionesChartOptions" class="mt-3 mx-3"
+              height="110" type="line" />
+          </ng-template>
+        </c-widget-stat-a>
+      </c-col>
+
+      <c-col sm="6" xl="3">
+        <c-widget-stat-a class="mb-4" color="success" [title]="'Total de Asistencias'">
+          <ng-template cTemplateId="widgetValueTemplate" ngPreserveWhitespaces>
+            {{ totalAsistencias }}
+          </ng-template>
+          <ng-template cTemplateId="widgetChartTemplate">
+            <c-chart [data]="asistenciasChartData" [options]="asistenciasChartOptions" class="mt-3 mx-3" height="110"
+              type="line" />
+          </ng-template>
+        </c-widget-stat-a>
+      </c-col>
+
+      <c-col sm="6" xl="3">
+        <c-widget-stat-a class="mb-4" color="warning" [title]="'Total de Sesiones'">
+          <ng-template cTemplateId="widgetValueTemplate" ngPreserveWhitespaces>
+            {{ totalSesiones }}
+          </ng-template>
+          <ng-template cTemplateId="widgetChartTemplate">
+            <c-chart [data]="sesionesChartData" [options]="sesionesChartOptions" class="mt-3 mx-3" height="110"
+              type="line" />
+          </ng-template>
+        </c-widget-stat-a>
+      </c-col>
+
+    </c-row>
+
+
+  </c-card-body>
+
+</c-card>
+
+
+<c-row>
+  <c-col xs>
+    <c-card class="mb-4">
+      <c-card-body>
+        <table
+          [hover]="true"
+          [responsive]="true"
+          [striped]="true"
+          align="middle"
+          cTable
+          class="mb-0 border"
+        >
+          <thead class="text-nowrap text-truncate">
+            <tr>
+              <th class="bg-body-tertiary text-center">
+                <svg cIcon name="cilPeople"></svg>
+              </th>
+              <th class="bg-body-tertiary">Alumno</th>
+              <th class="bg-body-tertiary">Materia/Curso con más asistencias</th>
+              <th class="bg-body-tertiary text-center">Asistencia (%)</th>
+              <th class="bg-body-tertiary text-center">Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+              <tr *ngFor="let alumno of alumnos; trackBy: trackByAlumno">
+                <!-- Avatar con iniciales -->
+                <td class="text-center">
+                  <c-avatar
+                    [ngStyle]="{ 'background-color': getColorForUser(alumno), 'color': 'white' }"
+                    textColor="white"
+                  >
+                    {{ getInitials(alumno.nombre) }}
+                  </c-avatar>
+                </td>
+                <!-- Nombre, facultad y carrera -->
+                <td>
+                  <div>{{ alumno.nombre }}</div>
+                  <div class="small text-body-secondary text-nowrap">
+                    <span>
+                      {{ getFacultadNombre(alumno) }} | {{ getCarreraNombre(alumno) }}
+                    </span>
+                  </div>
+                </td>
+                <!-- Materia/curso con más asistencias -->
+                <td>
+                  <div>
+                    {{
+                      getCursoConMasAsistencias(alumno) !== null
+                        ? getMateriaNombre(getCursoConMasAsistencias(alumno)!)
+                        : 'Sin materia'
+                    }}
+                  </div>
+                </td>
+                <!-- Porcentaje de asistencias en esa materia -->
+                <td class="text-center">
+                  <div class="d-flex justify-content-between">
+                    <div class="float-start">
+                      <strong>
+                        {{
+                          getCursoConMasAsistencias(alumno) !== null
+                            ? getAsistenciaPorcentaje(alumno, getCursoConMasAsistencias(alumno)!)
+                            : 0
+                        }}%
+                      </strong>
+                    </div>
+                  </div>
+                  <c-progress
+                    thin
+                    [value]="getCursoConMasAsistencias(alumno) !== null ? getAsistenciaPorcentaje(alumno, getCursoConMasAsistencias(alumno)!) : 0"
+                    color="info"
+                    aria-label="Asistencia"
+                  />
+                </td>
+                <!-- Mensaje según el porcentaje -->
+                <td class="text-center">
+                  <span>
+                    {{
+                      getCursoConMasAsistencias(alumno) !== null
+                        ? getAsistenciaMensaje(getAsistenciaPorcentaje(alumno, getCursoConMasAsistencias(alumno)!))
+                        : 'Sin asistencias'
+                    }}
+                  </span>
+                </td>
+              </tr>
+          </tbody>
+        </table>
+      </c-card-body>
+    </c-card>
+  </c-col>
+</c-row>
+

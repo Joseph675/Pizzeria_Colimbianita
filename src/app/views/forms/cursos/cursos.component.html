@@ -1,0 +1,145 @@
+<div id="toast" class="toast" [class.show]="showToast" [class.success]="toastType === 'success'"
+  [class.error]="toastType === 'error'">
+  <div class="toast-content">
+    <div class="toast-icon">
+      <span *ngIf="toastType === 'success'">✅</span>
+      <span *ngIf="toastType === 'error'">❌</span>
+    </div>
+    <div>
+      <strong>{{ toastType === 'success' ? 'Éxito!' : 'Error!' }}</strong>
+      <p>{{ toastMessage }}</p>
+    </div>
+    <button class="toast-close" (click)="showToast = false">✖</button>
+  </div>
+</div>
+
+<c-row>
+  <c-col xs="12">
+    <c-card class="mb-4">
+      <c-card-header ngPreserveWhitespaces>
+        <strong>Formulario</strong> <small>de Cursos</small>
+      </c-card-header>
+      <c-card-body>
+
+        <form [formGroup]="myForm" (ngSubmit)="registrar()" class="row g-3">
+
+          <div class="col-md-12">
+            <label for="tipoCurso" class="form-label">Tipo de Curso</label>
+            <select id="tipoCurso" class="form-select" formControlName="tipoCurso" (change)="onTipoCursoChange()">
+              <option value="" disabled selected>Seleccione el tipo del curso</option>
+              <option value="Presencial">Presencial</option>
+              <option value="Virtual">Virtual</option>
+            </select>
+          </div>
+
+          <div class="col-md-6">
+            <label for="cursoPk" class="form-label">ID Curso</label>
+            <input id="cursoPk" type="number" class="form-control" formControlName="cursoPk" placeholder="ID del Curso">
+          </div>
+
+          <div class="col-md-6">
+            <label for="cicloLectivo" class="form-label">Ciclo Lectivo</label>
+            <input id="cicloLectivo" formControlName="cicloLectivo" class="form-control"
+              placeholder="Ciclo Lectivo del curso">
+          </div>
+
+          <div class="col-md-12">
+            <label for="materiaPk" class="form-label">Materia</label>
+            <select id="materiaPk" class="form-select" formControlName="materiaPk"
+              placeholder="Seleccione la materia del curso">
+              <option value="" disabled selected>Seleccione la materia del curso</option>
+              <option *ngFor="let materia of materias" [value]="materia.materiaPk">
+                {{ materia.nombre }}
+              </option>
+            </select>
+          </div>
+
+          <div class="col-md-12">
+            <label for="profesorId" class="form-label">Profesor</label>
+            <select id="profesorId" class="form-select" formControlName="profesorId"
+              placeholder="Seleccione el profesor del curso">
+              <option value="" disabled selected>Seleccione el profesor del curso</option>
+              <option *ngFor="let usuario of usuarios" [value]="usuario.idUsuUni">
+                {{ usuario.nombre }}
+              </option>
+            </select>
+          </div>
+
+          <div class="col-md-6">
+            <label for="cuatrimestre" class="form-label">Cuatrimestre</label>
+            <select id="cuatrimestre" class="form-select" formControlName="cuatrimestre"
+              placeholder="Seleccione el catrimestre del curso">
+              <option value="Primer">Primer</option>
+              <option value="Segundo">Segundo</option>
+              <option value="Anual">Anual</option>
+            </select>
+          </div>
+
+          <div class="col-md-6">
+            <label for="horasSemanales" class="form-label">Horas Semanales</label>
+            <input id="horasSemanales" formControlName="horasSemanales" class="form-control"
+              placeholder="Horas Semanales del curso">
+          </div>
+
+          <div class="col-md-12">
+            <label for="estado" class="form-label">Estado</label>
+            <select id="estado" class="form-select" formControlName="estado"
+              placeholder="Seleccione el catrimestre del curso">
+              <option value="Planificado">Planificado</option>
+              <option value="En_Curso">En Curso</option>
+              <option value="Finalizado">Finalizado</option>
+            </select>
+          </div>
+
+
+          <!-- Div para Curso Presencial -->
+          <div *ngIf="tipoCursoSeleccionado === 'Presencial'" class="row" style="padding-top: 20px;">
+            <h5 style="text-align: center;">Curso Presencial</h5>
+
+            <div class="col-md-6">
+              <label for="aula" class="form-label">Aula</label>
+              <input id="aula" type="number" class="form-control" formControlName="aula" placeholder="Aula del curso">
+            </div>
+
+            <div class="col-md-6">
+              <label for="capacidad" class="form-label">Capacidad</label>
+              <input id="capacidad" type="number" class="form-control" formControlName="capacidad"
+                placeholder="Capacidad del curso">
+            </div>
+          </div>
+
+          <!-- Div para Curso Virtual -->
+          <div *ngIf="tipoCursoSeleccionado === 'Virtual'" class="row" style="padding-top: 20px;">
+            <h5 style="text-align: center;">Curso Virtual</h5>
+
+            <div class="col-md-6">
+              <label for="plataforma" class="form-label">Plataforma</label>
+              <input id="plataforma" type="text" class="form-control" formControlName="plataforma"
+                placeholder="Plataforma del curso">
+            </div>
+
+            <div class="col-md-6">
+              <label for="enlaceAcceso" class="form-label">Enlace de acceso</label>
+              <input id="enlaceAcceso" type="text" class="form-control" formControlName="enlaceAcceso"
+                placeholder="Enlace de acceso del curso">
+            </div>
+          </div>
+
+
+          <div class="col-md-6">
+            <c-form-check [switch]="true">
+              <label cFormCheckLabel>Estado de Facultad (Activa/Desactiva)</label>
+              <input cFormCheckInput checked id="activa" formControlName="activa" type="checkbox" />
+            </c-form-check>
+          </div>
+
+          <div class="d-grid gap-2">
+            <button type="submit" class="btn btn-primary" [disabled]="myForm.invalid">Registrar</button>
+          </div>
+
+        </form>
+
+      </c-card-body>
+    </c-card>
+  </c-col>
+</c-row>

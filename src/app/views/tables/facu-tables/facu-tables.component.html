@@ -1,0 +1,139 @@
+<div id="toast" class="toast" [class.show]="showToast" [class.success]="toastType === 'success'"
+  [class.error]="toastType === 'error'">
+  <div class="toast-content">
+    <div class="toast-icon">
+      <span *ngIf="toastType === 'success'">✅</span>
+      <span *ngIf="toastType === 'error'">❌</span>
+    </div>
+    <div>
+      <strong>{{ toastType === 'success' ? 'Éxito!' : 'Error!' }}</strong>
+      <p>{{ toastMessage }}</p>
+    </div>
+    <button class="toast-close" (click)="showToast = false">✖</button>
+  </div>
+</div>
+
+<c-row>
+  <c-col xs>
+    <c-card class="mb-4">
+      <c-card-body>
+        <div class="mb-3">
+          <div class="row">
+            <!-- Campo de Búsqueda -->
+            <div class="col-lg-12">
+              <label for="search" class="form-label">Buscar</label>
+              <input id="search" type="text" class="form-control" [(ngModel)]="searchTerm" (input)="applyFilters()"
+                placeholder="Buscar por nombre, ID o descripción" />
+            </div>
+          </div>
+        </div>
+
+
+        <div class="table-responsive">
+          <table cTable hover responsive striped align="middle" class="table table-bordered table-hover mb-0">
+            <thead class="text-nowrap text-truncate">
+              <tr>
+                <th class="bg-body-tertiary">ID</th>
+                <th class="bg-body-tertiary">Facultad</th>
+                <th class="bg-body-tertiary">Descripcion</th>
+                <th class="bg-body-tertiary text-center">Activo</th>
+                <th class="bg-body-tertiary">Acciones</th>
+              </tr>
+
+            </thead>
+            <tbody>
+              <tr *ngFor="let facu of filteredFacultades; trackBy: trackByFn">
+                <td> {{ facu.facultadId }} </td>
+                <td> {{ facu.nombre }} </td>
+                <td>{{ facu.descripcion }}</td>
+
+                <td>
+                  <span class="saber rounded text-white" [ngClass]="{
+                    'bg-success': facu.activa,
+                    'bg-danger': !facu.activa
+                  }">
+                    {{ facu.activa ? 'Activa' : 'Desactivada' }}
+                  </span>
+                </td>
+                <td>
+                  <div class="d-flex justify-content-around">
+                    <button cButton [cModalToggle]="Editar_Facu.id" color="primary" variant="outline"
+                      style="margin-right: 10px;" (click)="openFacuModal(facu)">
+                      <svg cIcon class="me-2" name="cil-pen" style="margin-right: 0px !important;"></svg>
+                    </button>
+
+                    <button cButton [cModalToggle]="Eliminar_Facu.id" color="danger" variant="outline"
+                      (click)="openFacuModal(facu)">
+                      <svg cIcon class="me-2" name="cil-trash" style="margin-right: 0px !important;"></svg>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </c-card-body>
+    </c-card>
+  </c-col>
+</c-row>
+
+<c-modal #Editar_Facu alignment="center" id="Editar_Facu" class="modal-lg">
+  <c-modal-header>
+    <h5 cModalTitle><strong>Actualizar:</strong> <small style="color: red;"> {{ selectedFacu?.nombre }}</small></h5>
+  </c-modal-header>
+  <c-modal-body>
+    <div style="margin: 10px;">
+      <form [formGroup]="myForm" (ngSubmit)="guardarCambios()" class="row g-3">
+
+        <div class="col-md-6">
+          <label for="facultadId" class="form-label">Facultad ID</label>
+          <input id="facultadId" type="number" class="form-control" formControlName="facultadId" [disabled]="true">
+        </div>
+
+        <div class="col-md-6">
+          <label for="nombre" class="form-label">Nombre</label>
+          <input id="nombre" type="text" class="form-control" formControlName="nombre">
+        </div>
+
+        
+        <div class="col-md-12" cFormFloating>
+          <textarea cFormControl id="descripcion" formControlName="descripcion"></textarea>
+          <label cLabel for="floatingTextarea">Descripcion</label>
+          
+        </div>
+
+        <div class="col-md-6">
+          <c-form-check [switch]="true">
+            <label cFormCheckLabel>Estado(Activa/Desactiva)</label>
+            <input cFormCheckInput checked id="activa" formControlName="activa" type="checkbox" />
+          </c-form-check>
+        </div>
+      </form>
+
+    </div>
+
+  </c-modal-body>
+  <c-modal-footer>
+    <button [cModalToggle]="Editar_Facu.id" cButton color="secondary">
+      Close
+    </button>
+    <button [cModalToggle]="Editar_Facu.id" type="submit" class="btn btn-primary"
+      [disabled]="myForm.invalid" (click)="guardarCambios()">Actualizar</button>
+  </c-modal-footer>
+
+</c-modal>
+
+<c-modal #Eliminar_Facu alignment="center" id="Eliminar_Facu" class="modal-md">
+  <c-modal-body>
+    <img src="assets/x.webp" alt="Eliminar Usuario" class="delete-image">
+    <h1 class="text-center" style="padding-top: 10px;padding-bottom: 10px;">¿Estas seguro?</h1>
+    <h4 class="text-center">Realmente quieres eliminar la facultad <span style="color: red;">{{ selectedFacu?.nombre}}</span>? Este proceso no es reversible</h4>
+  </c-modal-body>
+  <c-modal-footer>
+    <button [cModalToggle]="Eliminar_Facu.id" cButton color="secondary">
+      Cancelar
+    </button>
+    <button [cModalToggle]="Eliminar_Facu.id" cButton color="danger"
+      (click)="EliminarFacu(selectedFacu)">Eliminar</button>
+  </c-modal-footer>
+</c-modal>

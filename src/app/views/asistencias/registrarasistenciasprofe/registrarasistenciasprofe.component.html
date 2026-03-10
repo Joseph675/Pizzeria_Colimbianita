@@ -1,0 +1,102 @@
+<div id="toast" class="toast" [class.show]="showToast" [class.success]="toastType === 'success'"
+  [class.error]="toastType === 'error'">
+  <div class="toast-content">
+    <div class="toast-icon">
+      <span *ngIf="toastType === 'success'">✅</span>
+      <span *ngIf="toastType === 'error'">❌</span>
+    </div>
+    <div>
+      <strong>{{ toastType === 'success' ? 'Éxito!' : 'Error!' }}</strong>
+      <p>{{ toastMessage }}</p>
+    </div>
+    <button class="toast-close" (click)="showToast = false">✖</button>
+  </div>
+</div>
+
+<c-row>
+  <c-col xs="12">
+    <c-card class="mb-4">
+      <c-card-header ngPreserveWhitespaces>
+        <strong>Registro</strong> <small>de Asistencias</small>
+      </c-card-header>
+      <c-card-body>
+
+
+
+        <form [formGroup]="myForm" class="row g-3">
+
+          <div class="col-md-6">
+            <c-col lg="12" xs="12">
+              <c-widget-stat-f [title]="useridUsuUni" class="mb-3" color="" padding value={{userName}}>
+                <ng-template cTemplateId="widgetIconTemplate">
+                  <svg [cIcon]="icons.cilUser" size="xxl" width="48"></svg>
+                </ng-template>
+              </c-widget-stat-f>
+            </c-col>
+          </div>
+
+          <div class="col-md-6">
+            <c-col lg="12" lg="12">
+              <c-widget-stat-f [title]="userFacultad" class="mb-3" color="" padding value={{userCarrera}}>
+                <ng-template cTemplateId="widgetIconTemplate">
+                  <svg [cIcon]="icons.cilAddressBook" size="xxl" width="48"></svg>
+                </ng-template>
+              </c-widget-stat-f>
+            </c-col>
+          </div>
+
+          <div class="col-12 mb-3">
+            <label for="cursoSelect" class="form-label">Seleccionar Curso</label>
+            <select id="cursoSelect" class="form-select" formControlName="cursoSelect" (change)="onCursoChange()">
+              <option [ngValue]="null" disabled selected>Seleccione un curso</option>
+              <option *ngFor="let curso of cursos" [ngValue]="curso">
+                {{ curso.materiaNombre }} ({{ curso.cursoTipo }})
+              </option>
+            </select>
+          </div>
+
+          <!-- Seleccionar Sesión (Clase) -->
+          <div class="col-12 mb-3" *ngIf="cursoSeleccionado">
+            <label for="sesionId" class="form-label">Seleccionar Clase/Sesión</label>
+            <select id="sesionId" class="form-select" formControlName="sesionId">
+              <option value="" disabled selected>Seleccione una sesión</option>
+              <option *ngFor="let sesion of sesionesFiltradas" [value]="sesion.sesionId">
+                {{ sesion.fecha | date:'fullDate' }} - {{ sesion.materiaNombre }}
+              </option>
+            </select>
+          </div>
+
+          <div class="col-12">
+            <label for="alumnoId" class="form-label">Alumno</label>
+            <input id="alumnoId" type="text" class="form-control" formControlName="alumnoId" placeholder="ID del Alumno"
+              autocomplete="off" />
+          </div>
+
+          <div cFormFloating>
+            <label cLabel for="observaciones">Observaciones</label>
+            <textarea cFormControl id="observaciones" formControlName="observaciones"
+              placeholder="Descripción de la Facultad aquí"></textarea>
+          </div>
+
+          <div class="col-md-6">
+            <c-form-check [switch]="true">
+              <label cFormCheckLabel>Presente</label>
+              <input cFormCheckInput id="presente" formControlName="presente" type="checkbox" />
+            </c-form-check>
+
+            <c-form-check [switch]="true">
+              <label cFormCheckLabel>Justificada</label>
+              <input cFormCheckInput id="justificada" formControlName="justificada" type="checkbox" />
+            </c-form-check>
+          </div>
+
+          <div class="d-grid gap-2">
+            <button type="submit" class="btn btn-primary">Registrar</button>
+          </div>
+
+        </form>
+
+      </c-card-body>
+    </c-card>
+  </c-col>
+</c-row>

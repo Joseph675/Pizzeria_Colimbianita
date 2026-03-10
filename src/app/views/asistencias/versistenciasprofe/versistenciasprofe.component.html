@@ -1,0 +1,58 @@
+<div id="toast" class="toast" [class.show]="showToast" [class.success]="toastType === 'success'"
+  [class.error]="toastType === 'error'">
+  <div class="toast-content">
+    <div class="toast-icon">
+      <span *ngIf="toastType === 'success'">✅</span>
+      <span *ngIf="toastType === 'error'">❌</span>
+    </div>
+    <div>
+      <strong>{{ toastType === 'success' ? 'Éxito!' : 'Error!' }}</strong>
+      <p>{{ toastMessage }}</p>
+    </div>
+    <button class="toast-close" (click)="showToast = false">✖</button>
+  </div>
+</div>
+
+<c-row>
+  <c-col xs="12">
+    <c-card class="mb-4">
+      <c-card-header ngPreserveWhitespaces>
+        <strong>Ver registros</strong> <small>de Asistencias</small>
+      </c-card-header>
+      <c-card-body>
+
+
+        <div class="mb-3">
+          <input type="text" class="form-control" placeholder="Buscar estudiante o materia..." [(ngModel)]="searchText"
+            (ngModelChange)="filtrarAsistencias()" />
+        </div>
+        <!-- Tabla de asistencias -->
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>UID || ID</th>
+              <th>Estudiante</th>
+              <th>Materia</th>
+              <th>Fecha</th>
+              <th>Presente</th>
+              <th>Justificada</th>
+              <th>Observaciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let asistencia of asistenciasFiltradas">
+              <td>{{ asistencia.alumnouid }} || {{ asistencia.alumnoidusu }}</td>
+              <td>{{ asistencia.alumnoNombre }}</td>
+              <td>{{ asistencia.materiaNombre }}</td>
+              <td>{{ asistencia.fechaRegistro | date:'short' }}</td>
+              <td>{{ asistencia.presente ? 'Sí' : 'No' }}</td>
+              <td>{{ asistencia.justificada ? 'Sí' : 'No' }}</td>
+              <td>{{ asistencia.observaciones }}</td>
+            </tr>
+          </tbody>
+        </table>
+
+      </c-card-body>
+    </c-card>
+  </c-col>
+</c-row>

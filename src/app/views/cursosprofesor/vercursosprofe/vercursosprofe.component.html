@@ -1,0 +1,73 @@
+<div id="toast" class="toast" [class.show]="showToast" [class.success]="toastType === 'success'"
+  [class.error]="toastType === 'error'">
+  <div class="toast-content">
+    <div class="toast-icon">
+      <span *ngIf="toastType === 'success'">✅</span>
+      <span *ngIf="toastType === 'error'">❌</span>
+    </div>
+    <div>
+      <strong>{{ toastType === 'success' ? 'Éxito!' : 'Error!' }}</strong>
+      <p>{{ toastMessage }}</p>
+    </div>
+    <button class="toast-close" (click)="showToast = false">✖</button>
+  </div>
+</div>
+
+<c-row>
+  <c-col xs="12">
+    <c-card class="mb-4">
+      <c-card-header ngPreserveWhitespaces>
+        <strong>Mis Cursos</strong> <small>Asignados</small>
+      </c-card-header>
+      <c-card-body>
+
+
+
+        <!-- Tabla de asistencias -->
+        <!-- Tabla de cursos del profesor -->
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>Materia</th>
+              <th>Tipo</th>
+              <th>Ciclo lectivo</th>
+              <th>Cuatrimestre</th>
+              <th>Horas semanales</th>
+              <th>Aula</th>
+              <th>Capacidad</th>
+              <th>Plataforma</th>
+              <th>Enlace</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let curso of cursos">
+              <td>{{ curso.materiaNombre }}</td>
+              <td>{{ curso.tipoCurso }}</td>
+              <td>{{ curso.cicloLectivo }}</td>
+              <td>{{ curso.cuatrimestre }}</td>
+              <td>{{ curso.horasSemanales }}</td>
+              <td>{{ curso.aula || '-' }}</td>
+              <td>{{ curso.capacidad || '-' }}</td>
+              <td>{{ curso.plataforma || '-' }}</td>
+              <td>
+                <a *ngIf="curso.enlaceAcceso" [href]="curso.enlaceAcceso" target="_blank">Acceso</a>
+                <span *ngIf="!curso.enlaceAcceso">-</span>
+              </td>
+              <td>
+                <span [ngClass]="{
+          'text-success': curso.estado === 'En_Curso',
+          'text-warning': curso.estado === 'Planificado',
+          'text-danger': curso.estado === 'Finalizado'
+        }">
+                  {{ curso.estado }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+      </c-card-body>
+    </c-card>
+  </c-col>
+</c-row>

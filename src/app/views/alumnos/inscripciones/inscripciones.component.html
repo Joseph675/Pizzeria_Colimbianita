@@ -1,0 +1,96 @@
+<div id="toast" class="toast" [class.show]="showToast" [class.success]="toastType === 'success'"
+  [class.error]="toastType === 'error'">
+  <div class="toast-content">
+    <div class="toast-icon">
+      <span *ngIf="toastType === 'success'">✅</span>
+      <span *ngIf="toastType === 'error'">❌</span>
+    </div>
+    <div>
+      <strong>{{ toastType === 'success' ? 'Éxito!' : 'Error!' }}</strong>
+      <p>{{ toastMessage }}</p>
+    </div>
+    <button class="toast-close" (click)="showToast = false">✖</button>
+  </div>
+</div>
+
+<c-row>
+  <c-col xs="12">
+    <c-card class="mb-4">
+      <c-card-header ngPreserveWhitespaces>
+        <strong>Inscripcion</strong> <small>de Cursos</small>
+      </c-card-header>
+      <c-card-body>
+
+        <form [formGroup]="myForm" (ngSubmit)="registrar()" class="row g-3">
+
+
+          <div class="col-md-6">
+            <c-col lg="12" xs="12">
+              <c-widget-stat-f [title]="useridUsuUni" class="mb-3" color="" padding value={{userName}}>
+                <ng-template cTemplateId="widgetIconTemplate">
+                  <svg [cIcon]="icons.cilUser" size="xxl" width="48"></svg>
+                </ng-template>
+              </c-widget-stat-f>
+            </c-col>
+          </div>
+
+          <div class="col-md-6">
+            <c-col lg="12" lg="12">
+              <c-widget-stat-f [title]="userFacultad" class="mb-3" color="" padding value={{userCarrera}}>
+                <ng-template cTemplateId="widgetIconTemplate">
+                  <svg [cIcon]="icons.cilAddressBook" size="xxl" width="48"></svg>
+                </ng-template>
+              </c-widget-stat-f>
+            </c-col>
+          </div>
+
+          <div class="col-md-12" style="margin-top: 0px;">
+            <label for="cursoPk" class="form-label">Curso</label>
+            <div class="input-group">
+              <button cButton [cModalToggle]="SelecionarCurso.id" color="light" variant="outline" class="form-control">
+                Seleccione el curso a inscribir
+              </button>
+            </div>
+            <span>Curso Selecionado: <span style="color: red;">{{selecteCurso?.materiaNombre ||
+                'Ninguno'}}</span></span>
+          </div>
+
+          <div class="d-grid gap-2">
+            <button type="submit" class="btn btn-primary" [disabled]="myForm.invalid">Registrar</button>
+          </div>
+
+        </form>
+
+      </c-card-body>
+    </c-card>
+  </c-col>
+</c-row>
+
+
+
+<c-modal #SelecionarCurso alignment="center" id="SelecionarCurso" size="xl">
+  <c-modal-body>
+    <div class="mb-3">
+      <input type="text" class="form-control" placeholder="Buscar curso por nombre o código"
+        [(ngModel)]="searchCursoTerm" (input)="filterCursos()" />
+    </div>
+    <div class="row g-3">
+      <div class="col-md-4 d-flex" *ngFor="let curso of filteredCursos">
+        <c-card class="hola flex-fill d-flex flex-column">
+          <c-card-body class="flex-grow-1 d-flex flex-column justify-content-between">
+            <h5 cCardTitle>{{curso.materiaNombre}} | <span>{{curso.cursoPk}}</span></h5>
+            <span>Semestre: {{curso.cuatrimestre}}</span>
+            <span>Profesor: {{curso.profesorNombre}}</span>
+            <p cCardText>
+              {{curso.materiaDescripcion}}
+            </p>
+            <div class="d-grid gap-2 mt-auto">
+              <button [cModalToggle]="SelecionarCurso.id" cButton color="light" (click)="SelectCurso(curso)">Seleccionar
+                Curso</button>
+            </div>
+          </c-card-body>
+        </c-card>
+      </div>
+    </div>
+  </c-modal-body>
+</c-modal>

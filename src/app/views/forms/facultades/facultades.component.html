@@ -1,0 +1,55 @@
+<div id="toast" class="toast" [class.show]="showToast" [class.success]="toastType === 'success'" [class.error]="toastType === 'error'">
+  <div class="toast-content">
+    <div class="toast-icon">
+      <span *ngIf="toastType === 'success'">✅</span>
+      <span *ngIf="toastType === 'error'">❌</span>
+    </div>
+    <div>
+      <strong>{{ toastType === 'success' ? 'Éxito!' : 'Error!' }}</strong>
+      <p>{{ toastMessage }}</p>
+    </div>
+    <button class="toast-close" (click)="showToast = false">✖</button>
+  </div>
+</div>
+
+<c-row>
+  <c-col xs="12">
+    <c-card class="mb-4">
+      <c-card-header ngPreserveWhitespaces>
+        <strong>Formulario</strong> <small>de Facultades</small>
+      </c-card-header>
+      <c-card-body>
+        
+        <form [formGroup]="myForm" (ngSubmit)="registrar()" class="row g-3">
+
+          <div class="col-md-6">
+            <label for="facultadId" class="form-label">ID Facultad</label>
+            <input id="facultadId" type="number" class="form-control" formControlName="facultadId" placeholder="ID de la Facultad">
+          </div>
+
+          <div class="col-md-6">
+            <label for="nombre" class="form-label">Nombre</label>
+            <input id="nombre" type="text" class="form-control" formControlName="nombre" placeholder="Nombre de la Facultad">
+          </div>
+
+          <div cFormFloating>
+            <label cLabel for="descripcion">Descripción</label>
+            <textarea cFormControl id="descripcion" formControlName="descripcion" placeholder="Descripción de la Facultad aquí"></textarea>
+          </div>
+
+          <div class="col-md-6">
+            <c-form-check [switch]="true">
+              <label cFormCheckLabel>Estado de Facultad (Activa/Desactiva)</label>
+              <input cFormCheckInput checked id="activa" formControlName="activa" type="checkbox" />
+            </c-form-check>
+          </div>
+          <div class="d-grid gap-2">
+            <button type="submit" class="btn btn-primary" [disabled]="myForm.invalid">Registrar</button>
+          </div>
+
+        </form>
+        
+      </c-card-body>
+    </c-card>
+  </c-col>
+</c-row>

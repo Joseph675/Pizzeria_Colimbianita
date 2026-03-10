@@ -1,0 +1,134 @@
+<div id="toast" class="toast" [class.show]="showToast" [class.success]="toastType === 'success'"
+  [class.error]="toastType === 'error'">
+  <div class="toast-content">
+    <div class="toast-icon">
+      <span *ngIf="toastType === 'success'">✅</span>
+      <span *ngIf="toastType === 'error'">❌</span>
+    </div>
+    <div>
+      <strong>{{ toastType === 'success' ? 'Éxito!' : 'Error!' }}</strong>
+      <p>{{ toastMessage }}</p>
+    </div>
+    <button class="toast-close" (click)="showToast = false">✖</button>
+  </div>
+</div>
+
+<c-row>
+  <c-col xs="12">
+    <c-card class="mb-4">
+      <c-card-header ngPreserveWhitespaces>
+        <strong>Mis Inscripciones</strong>
+      </c-card-header>
+      <c-card-body>
+        <div class="row">
+
+          <div class="col-md-6">
+            <c-col lg="12" xs="12">
+              <c-widget-stat-f [title]="useridUsuUni" class="mb-3" color="" padding value={{userName}}>
+                <ng-template cTemplateId="widgetIconTemplate">
+                  <svg [cIcon]="icons.cilUser" size="xxl" width="48"></svg>
+                </ng-template>
+              </c-widget-stat-f>
+            </c-col>
+          </div>
+
+
+
+          <div class="col-md-6">
+            <c-col lg="12" lg="12">
+              <c-widget-stat-f [title]="userFacultad" class="mb-3" color="" padding value={{userCarrera}}>
+                <ng-template cTemplateId="widgetIconTemplate">
+                  <svg [cIcon]="icons.cilAddressBook" size="xxl" width="48"></svg>
+                </ng-template>
+              </c-widget-stat-f>
+            </c-col>
+          </div>
+
+
+
+          <c-tabs [activeItemKey]="'home'" (activeItemKeyChange)="handleChange($event)">
+            <c-tabs-list variant="tabs">
+              <button cTab itemKey="home"> Mis Cursos</button>
+              <button cTab itemKey="profile">Informacion De Los Cursos</button>
+              <button cTab itemKey="contact">Ubicacion</button>
+            </c-tabs-list>
+            <c-tabs-content>
+
+
+              <c-tab-panel class="p-3" itemKey="home">
+                <div class="row">
+                  <div class="col-md-4 d-flex" *ngFor="let inscri of inscripciones" style="padding-bottom: 12px;">
+                    <c-card class="hola flex-fill d-flex flex-column">
+                      <c-card-body class="flex-grow-1 d-flex flex-column justify-content-between">
+                        <h5 cCardTitle>{{inscri.cursoNombre}} | <span>{{inscri.cursoPk}}</span></h5>
+                        <span>Profesor: {{inscri.cursoProfesor}}</span>
+                        <p cCardText>
+                          {{inscri.cursoDescripcion}}
+                        </p>
+                        <div class="d-grid gap-2 mt-auto">
+                          <button cButton color="light">{{inscri.cursoTipo}} </button>
+                        </div>
+                      </c-card-body>
+                    </c-card>
+                  </div>
+                </div>
+
+
+              </c-tab-panel>
+              <c-tab-panel class="p-3" itemKey="profile">
+                <div class="row">
+                  <div class="col-md-4 d-flex" *ngFor="let inscri of inscripciones" style="padding-bottom: 12px;">
+                    <c-card class="hola flex-fill d-flex flex-column">
+                      <c-card-body class="flex-grow-1 d-flex flex-column justify-content-between">
+                        <h5 cCardTitle>{{inscri.cursoNombre}} | <span>{{inscri.cursoPk}}</span></h5>
+                        <span>Ciclo Lectivo: {{inscri.cursoCicloLectivo}}</span>
+
+                        <span>Horas Semanales: {{inscri.cursohorasSemanales}}h</span>
+
+                        <span>Capacidad: {{inscri.cursoCapacidad}}</span>
+                        <span>Semestre: {{inscri.cursoSemestre}}</span>
+
+
+
+                        <div class="d-grid gap-2 mt-auto">
+                          <button cButton color="light">{{inscri.cursoTipo}} </button>
+                        </div>
+                      </c-card-body>
+                    </c-card>
+                  </div>
+                </div>
+              </c-tab-panel>
+              <c-tab-panel class="p-3" itemKey="contact">
+                <div class="row">
+                  <div class="col-md-4 d-flex" *ngFor="let inscri of inscripciones" style="padding-bottom: 12px;">
+                    <c-card class="hola flex-fill d-flex flex-column">
+                      <c-card-body class="flex-grow-1 d-flex flex-column justify-content-between">
+                        <h5 cCardTitle>{{inscri.cursoNombre}} | <span>{{inscri.cursoPk}}</span></h5>
+                        <span>Enlace de Acceso: {{inscri.cursoEnlaceAcceso }}</span>
+                        <!-- Mostrar Aula si el curso es presencial -->
+                        <span *ngIf="inscri.cursoTipo === 'Presencial'">Aula: {{inscri.cursoAula}}</span>
+
+                        <!-- Mostrar mensaje diferente si el curso es virtual -->
+                        <span *ngIf="inscri.cursoTipo === 'Virtual'">Plataforma: {{inscri.cursoPlataforma}}</span>
+
+
+                        <div class="d-grid gap-2 mt-auto">
+                          <button cButton color="light">{{inscri.cursoTipo}} </button>
+                        </div>
+                      </c-card-body>
+                    </c-card>
+                  </div>
+                </div>
+
+              </c-tab-panel>
+
+            </c-tabs-content>
+          </c-tabs>
+
+        </div>
+
+
+      </c-card-body>
+    </c-card>
+  </c-col>
+</c-row>

@@ -1,0 +1,72 @@
+<div id="toast" class="toast" [class.show]="showToast" [class.success]="toastType === 'success'"
+  [class.error]="toastType === 'error'">
+  <div class="toast-content">
+    <div class="toast-icon">
+      <span *ngIf="toastType === 'success'">✅</span>
+      <span *ngIf="toastType === 'error'">❌</span>
+    </div>
+    <div>
+      <strong>{{ toastType === 'success' ? 'Éxito!' : 'Error!' }}</strong>
+      <p>{{ toastMessage }}</p>
+    </div>
+    <button class="toast-close" (click)="showToast = false">✖</button>
+  </div>
+</div>
+
+<c-row>
+  <c-col xs="12">
+    <c-card class="mb-4">
+      <c-card-header ngPreserveWhitespaces>
+        <strong>Formulario</strong> <small>de Materias por Carreras</small>
+      </c-card-header>
+      <c-card-body>
+
+        <form [formGroup]="myForm" (ngSubmit)="registrar()" class="row g-3">
+
+          <div class="col-md-6">
+            <label for="materiaPk" class="form-label">Materia</label>
+            <select id="materiaPk" class="form-select" formControlName="materiaPk">
+              <option value="" disabled selected>Seleccione la materia</option>
+              <option *ngFor="let materia of materias" [value]="materia.materiaPk">
+                {{ materia.nombre }}
+              </option>
+            </select>
+          </div>
+
+          <div class="col-md-6">
+            <label for="carreraPk" class="form-label">Carrera</label>
+            <select id="carreraPk" class="form-select" formControlName="carreraPk">
+              <option value="" disabled selected>Seleccione la carrera a la que pertenece la materia</option>
+              <option *ngFor="let carrera of carreras" [value]="carrera.carreraPk">
+                {{ carrera.nombre }}
+              </option>
+            </select>
+          </div>
+
+          <div class="col-md-6">
+            <label for="anioCursada" class="form-label">Semestre </label>
+            <input id="anioCursada" formControlName="anioCursada" class="form-control"
+              placeholder="Semestre cuando se cursa la materia">
+          </div>
+
+
+          <div class="col-md-6">
+            <label for="cuatrimestre" class="form-label">Cuatrimestre</label>
+            <select id="cuatrimestre" class="form-select" formControlName="cuatrimestre"
+              placeholder="Seleccione el catrimestre del curso">
+              <option value="Primer">Primer</option>
+              <option value="Segundo">Segundo</option>
+              <option value="Anual">Anual</option>
+            </select>
+          </div>
+
+          <div class="d-grid gap-2">
+            <button type="submit" class="btn btn-primary" [disabled]="myForm.invalid">Registrar</button>
+          </div>
+
+        </form>
+
+      </c-card-body>
+    </c-card>
+  </c-col>
+</c-row>

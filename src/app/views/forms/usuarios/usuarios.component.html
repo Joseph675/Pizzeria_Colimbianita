@@ -1,0 +1,131 @@
+<div id="toast" class="toast" [class.show]="showToast" [class.success]="toastType === 'success'"
+  [class.error]="toastType === 'error'">
+  <div class="toast-content">
+    <div class="toast-icon">
+      <span *ngIf="toastType === 'success'">✅</span>
+      <span *ngIf="toastType === 'error'">❌</span>
+    </div>
+    <div>
+      <strong>{{ toastType === 'success' ? 'Éxito!' : 'Error!' }}</strong>
+      <p>{{ toastMessage }}</p>
+    </div>
+    <button class="toast-close" (click)="showToast = false">✖</button>
+  </div>
+</div>
+
+<c-row>
+  <c-col xs="12">
+    <c-card class="mb-4">
+      <c-card-header ngPreserveWhitespaces>
+        <strong>Formulario</strong> <small>de Usuarios</small>
+      </c-card-header>
+      <c-card-body>
+
+        <form [formGroup]="myForm" (ngSubmit)="registrar()" class="row g-3">
+
+          <div class="col-md-12">
+            <label for="tipo" class="form-label">Tipo de Usuario</label>
+            <select id="tipo" class="form-select" formControlName="tipo">
+              <option value="Alumno">Estudiante</option>
+              <option value="Profesor">Profesor</option>
+              <option value="Administrativo">Administrativo</option>
+              <option value="Admin">Admin</option>
+            </select>
+          </div>
+
+          <div class="col-md-6">
+            <label for="idUsuUni" class="form-label">ID Usuario</label>
+            <input id="idUsuUni" type="number" class="form-control" formControlName="idUsuUni"
+              placeholder="ID de Universidad del Usuario">
+          </div>
+
+          <div class="col-md-6">
+            <label for="cedula" class="form-label">Cedula Usuario</label>
+            <input id="cedula" type="number" class="form-control" formControlName="cedula"
+              placeholder="Cedula del Usuario">
+          </div>
+
+           <div class="col-md-12">
+            <label for="uid" class="form-label">UID Del Carnet</label>
+            <input id="uid" type="text" class="form-control" formControlName="uid"
+              placeholder="UID del Carnet del Usuario">
+          </div>
+
+          <div class="col-md-12">
+            <label for="nombre" class="form-label">Nombre Completo</label>
+            <input id="nombre" type="text" class="form-control" formControlName="nombre"
+              placeholder="Nombre Completo del Usuario">
+          </div>
+
+          <div class="col-md-12">
+            <label for="email" class="form-label">Email</label>
+            <input id="email" type="email" class="form-control" formControlName="email" placeholder="Email del Usuario">
+          </div>
+
+          <div class="col-md-6">
+            <label for="facultadId">Facultad</label>
+            <select id="facultadId" class="form-control" formControlName="facultadId"
+              (change)="onFacultadChange($event)">
+              <option *ngFor="let facultad of facultades" [value]="facultad.facultadId">
+                {{ facultad.nombre }}
+              </option>
+            </select>
+          </div>
+
+          <div class="col-md-6">
+            <label for="carrera">Carrera</label>
+            <select id="carrera" class="form-control" formControlName="carrera">
+              <option *ngFor="let carrera of filteredCarreras" [value]="carrera.carreraPk">
+                {{ carrera.nombre }}
+              </option>
+            </select>
+          </div>
+
+          <div class="col-md-12">
+            <label for="fechaNacimiento">Fecha de nacimiento</label>
+            <div class="input-group">
+              <!-- Toggle para abrir el datepicker -->
+              <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+              <!-- Input enlazado al datepicker -->
+              <input matInput [matDatepicker]="picker" id="fechaNacimiento" formControlName="fechaNacimiento" class="form-control" placeholder="Seleccione una fecha" />
+              <!-- Componente del datepicker -->
+              <mat-datepicker #picker></mat-datepicker>
+            </div>
+          </div>
+
+
+          <div class="col-12">
+            <label for="especialidad" class="form-label">Especialidad</label>
+            <input id="especialidad" type="text" class="form-control" formControlName="especialidad"
+              placeholder="Especialidad del Usuario">
+          </div>
+
+          <div class="col-12">
+            <label for="area" class="form-label">Area</label>
+            <input id="area" type="text" class="form-control" formControlName="area" placeholder="Area del Usuario">
+          </div>
+
+
+
+          <div class="col-md-12">
+            <label for="password" class="form-label">Password</label>
+            <input id="password" type="password" class="form-control" formControlName="password"
+              placeholder="Password del Usuario">
+          </div>
+
+          <div class="col-md-6">
+            <c-form-check [switch]="true">
+              <label cFormCheckLabel>Estado(Activa/Desactiva)</label>
+              <input cFormCheckInput checked id="activo" formControlName="activo" type="checkbox" />
+            </c-form-check>
+          </div>
+
+          <div class="d-grid gap-2">
+            <button type="submit" class="btn btn-primary" [disabled]="myForm.invalid">Registrar</button>
+          </div>
+        </form>
+
+      </c-card-body>
+    </c-card>
+  </c-col>
+</c-row>

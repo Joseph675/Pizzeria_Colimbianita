@@ -1,0 +1,214 @@
+<div id="toast" class="toast" [class.show]="showToast" [class.success]="toastType === 'success'"
+  [class.error]="toastType === 'error'">
+  <div class="toast-content">
+    <div class="toast-icon">
+      <span *ngIf="toastType === 'success'">✅</span>
+      <span *ngIf="toastType === 'error'">❌</span>
+    </div>
+    <div>
+      <strong>{{ toastType === 'success' ? 'Éxito!' : 'Error!' }}</strong>
+      <p>{{ toastMessage }}</p>
+    </div>
+    <button class="toast-close" (click)="showToast = false">✖</button>
+  </div>
+</div>
+
+<c-row>
+  <c-col xs="12">
+    <c-card class="mb-4">
+      <c-card-header ngPreserveWhitespaces>
+        <strong>Formulario</strong> <small>de Sesiones</small>
+      </c-card-header>
+      <c-card-body>
+
+        <form [formGroup]="myForm" (ngSubmit)="registrar()" class="row g-3">
+
+
+          <div class="col-md-6">
+            <label for="cursoPk" class="form-label">Curso</label>
+            <div class="input-group">
+              <button cButton [cModalToggle]="SelecionarCurso.id" color="light" variant="outline" class="form-control">
+                Seleccione el curso
+              </button>
+            </div>
+            <span>Curso Selecionado: <span style="color: red;">{{selecteCurso?.materiaNombre ||
+                'Ninguno'}}</span></span>
+          </div>
+
+          <div class="col-md-6">
+            <label for="dia_semana" class="form-label">Dia</label>
+            <select id="dia_semana" class="form-select" formControlName="dia_semana">
+              <option value="" disabled selected>Seleccione el dia de clase</option>
+              <option value="Lunes">Lunes</option>
+              <option value="Martes">Martes</option>
+              <option value="Miercoles">Miercoles</option>
+              <option value="Jueves">Jueves</option>
+              <option value="Viernes">Viernes</option>
+              <option value="Sabado">Sabado</option>
+            </select>
+          </div>
+
+          <div class="col-md-6">
+            <label for="horaInicio" class="form-label">Hora Inicio</label>
+            <input matInput [matTimepicker]="horaInicio" class="form-control" formControlName="horaInicio">
+            <mat-timepicker #horaInicio></mat-timepicker>
+          </div>
+
+          <div class="col-md-6">
+            <label for="horaInicio" class="form-label">Hora Inicio</label>
+
+            <input matInput [matTimepicker]="horaFin" class="form-control" formControlName="horaFin">
+            <mat-timepicker #horaFin></mat-timepicker>
+          </div>
+
+
+          <div class="d-grid gap-2">
+            <button type="submit" class="btn btn-primary" [disabled]="myForm.invalid">Registrar</button>
+          </div>
+
+        </form>
+
+      </c-card-body>
+    </c-card>
+  </c-col>
+</c-row>
+
+<c-modal #SelecionarAlumno alignment="center" id="SelecionarAlumno" size="xl">
+  <c-modal-body>
+    <c-card class="mb-4">
+      <c-card-body>
+        <div class="mb-3">
+          <div class="row">
+            <!-- Filtro de Facultad -->
+            <div class="col-md-3">
+              <label for="facultad" class="form-label">Facultad</label>
+              <select id="facultad" class="form-select" [(ngModel)]="selectedFaculty" (change)="onFacultyChange()">
+                <option value="">Todas</option>
+                <option *ngFor="let facultad of facultades" [value]="facultad.facultadId">
+                  {{ facultad.nombre }}
+                </option>
+              </select>
+            </div>
+            <!-- Filtro de Carrera -->
+            <div class="col-md-3">
+              <label for="carrera" class="form-label">Carrera</label>
+              <select id="carrera" class="form-select" [(ngModel)]="selectedCarrera" (change)="applyFilters()">
+                <option value="">Todas</option>
+                <option *ngFor="let carrera of filteredCarreras" [value]="carrera.carreraPk">
+                  {{ carrera.nombre }}
+                </option>
+              </select>
+            </div>
+            <!-- Filtro de Tipo de Usuario -->
+            <div class="col-md-3">
+              <label for="tipoUsuario" class="form-label">Tipo de Usuario</label>
+              <select id="tipoUsuario" class="form-select" [(ngModel)]="selectedTipoUsuario" (change)="applyFilters()">
+                <option value="">Todos</option>
+                <option value="Alumno">Alumno</option>
+                <option value="Profesor">Profesor</option>
+                <option value="Administrativo">Administrativo</option>
+                <option value="Admin">Admin</option>
+              </select>
+            </div>
+
+            <!-- Campo de Búsqueda -->
+            <div class="col-md-3">
+              <label for="search" class="form-label">Buscar</label>
+              <input id="search" type="text" class="form-control" [(ngModel)]="searchTerm" (input)="applyFilters()"
+                placeholder="Buscar por nombre, ID o correo" />
+            </div>
+          </div>
+        </div>
+
+
+        <div class="table-responsive">
+          <table cTable hover responsive striped align="middle" class="table table-bordered table-hover mb-0">
+            <thead class="text-nowrap text-truncate">
+              <tr>
+                <th class="bg-body-tertiary">
+                </th>
+                <th class="bg-body-tertiary">ID</th>
+                <th class="bg-body-tertiary">User</th>
+                <th class="bg-body-tertiary">Tipo de Usuario</th>
+                <th class="bg-body-tertiary text-center">Cedula</th>
+                <th class="bg-body-tertiary text-center">Correo</th>
+                <th class="bg-body-tertiary">Especialidad</th>
+                <th class="bg-body-tertiary">Area</th>
+                <th class="bg-body-tertiary">Acciones</th>
+              </tr>
+
+            </thead>
+            <tbody>
+              <tr *ngFor="let user of filteredUsers; trackBy: trackByFn">
+                <td class="text-center">
+                  <c-avatar [ngStyle]="{ 'background-color': getColorForUser(user), 'color': 'white' }"
+                    textColor="white">
+                    {{ getInitials(user.nombre) }}
+                  </c-avatar>
+                </td>
+                <td>
+                  <div>{{ user.idUsuUni }}</div>
+                </td>
+                <td>
+                  <div>{{ user.nombre }}</div>
+                  <div class="small text-body-secondary text-nowrap">
+                    <span>
+                      {{ user.facultadNombre }} | {{ user.carreraNombre }}
+                    </span>
+                  </div>
+                </td>
+                <td>
+                  <span class="saber rounded text-white" [ngClass]="{
+                    'bg-warning': user.tipo === 'Alumno',
+                    'bg-primary': user.tipo === 'Profesor',
+                    'bg-success': user.tipo === 'Administrativo',
+                    'bg-admin' : user.tipo === 'Admin'
+
+                  }">
+                    {{ user.tipo }}
+                  </span>
+                </td>
+                <td>{{ user.cedula }}</td>
+                <td>{{ user.email }}</td>
+                <td>{{ user.especialidad }}</td>
+                <td>{{ user.area }}</td>
+                <td>
+                  <button [cModalToggle]="SelecionarAlumno.id" cButton color="light"
+                    (click)="SelectUsuario(user)">Seleccionar</button>
+                </td>
+
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </c-card-body>
+    </c-card>
+  </c-modal-body>
+</c-modal>
+
+<c-modal #SelecionarCurso alignment="center" id="SelecionarCurso" size="xl">
+  <c-modal-body>
+    <!-- Campo de búsqueda -->
+    <div class="mb-3">
+      <input type="text" class="form-control" placeholder="Buscar curso por nombre o código"
+        [(ngModel)]="searchCursoTerm" (input)="filterCursos()" />
+    </div>
+    <div class="row g-3">
+      <div class="col-md-4 d-flex" *ngFor="let curso of filteredCursos">
+        <c-card class="hola flex-fill d-flex flex-column">
+          <c-card-body class="flex-grow-1 d-flex flex-column justify-content-between">
+            <h5 cCardTitle>{{curso.materiaNombre}} | <span>{{curso.cursoPk}}</span></h5>
+            <span>Profesor: {{curso.profesorNombre}}</span>
+            <p cCardText>
+              {{curso.materiaDescripcion}}
+            </p>
+            <div class="d-grid gap-2 mt-auto">
+              <button [cModalToggle]="SelecionarCurso.id" cButton color="light" (click)="SelectCurso(curso)">Seleccionar
+                Curso</button>
+            </div>
+          </c-card-body>
+        </c-card>
+      </div>
+    </div>
+  </c-modal-body>
+</c-modal>
