@@ -1,4 +1,7 @@
-/* You can add global styles to this file, and also import other style files */
+
+// Custom Theming for Angular Material
+// For more information: https://material.angular.io/guide/theming
+@use '@angular/material' as mat;
 
 // Import styles with default layout.
 @use "@coreui/coreui/scss/coreui" as * with (
@@ -21,6 +24,71 @@
 // We use those styles to show code examples, you should remove them in your application.
 @use "examples";
 
+// ============================================
+// MATERIAL DESIGN THEME SETUP
+// ============================================
+
+// 2. Incluir estilos base (solo una vez)
+@include mat.core();
+
+// TODO: Define Material themes when proper API is available
+// 3. Definir paleta primaria — Verde menta
+// $sliceos-primary: mat.define-palette(mat.$green-palette, 700, 400, 900);
+
+// 4. Paleta de acento — Ámbar para highlights
+// $sliceos-accent: mat.define-palette(mat.$amber-palette, 600);
+
+// 5. Paleta de advertencia — Rojo
+// $sliceos-warn: mat.define-palette(mat.$red-palette);
+
+// 6. Crear tema CLARO
+// $sliceos-light-theme: mat.define-light-theme((
+//   color: (
+//     primary: $sliceos-primary,
+//     accent:  $sliceos-accent,
+//     warn:    $sliceos-warn,
+//   ),
+// ));
+
+// 7. Crear tema OSCURO
+// $sliceos-dark-theme: mat.define-dark-theme((
+//   color: (
+//     primary: mat.define-palette(mat.$green-palette, 400),
+//     accent:  mat.define-palette(mat.$amber-palette, 400),
+//     warn:    $sliceos-warn,
+//   ),
+// ));
+
+// 8. Aplicar tema claro por defecto
+// @include mat.all-component-themes($sliceos-light-theme);
+
+// 9. Aplicar tema oscuro cuando body tiene .dark-mode
+// .dark-mode {
+//   @include mat.all-component-colors($sliceos-dark-theme);
+// }
+
+// 10. Variables CSS globales (para tus componentes custom)
+:root {
+  --color-primary:    #2e7d5e;
+  --color-primary-h:  #245f49;
+  --color-primary-dim:rgba(46,125,94,0.1);
+  --font-display:     'Fraunces', serif;
+  --font-body:        'Plus Jakarta Sans', sans-serif;
+  --radius:           12px;
+  --radius-sm:        8px;
+}
+
+.dark-mode {
+  --color-primary:    #3dba80;
+  --color-primary-h:  #52d496;
+  --color-primary-dim:rgba(61,186,128,0.12);
+}
+
+/* You can add global styles to this file, and also import other style files */
+
+
+html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 
 html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }

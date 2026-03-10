@@ -2,18 +2,86 @@ import { INavData } from '@coreui/angular';
 import { CustomNavData } from './CustomNavData'; // Asegúrate de importar la interfaz correcta
 
 export const navItems: CustomNavData[] = [
+  
+  {
+    title: true,
+    name: 'Menú & Productos'
+  },
   {
     name: 'Dashboard',
     url: '/dashboard',
-    iconComponent: { name: 'cil-speedometer' },
+    materialIcon: 'dashboard',
   },
-  
-  
-  
+
+  {
+    name: 'Productos',
+    url: '/productos',
+    materialIcon: 'restaurant',  // Material icon name
+  },
+
+  {
+    name: 'Categorías',
+    url: '/categorias',
+    materialIcon: 'category',  // Material icon name
+  },
+
+  {
+    name: 'Combos y Promociones',
+    url: '/combos-promociones',
+    materialIcon: 'redeem',  // Material icon name
+  },
+
+  {
+    title: true,
+    name: 'Negocio'
+  },
+
+  {
+    name: 'mesas',
+    url: '/mesas',
+    materialIcon: 'table_restaurant',  // Material icon name
+  },
+
+  {
+    name: 'Clientes',
+    url: '/clientes',
+    materialIcon: 'people',  // Material icon name
+  },
+
+  {
+    name: 'Inventario',
+    url: '/inventario',
+    materialIcon: 'inventory',  // Material icon name
+  },
+
+
+  {
+    title: true,
+    name: 'Sistema'
+  },
+
+  {
+    name: 'Usuario y Roles',
+    url: '/usuarios-roles',
+    materialIcon: 'people',  // Material icon name
+  },
+
+  {
+    name: 'Reportes',
+    url: '/reportes',
+    materialIcon: 'description',  // Material icon name
+  },
+
+  {
+    name: 'Configuración',
+    url: '/configuracion',
+    materialIcon: 'settings',  // Material icon name
+  },
+
   {
     name: 'Forms',
     url: '/forms',
-    iconComponent: { name: 'cil-notes' },
+    materialIcon: 'description',
     allowedFor: ['Admin'],
     children: [
       {
@@ -61,14 +129,14 @@ export const navItems: CustomNavData[] = [
         url: '/forms/asistencias-form',
         icon: 'nav-icon-bullet'
       }
-      
+
     ]
   },
-  
+
   {
     name: 'Tables',
     url: '/tables',
-    iconComponent: { name: 'cil-align-center' },
+    materialIcon: 'table_chart',
     allowedFor: ['Admin'],
     children: [
       {
@@ -118,12 +186,12 @@ export const navItems: CustomNavData[] = [
       }
     ]
   },
-  
+
   {
     name: 'Inscripciones ',
     url: '/alumnos',
-    iconComponent: { name: 'cil-education' },
-    allowedFor: ['Alumno'], 
+    materialIcon: 'school',
+    allowedFor: ['Alumno'],
     children: [
       {
         name: 'Catálogo de cursos disponibles',
@@ -137,12 +205,12 @@ export const navItems: CustomNavData[] = [
       }
     ]
   },
-  
+
   {
     name: 'Horario De Clases',
     url: '/horariosemanal',
-    iconComponent: { name: 'cil-clock' },
-    allowedFor: ['Alumno'], 
+    materialIcon: 'schedule',
+    allowedFor: ['Alumno'],
     children: [
       {
         name: 'Ver mi horario semanal',
@@ -155,8 +223,8 @@ export const navItems: CustomNavData[] = [
   {
     name: 'Asistencias',
     url: '/asistencias',
-    iconComponent: { name: 'cil-address-book' },
-    allowedFor: ['Profesor'], 
+    materialIcon: 'check_circle',
+    allowedFor: ['Profesor'],
     children: [
       {
         name: 'Registro de asistencias',
@@ -173,14 +241,14 @@ export const navItems: CustomNavData[] = [
   {
     name: 'Ver Mis Cursos ',
     url: '/vercursos/miscursosprofe',
-    allowedFor: ['Profesor'], 
-    iconComponent: { name: 'cil-address-book' },
+    allowedFor: ['Profesor'],
+    materialIcon: 'book',
   },
   {
     name: 'Ver Mis Asistencias ',
     url: '/alumnos/verasistenciasalumno',
-    allowedFor: ['Alumno'], 
-    iconComponent: { name: 'cil-address-book' },
+    allowedFor: ['Alumno'],
+    materialIcon: 'fact_check',
   },
-  
+
 ];

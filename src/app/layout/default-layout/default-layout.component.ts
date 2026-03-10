@@ -18,6 +18,7 @@ import {
 } from '@coreui/angular';
 
 import { DefaultFooterComponent, DefaultHeaderComponent } from './';
+import { CustomSidebarNavComponent } from './custom-sidebar-nav.component';
 import { navItems } from './_nav';
 
 function isOverflown(element: HTMLElement) {
@@ -43,6 +44,7 @@ function isOverflown(element: HTMLElement) {
     ContainerComponent,
     DefaultFooterComponent,
     DefaultHeaderComponent,
+    CustomSidebarNavComponent,
     IconDirective,
     NgScrollbar,
     RouterOutlet,

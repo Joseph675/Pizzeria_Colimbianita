@@ -1,6 +1,7 @@
 import { DOCUMENT, NgStyle, NgForOf } from '@angular/common';
 import { Component, DestroyRef, effect, inject, OnInit, Renderer2, signal, WritableSignal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { MatIcon } from '@angular/material/icon';
 import { ChartOptions } from 'chart.js';
 import {
   AvatarComponent,
@@ -26,6 +27,8 @@ import {
   DropdownItemDirective
 } from '@coreui/angular';
 import { ChartjsComponent } from '@coreui/angular-chartjs';
+import { cilArrowTop, cilOptions,cilPizza } from '@coreui/icons';
+
 import { IconDirective } from '@coreui/icons-angular';
 
 import { WidgetsBrandComponent } from '../widgets/widgets-brand/widgets-brand.component';
@@ -37,14 +40,13 @@ import { HttpClient, HttpClientModule } from '@angular/common/http';
 
 import { Router, RouterLink } from '@angular/router';
 
-import { cilArrowTop, cilOptions } from '@coreui/icons';
 
 import { getStyle } from '@coreui/utils';
 
 @Component({
   templateUrl: 'dashboard.component.html',
   styleUrls: ['dashboard.component.scss'],
-  imports: [NgForOf, DropdownItemDirective, DropdownComponent, DropdownMenuDirective, DropdownToggleDirective, TemplateIdDirective, WidgetStatAComponent, RouterLink, WidgetsDropdownComponent, TextColorDirective, CardComponent, CardBodyComponent, RowComponent, ColComponent, ButtonDirective, IconDirective, ReactiveFormsModule, ButtonGroupComponent, FormCheckLabelDirective, ChartjsComponent, NgStyle, CardFooterComponent, GutterDirective, ProgressBarDirective, ProgressComponent, WidgetsBrandComponent, CardHeaderComponent, TableDirective, AvatarComponent, HttpClientModule],
+  imports: [NgForOf, DropdownItemDirective, DropdownComponent, DropdownMenuDirective, DropdownToggleDirective, TemplateIdDirective, WidgetStatAComponent, RouterLink, WidgetsDropdownComponent, TextColorDirective, CardComponent, CardBodyComponent, RowComponent, ColComponent, ButtonDirective, IconDirective, ReactiveFormsModule, ButtonGroupComponent, FormCheckLabelDirective, ChartjsComponent, NgStyle, CardFooterComponent, GutterDirective, ProgressBarDirective, ProgressComponent, WidgetsBrandComponent, CardHeaderComponent, TableDirective, AvatarComponent, HttpClientModule, MatIcon],
   standalone: true
 
 })
@@ -60,7 +62,7 @@ export class DashboardComponent implements OnInit {
 
   }
 
-  icons = { cilOptions, cilArrowTop };
+  icons = { cilOptions, cilArrowTop, cilPizza};
 
 
   public usuariosPorTipo: { [key: string]: number } = {};
