@@ -8,7 +8,7 @@ export const navItems: CustomNavData[] = [
     name: 'Menú & Productos'
   },
   {
-    name: 'Dashboard',
+    name: 'Dashboards',
     url: '/dashboard',
     materialIcon: 'dashboard',
   },
