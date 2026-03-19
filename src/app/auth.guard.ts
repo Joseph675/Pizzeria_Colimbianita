@@ -9,6 +9,13 @@ export class AuthGuard implements CanActivate {
   constructor(private authService: AuthService, private router: Router) {}
 
   canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): boolean {
+    // DESHABILITAR temporalmente la verificación de login (sólo para desarrollo).
+    // Cambia `bypassAuth` a true para acceder sin token ni usuario.
+    const bypassAuth = true;
+    if (bypassAuth) {
+      return true;
+    }
+
     // Verificar si el usuario está autenticado
     if (!this.authService.isAuthenticated()) {
       this.router.navigate(['/login']); // Redirigir al login si no está autenticado

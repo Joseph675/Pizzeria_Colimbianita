@@ -1,0 +1,198 @@
+<c-card-body>
+
+  <c-row>
+
+    <div class="col-md-3">
+      <input id="search" type="text" class="form-control" placeholder="🔍 Buscar Producto" />
+    </div>
+
+    <div class="col-md-2">
+      <select id="tipoUsuario" class="form-select">
+        <option value="">Todos</option>
+
+      </select>
+    </div>
+
+    <div class="col-md-2">
+      <select id="tipoUsuario" class="form-select">
+        <option value="">Todos</option>
+
+      </select>
+    </div>
+
+    <div class="col"></div>
+
+    <div class="col-md-3 d-flex justify-content-end">
+      <button cButton color="primary" shape="rounded-pill" [cModalToggle]="nuevoproducto.id">+ Nuevo Producto</button>
+    </div>
+
+  </c-row>
+  <br>
+  <c-row>
+
+    <c-col xs="3" xs="3">
+      <c-widget-stat-f [title]="'Total'" class="mb-3"
+        style="height: 70px; display: flex; align-items: left; justify-content: center" value="16">
+        <ng-template cTemplateId="widgetIconTemplate">
+          <span style="font-size: 2.5em">🍕</span>
+        </ng-template>
+      </c-widget-stat-f>
+    </c-col>
+
+    <c-col xs="3" xs="3">
+      <c-widget-stat-f [title]="'Disponibles'" class="mb-3"
+        style="height: 70px; display: flex; align-items: left; justify-content: center" value="14">
+        <ng-template cTemplateId="widgetIconTemplate">
+          <span style="font-size: 2.5em">✅</span>
+        </ng-template>
+      </c-widget-stat-f>
+    </c-col>
+
+    <c-col xs="3" xs="3">
+      <c-widget-stat-f [title]="'No disponibles'" class="mb-3"
+        style="height: 70px; display: flex; align-items: left; justify-content: center" value="2">
+        <ng-template cTemplateId="widgetIconTemplate">
+          <span style="font-size: 2.5em">⛔</span>
+        </ng-template>
+      </c-widget-stat-f>
+    </c-col>
+
+    <c-col xs="3" xs="3">
+      <c-widget-stat-f [title]="'Categorias'" class="mb-3"
+        style="height: 70px; display: flex; align-items: left; justify-content: center" value="6">
+        <ng-template cTemplateId="widgetIconTemplate">
+          <span style="font-size: 2.5em">🏷️</span>
+        </ng-template>
+      </c-widget-stat-f>
+    </c-col>
+
+
+
+  </c-row>
+
+
+</c-card-body>
+
+<c-row class="mt-4">
+  <c-col xs="12">
+    <c-card>
+      <c-card-header class="d-flex justify-content-between align-items-center">
+        <div>
+          <strong>Lista de productos</strong>
+          <small class="text-medium-emphasis"> (desde http://localhost:8080/api/productos)</small>
+        </div>
+        <div>
+          <div class="btn-group btn-group-sm" role="group" aria-label="Ver opciones">
+            <button type="button" class="btn btn-outline-primary" [class.active]="viewMode === 'table'"
+              (click)="setView('table')">
+              Lista
+            </button>
+            <button type="button" class="btn btn-outline-primary" [class.active]="viewMode === 'cards'"
+              (click)="setView('cards')">
+              Tarjetas
+            </button>
+          </div>
+        </div>
+      </c-card-header>
+      <c-card-body>
+        <div *ngIf="productosCargaError" class="alert alert-danger" role="alert">
+          {{ productosCargaError }}
+        </div>
+
+        <div *ngIf="!productosCargaError && productos.length === 0" class="text-center text-muted">
+          Cargando productos... o no se encontraron productos en el servidor.
+        </div>
+
+        <div *ngIf="productos.length > 0">
+          <div *ngIf="viewMode === 'table'" class="table-responsive">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th>Categoria</th>
+                  <th>Nombre</th>
+                  <th>Descripción</th>
+                  <th>Imagen</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let producto of productos">
+                  <td>{{ producto.categoria.nombre }}</td>
+                  <td>{{ producto.nombre }}</td>
+                  <td>{{ producto.descripcion || '—' }}</td>
+                  <td>
+                    <img [src]="producto.imagenUrl" [alt]="producto.nombre"
+                      style="max-width: 100px; max-height: 100px;" />
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div *ngIf="viewMode === 'cards'" class="row">
+            <div class="col-12 col-md-6 col-lg-4 mb-4" *ngFor="let producto of productos">
+              <c-card class="h-100">
+                <img *ngIf="producto.imagenUrl" [src]="producto.imagenUrl" [alt]="producto.nombre" class="card-img-top"
+                  style="object-fit: cover; height: 180px;" />
+                <c-card-body>
+                  <span class="badge bg-secondary mb-2">{{ producto.categoria.nombre }}</span>
+                  <h5 class="card-title">{{ producto.nombre }}</h5>
+                  <p class="card-text text-muted">{{ producto.descripcion || '—' }}</p>
+                </c-card-body>
+                <div class="card-footer d-flex justify-content-between align-items-right">
+                  <div>
+                    <button class="btn btn-sm btn-outline-primary me-2" title="Editar">
+                      ✏️
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger" title="Eliminar">
+                      🗑️
+                    </button>
+                  </div>
+                </div>
+              </c-card>
+            </div>
+          </div>
+        </div>
+      </c-card-body>
+    </c-card>
+  </c-col>
+</c-row>
+
+<c-modal #nuevoproducto alignment="center" id="nuevoproducto">
+  <c-modal-header>
+    <h5 cModalTitle>Nuevo Producto</h5>
+    <button [cModalToggle]="nuevoproducto.id" cButtonClose></button>
+  </c-modal-header>
+  <c-modal-body>
+
+    <form  [formGroup]="myForm" (ngSubmit)="registrarproductos()">
+      <div class="col mb-2">
+        <label cLabel for="exampleFormControlInput1">Categoria</label>
+        <input cFormControl formControlName="id_categoria" type="text" />
+      </div>
+
+      <div class="col mb-2">
+        <label cLabel for="exampleFormControlInput1">Nombre</label>
+        <input cFormControl formControlName="nombre" type="text" />
+      </div>
+      <div class="mb-3">
+        <label cLabel for="exampleFormControlTextarea1">Descripción</label>
+        <textarea cFormControl formControlName="descripcion" rows="3"></textarea>
+      </div>
+
+      <div class="mb-3">
+        <label cLabel for="exampleFormControlInput1">Imagen</label>
+        <input cFormControl formControlName="imagen_url" placeholder="URL de la imagen" type="text" />
+      </div>
+
+    <button cButton type="submit" color="primary">Guardar Producto</button>
+
+    </form>
+
+  </c-modal-body>
+  <c-modal-footer>
+    <button [cModalToggle]="nuevoproducto.id" cButton color="danger">
+      Cancelar
+    </button>
+    <button cButton type="submit" color="primary">Guardar Producto</button>
+  </c-modal-footer>
+</c-modal>
