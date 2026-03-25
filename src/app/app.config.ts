@@ -15,6 +15,7 @@ import { routes } from './app.routes';
 
 import { provideHttpClient, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { AuthInterceptor } from './interceptors/auth.interceptor';
+import { CaseTransformInterceptor } from './interceptors/case-transform.interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -35,6 +36,11 @@ export const appConfig: ApplicationConfig = {
     provideAnimationsAsync(),
     // Registrar el interceptor HTTP basado en clases
     provideHttpClient(),
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: CaseTransformInterceptor,
+      multi: true
+    },
     {
       provide: HTTP_INTERCEPTORS,
       useClass: AuthInterceptor,
