@@ -51,6 +51,11 @@ export class ProductosComponent implements OnInit {
   public selectedCategoriaId: string = 'all';
   public selectedEstado: 'all' | 'active' | 'inactive' = 'all';
   public searchTerm: string = '';
+
+  public totalProductos = 0;
+  public totalActivos = 0;
+  public totalInactivos = 0;
+  public totalCategorias = 0;
   public categoriasCargaError: string | null = null;
   public viewMode: 'table' | 'cards' = 'table';
 
@@ -89,6 +94,7 @@ export class ProductosComponent implements OnInit {
             return idA - idB;
           });
           this.applyFilters();
+          this.updateStats();
           console.log('Productos cargados y ordenados por ID:', this.productos);
         },
         (error) => {
@@ -105,6 +111,7 @@ export class ProductosComponent implements OnInit {
       .subscribe(
         (data) => {
           this.categorias = (data || []).sort((a, b) => a.nombre.localeCompare(b.nombre));
+          this.updateStats();
           console.log('Categorías cargadas:', this.categorias);
         },
         (error) => {
@@ -254,6 +261,13 @@ export class ProductosComponent implements OnInit {
         setTimeout(() => (this.showToast = false), 3000);
       }
     );
+  }
+
+  updateStats(): void {
+    this.totalProductos = this.productos.length;
+    this.totalActivos = this.productos.filter((p) => p.estado === 1).length;
+    this.totalInactivos = this.productos.filter((p) => p.estado === 0).length;
+    this.totalCategorias = this.categorias.length;
   }
 
   applyFilters(): void {

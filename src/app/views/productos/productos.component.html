@@ -22,19 +22,21 @@
       </select>
     </div>
 
-    <div class="col"></div>
 
     <div class="col-md-3 d-flex justify-content-end">
       <button cButton color="primary" shape="rounded-pill" [cModalToggle]="nuevoproducto.id">+ Nuevo Producto</button>
     </div>
-
+    
   </c-row>
-  <br>
+  <div class="col-md-3 d-flex justify-content-end mb-2">
+      
+    </div>
+
   <c-row>
 
     <c-col xs="3" xs="3">
       <c-widget-stat-f [title]="'Total'" class="mb-3"
-        style="height: 70px; display: flex; align-items: left; justify-content: center" value="16">
+        style="height: 70px; display: flex; align-items: left; justify-content: center" [value]="totalProductos">
         <ng-template cTemplateId="widgetIconTemplate">
           <span style="font-size: 2.5em; color: black;" class="material-icons">restaurant</span>
 
@@ -44,7 +46,7 @@
 
     <c-col xs="3" xs="3">
       <c-widget-stat-f [title]="'Disponibles'" class="mb-3"
-        style="height: 70px; display: flex; align-items: left; justify-content: center" value="14">
+        style="height: 70px; display: flex; align-items: left; justify-content: center" [value]="totalActivos">
         <ng-template cTemplateId="widgetIconTemplate">
           <span style="font-size: 2.5em; color: black;" class="material-icons">check_box</span>
 
@@ -56,7 +58,7 @@
 
     <c-col xs="3" xs="3">
       <c-widget-stat-f [title]="'No disponibles'" class="mb-3"
-        style="height: 70px; display: flex; align-items: left; justify-content: center" value="2">
+        style="height: 70px; display: flex; align-items: left; justify-content: center" [value]="totalInactivos">
         <ng-template cTemplateId="widgetIconTemplate">
           <span style="font-size: 2.5em; color: black;" class="material-icons">block</span>
 
@@ -66,7 +68,7 @@
 
     <c-col xs="3" xs="3">
       <c-widget-stat-f [title]="'Categorias'" class="mb-3"
-        style="height: 70px; display: flex; align-items: left; justify-content: center" value="6">
+        style="height: 70px; display: flex; align-items: left; justify-content: center" [value]="totalCategorias">
         <ng-template cTemplateId="widgetIconTemplate">
           <span style="font-size: 2.5em; color: black;" class="material-icons">category</span>
 
