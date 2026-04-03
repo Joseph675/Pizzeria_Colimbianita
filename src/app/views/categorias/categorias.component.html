@@ -1,75 +1,97 @@
 <c-card-body>
-
   <c-row>
-
-    <div class="col-md-3">
-      <input id="search" type="text" class="form-control" placeholder="🔍 Buscar Producto" />
+    <div class="col-md-8">
+      <input id="search" type="text" class="form-control" placeholder="🔍 Buscar Categoría" 
+        [value]="searchTerm" (input)="onCategoriaSearch($any($event.target).value)" />
     </div>
 
-    <div class="col-md-2">
-      <select id="tipoUsuario" class="form-select">
-        <option value="">Todos</option>
+    
 
-      </select>
-    </div>
-
-    <div class="col-md-2">
-      <select id="tipoUsuario" class="form-select">
-        <option value="">Todos</option>
-
-      </select>
-    </div>
-
-    <div class="col"></div>
 
     <div class="col-md-3 d-flex justify-content-end">
       <button cButton color="primary" shape="rounded-pill" [cModalToggle]="nuevacategoria.id">+ Nueva Categoría</button>
     </div>
-
   </c-row>
-  <br>
-  <c-row>
+  <div class="col-md-3 d-flex justify-content-end mb-2"></div>
 
+  <c-row>
     <c-col xs="3" xs="3">
-      <c-widget-stat-f [title]="'Total Categorías'" class="mb-3"
-        style="height: 70px; display: flex; align-items: left; justify-content: center" [value]="categorias.length">
+      <c-widget-stat-f [title]="'Total'" class="mb-3"
+        style="height: 70px; display: flex; align-items: left; justify-content: center" [value]="totalProductos">
         <ng-template cTemplateId="widgetIconTemplate">
-          <span style="font-size: 2.5em">🏷️</span>
+          <span style="font-size: 2.5em; color: black;" class="material-icons">restaurant</span>
+
         </ng-template>
       </c-widget-stat-f>
     </c-col>
 
     <c-col xs="3" xs="3">
       <c-widget-stat-f [title]="'Disponibles'" class="mb-3"
-        style="height: 70px; display: flex; align-items: left; justify-content: center" value="—">
+        style="height: 70px; display: flex; align-items: left; justify-content: center" [value]="totalActivos">
         <ng-template cTemplateId="widgetIconTemplate">
-          <span style="font-size: 2.5em">✅</span>
+          <span style="font-size: 2.5em; color: black;" class="material-icons">check_box</span>
+
         </ng-template>
       </c-widget-stat-f>
     </c-col>
 
     <c-col xs="3" xs="3">
       <c-widget-stat-f [title]="'No disponibles'" class="mb-3"
-        style="height: 70px; display: flex; align-items: left; justify-content: center" value="—">
+        style="height: 70px; display: flex; align-items: left; justify-content: center" [value]="totalInactivos">
         <ng-template cTemplateId="widgetIconTemplate">
-          <span style="font-size: 2.5em">⛔</span>
+          <span style="font-size: 2.5em; color: black;" class="material-icons">block</span>
+
         </ng-template>
       </c-widget-stat-f>
     </c-col>
 
     <c-col xs="3" xs="3">
-      <c-widget-stat-f [title]="'Productos'" class="mb-3"
-        style="height: 70px; display: flex; align-items: left; justify-content: center" [value]="productos.length">
+      <c-widget-stat-f [title]="'Categorias'" class="mb-3"
+        style="height: 70px; display: flex; align-items: left; justify-content: center" [value]="totalCategorias">
         <ng-template cTemplateId="widgetIconTemplate">
-          <span style="font-size: 2.5em">📦</span>
+          <span style="font-size: 2.5em; color: black;" class="material-icons">category</span>
+
         </ng-template>
       </c-widget-stat-f>
     </c-col>
-
-
-
   </c-row>
 
+  <c-row class="mt-4">
+    <c-col xs="12" md="4">
+      <div class="mb-2"><strong>Categorías</strong></div>
+      <div *ngIf="categoriasFiltradas.length === 0" class="text-muted">No hay categorías que coincidan.</div>
+      <div *ngFor="let categoria of categoriasFiltradas" class="mb-3">
+        <c-card [ngClass]="{'border-primary': selectedCat?.id_categoria === categoria.idCategoria, 'border-secondary': selectedCat?.id_categoria !== categoria.idCategoria}">
+          <c-card-body (click)="selectCat({ id_categoria: categoria.idCategoria, nombre: categoria.nombre })" style="cursor: pointer;">
+            <div class="d-flex justify-content-between align-items-center">
+              <strong>{{ categoria.nombre }}</strong>
+              <span class="badge bg-primary">{{ getProductosPorCategoria(categoria.idCategoria).length }}</span>
+            </div>
+          </c-card-body>
+        </c-card>
+      </div>
+    </c-col>
+
+    <c-col xs="12" md="8">
+      <div *ngIf="selectedCat; else selectHint">
+        <h5>{{ selectedCat.nombre }} ({{ getProductosPorCategoria(selectedCat.id_categoria).length }} productos)</h5>
+        <div *ngIf="getProductosPorCategoria(selectedCat.id_categoria).length === 0" class="text-muted">No hay productos en esta categoría.</div>
+        <div *ngFor="let prod of getProductosPorCategoria(selectedCat.id_categoria)" class="mb-2 p-2 rounded" style="border-radius: 5px;border: 1px solid;padding-left: 10px;padding-right: 10px;padding-top: 5px;padding-bottom: 5px;" >
+          <div class="d-flex justify-content-between align-items-center">
+
+            <div>
+              <strong>{{ prod.nombre }}</strong>
+              <div class="small text-muted">{{ prod.descripcion || 'Sin descripción' }}</div>
+            </div>
+            <span class="badge" [ngClass]="prod.estado === 1 ? 'bg-success' : 'bg-danger'">{{ prod.estado === 1 ? 'Disponible' : 'No disponible' }}</span>
+          </div>
+        </div>
+      </div>
+      <ng-template #selectHint>
+        <div class="text-muted">Selecciona una categoría a la izquierda para ver sus productos.</div>
+      </ng-template>
+    </c-col>
+  </c-row>
 
 </c-card-body>
 
@@ -81,70 +103,33 @@
           <strong>Lista de Categorías</strong>
           <small class="text-medium-emphasis"> (desde http://localhost:8080/api/categorias)</small>
         </div>
-        <div>
-          <div class="btn-group btn-group-sm" role="group" aria-label="Ver opciones">
-            <button type="button" class="btn btn-outline-primary" [class.active]="viewMode === 'table'"
-              (click)="setView('table')">
-              Lista
-            </button>
-            <button type="button" class="btn btn-outline-primary" [class.active]="viewMode === 'cards'"
-              (click)="setView('cards')">
-              Tarjetas
-            </button>
-          </div>
-        </div>
+
+        
       </c-card-header>
       <c-card-body>
         <div *ngIf="categoriasCargaError" class="alert alert-danger" role="alert">
           {{ categoriasCargaError }}
         </div>
 
+        <div *ngIf="!categoriasCargaError && categoriasFiltradas.length === 0 && categorias.length > 0" class="text-center text-muted">
+          No se encontraron categorías que coincidan con la búsqueda.
+        </div>
+
         <div *ngIf="!categoriasCargaError && categorias.length === 0" class="text-center text-muted">
           Cargando categorías... o no se encontraron categorías en el servidor.
         </div>
 
-        <div *ngIf="categorias.length > 0">
-          <div *ngIf="viewMode === 'table'" class="table-responsive">
-            <table class="table table-hover">
-              <thead>
-                <tr>
-                  <th>Nombre</th>
-                  <th>Descripción</th>
-                  <th>Productos</th>
-                  <th>Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let categoria of categorias">
-                  <td><strong>{{ categoria.nombre }}</strong></td>
-                  <td>{{ categoria.descripcion || '—' }}</td>
-                  <td>
-                    <span class="badge bg-primary">
-                      {{ getProductosPorCategoria(categoria.id_categoria).length }}
-                    </span>
-                  </td>
-                  <td>
-                    <button class="btn btn-sm btn-outline-primary me-2" title="Editar">
-                      ✏️
-                    </button>
-                    <button class="btn btn-sm btn-outline-danger" title="Eliminar">
-                      🗑️
-                    </button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+        <div *ngIf="categoriasFiltradas.length > 0">
+          
 
-          <div *ngIf="viewMode === 'cards'" class="row">
-            <div class="col-12 col-md-6 col-lg-4 mb-4" *ngFor="let categoria of categorias">
+          <div  class="row">
+            <div class="col-md-4 mb-4" *ngFor="let categoria of categoriasFiltradas">
               <c-card class="h-100">
                 <c-card-body>
                   <h5 class="card-title">{{ categoria.nombre }}</h5>
-                  <p class="card-text text-muted">{{ categoria.descripcion || '—' }}</p>
                   <div class="mb-3">
                     <small class="text-muted d-block">
-                      <strong>{{ getProductosPorCategoria(categoria.id_categoria).length }}</strong> productos
+                      <strong>{{ getProductosPorCategoria(categoria.idCategoria).length }}</strong> productos
                     </small>
                   </div>
                 </c-card-body>
@@ -180,10 +165,7 @@
         <input cFormControl formControlName="nombre" type="text" id="nombreCategoria" />
       </div>
 
-      <div class="mb-3">
-        <label cLabel for="descripcionCategoria">Descripción</label>
-        <textarea cFormControl formControlName="descripcion" id="descripcionCategoria" rows="3"></textarea>
-      </div>
+      
 
     <button cButton type="submit" color="primary">Guardar Categoría</button>
 

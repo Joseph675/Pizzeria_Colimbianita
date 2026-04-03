@@ -1,4 +1,4 @@
-﻿import { Component, OnInit, signal  } from '@angular/core';
+﻿import { Component, OnInit, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { NgForOf, NgIf, NgClass } from '@angular/common';
 import {
@@ -32,18 +32,18 @@ import {
   ToastBodyComponent,
   ToastComponent,
   ToasterComponent,
-  ToastHeaderComponent  
+  ToastHeaderComponent
 } from '@coreui/angular';
-import { FormsModule, ReactiveFormsModule,FormGroup, FormBuilder,Validators} from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { ToastSampleIconComponent } from './toast-sample-icon.component';
 
 @Component({
-  templateUrl: 'productos.component.html',
-  styleUrls: ['productos.component.scss'],
+  templateUrl: 'inventario.component.html',
+  styleUrls: ['inventario.component.scss'],
   standalone: true,
   imports: [ToastSampleIconComponent, NgIf, NgForOf, NgClass, CardBodyComponent, CardComponent, CardHeaderComponent, ColComponent, RowComponent, WidgetStatFComponent, TemplateIdDirective, ButtonDirective, ButtonCloseDirective, ModalBodyComponent, ModalComponent, ModalFooterComponent, ModalHeaderComponent, ModalTitleDirective, ModalToggleDirective, FormControlDirective, FormDirective, FormLabelDirective, FormCheckLabelDirective, FormCheckInputDirective, FormCheckComponent, CardFooterComponent, CardGroupComponent, CardImgDirective, CardTextDirective, CardTitleDirective, FormsModule, ReactiveFormsModule, ProgressComponent, ToastBodyComponent, ToastComponent, ToasterComponent, ToastHeaderComponent]
 })
-export class ProductosComponent implements OnInit {
+export class InventarioComponent implements OnInit {
   myForm!: FormGroup;
   selectedProducto: any = null;
 
@@ -64,10 +64,14 @@ export class ProductosComponent implements OnInit {
     this.toasts = this.toasts.filter((t) => t.id !== id);
   }
 
+  public inventario: { id_inventario: number; id_sucursal: number; id_ingrediente: number; cantidad_actual: number, cantidad_minima: number }[] = [];
 
   public productos: { id_producto: number; id_categoria: number; nombre: string; descripcion?: string; imagenUrl?: string; categoria: { idCategoria: number; nombre: string; }; estado?: number }[] = [];
   public productosFiltrados: { id_producto: number; id_categoria: number; nombre: string; descripcion?: string; imagenUrl?: string; categoria: { idCategoria: number; nombre: string; }; estado?: number }[] = [];
   public productosCargaError: string | null = null;
+  public inventarioCargaError: string | null = null;
+
+
   public categorias: { idCategoria: number; nombre: string }[] = [];
   public selectedCategoriaId: string = 'all';
   public selectedEstado: 'all' | 'active' | 'inactive' = 'all';
@@ -80,13 +84,13 @@ export class ProductosComponent implements OnInit {
   public categoriasCargaError: string | null = null;
   public viewMode: 'table' | 'cards' = 'table';
 
-  constructor(private http: HttpClient, private fromproductos: FormBuilder) { 
+  constructor(private http: HttpClient, private fromproductos: FormBuilder) {
 
     this.myForm = this.fromproductos.group({
-      idCategoria : ['', Validators.required],
-      nombre : ['', Validators.required],
-      descripcion : ['', Validators.required],
-      imagenUrl  : ['', Validators.required]
+      idCategoria: ['', Validators.required],
+      nombre: ['', Validators.required],
+      descripcion: ['', Validators.required],
+      imagenUrl: ['', Validators.required]
 
     });
 
@@ -95,12 +99,14 @@ export class ProductosComponent implements OnInit {
   ngOnInit(): void {
     this.loadproductos();
     this.loadcategorias();
+    this.loadinventario();
+
   }
 
   public setView(mode: 'table' | 'cards') {
     this.viewMode = mode;
   }
-  
+
 
   toggleToast() {
     this.visible.update((value) => !value);
@@ -116,7 +122,28 @@ export class ProductosComponent implements OnInit {
   }
 
 
-  
+  loadinventario(): void {
+    this.inventarioCargaError = null;
+    this.http
+      .get<{ id_inventario: number; id_sucursal: number; id_ingrediente: number; cantidad_actual: number, cantidad_minima: number }[]>('http://localhost:8080/api/inventario')
+      .subscribe(
+        (data) => {
+          // Ordenar productos por ID de manera ascendente para mantener orden consistente
+          this.inventario = (data || []).sort((a, b) => {
+            const idA = a.id_inventario || 0;
+            const idB = b.id_inventario || 0;
+            return idA - idB;
+          });
+          this.applyFilters();
+          this.updateStats();
+          console.log('Inventario cargado y ordenado por ID:', this.inventario);
+        },
+        (error) => {
+          console.error('Error al cargar el inventario:', error);
+          this.inventarioCargaError = 'No se pudo cargar la lista de inventario. Verifica el servidor.';
+        }
+      );
+  }
 
   loadproductos(): void {
     this.productosCargaError = null;
@@ -159,7 +186,7 @@ export class ProductosComponent implements OnInit {
   }
 
 
-   
+
 
   crearProducto(): void {
     if (this.myForm.valid) {

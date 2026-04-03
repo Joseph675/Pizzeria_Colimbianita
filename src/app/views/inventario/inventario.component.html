@@ -44,8 +44,6 @@
         <ng-template cTemplateId="widgetIconTemplate">
           <span style="font-size: 2.5em; color: black;" class="material-icons">check_box</span>
 
-
-
         </ng-template>
       </c-widget-stat-f>
     </c-col>
@@ -81,18 +79,7 @@
         <div>
           <strong>Lista de productos</strong>
         </div>
-        <div>
-          <div class="btn-group btn-group-sm" role="group" aria-label="Ver opciones">
-            <button type="button" class="btn btn-outline-primary" [class.active]="viewMode === 'table'"
-              (click)="setView('table')">
-              Lista
-            </button>
-            <button type="button" class="btn btn-outline-primary" [class.active]="viewMode === 'cards'"
-              (click)="setView('cards')">
-              Tarjetas
-            </button>
-          </div>
-        </div>
+        
       </c-card-header>
       <c-card-body>
         <div *ngIf="productosCargaError" class="alert alert-danger" role="alert">
@@ -108,7 +95,7 @@
           <!-- ---------------------------- -->
 
           <!-- Vista en tabla -->
-          <div *ngIf="viewMode === 'table'" class="table-responsive">
+          <div  class="table-responsive">
             <table class="table table-hover">
               <thead>
                 <tr>
@@ -120,14 +107,11 @@
                 </tr>
               </thead>
               <tbody>
-                <tr *ngFor="let producto of productosFiltrados" [ngClass]="{'opacity-50 text-muted': producto.estado === 0}">
-                  <td>{{ producto.categoria.nombre }}</td>
-                  <td>{{ producto.nombre }}</td>
-                  <td>{{ producto.descripcion || '—' }}</td>
-                  <td>
-                    <img [src]="producto.imagenUrl" [alt]="producto.nombre"
-                      style="max-width: 100px; max-height: 100px;" />
-                  </td>
+                <tr *ngFor="let inventario of inventario" >
+                  <td>{{ inventario.id_sucursal  }}</td>
+                  <td>{{ inventario.id_ingrediente  }}</td>
+                  <td>{{ inventario.cantidad_actual || '—' }}</td>
+                  <td>{{ inventario.cantidad_minima || '—' }}</td>
                   <td>
                     <button class="btn btn-sm btn-outline-primary me-2" title="Editar"
                       [cModalToggle]="editarproducto.id" (click)="openEditProductModal(producto)">
@@ -147,53 +131,7 @@
 
           <!-- ---------------------------- -->
 
-          <!-- Vista en tarjetas -->
-
-          <div *ngIf="viewMode === 'cards'" class="row">
-            <div class="col-12 col-md-6 col-lg-4 mb-4" *ngFor="let producto of productosFiltrados">
-
-              <c-card [ngClass]="{'opacity-50': producto.estado === 0}">
-                <div style="position: relative;">
-                  <img style="border-bottom:1px solid black; width: 100%; display: block;" cCardImg="top"
-                    *ngIf="producto.imagenUrl" [src]="producto.imagenUrl" [alt]="producto.nombre">
-                  <div style="position: absolute; top: 10px; right: 10px;">
-                    <c-form-check [switch]="true">
-                      <input cFormCheckInput type="checkbox" [checked]="producto.estado === 1"
-                        (change)="toggleProductoEstado(producto)" />
-                    </c-form-check>
-                  </div>
-                </div>
-                <c-card-body>
-
-                  <small class="text-muted"><span class="badge bg-warning">{{ producto.categoria.nombre}}</span></small>
-                  <h5 cCardTitle>{{ producto.nombre }}</h5>
-
-                  <p cCardText>
-                    {{ producto.descripcion || '—' }}
-                  </p>
-                </c-card-body>
-                <c-card-footer class="d-flex justify-content-end gap-2">
-
-                  <button cButton color="primary" variant="outline" [cModalToggle]="editarproducto.id"
-                    (click)="openEditProductModal(producto)" class="d-flex align-items-center justify-content-center">
-
-                    <span class="material-icons">edit</span>
-
-                  </button>
-
-                  <button cButton color="danger" variant="outline" [cModalToggle]="eliminarproducto.id"
-                    (click)="openDeleteProductModal(producto)" class="d-flex align-items-center justify-content-center">
-
-                    <span class="material-icons">delete</span>
-
-                  </button>
-
-                </c-card-footer>
-              </c-card>
-
-
-            </div>
-          </div>
+          
         </div>
       </c-card-body>
     </c-card>
