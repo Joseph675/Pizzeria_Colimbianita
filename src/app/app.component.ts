@@ -14,7 +14,7 @@ import { iconSubset } from './icons/icon-subset';
     imports: [RouterOutlet]
 })
 export class AppComponent implements OnInit {
-  title = 'Sistemas de Asistencias';
+  title = 'Pizzeria Colombianita';
 
   readonly #destroyRef: DestroyRef = inject(DestroyRef);
   readonly #activatedRoute: ActivatedRoute = inject(ActivatedRoute);

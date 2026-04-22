@@ -1,100 +1,87 @@
-<!--<c-header class="mb-4 d-print-none" position="sticky">-->
-<ng-container>
-  <c-container [fluid]="true" class="border-bottom px-4">
-    <button
-      [cSidebarToggle]="sidebarId()"
-      cHeaderToggler
-      class="btn"
-      toggle="visible"
-      style="margin-inline-start: -14px;"
-      aria-label="Toggle sidebar navigation"
-    >
-      <svg cIcon name="cilMenu" size="lg"></svg>
+<!-- ══════ TOP NAVBAR ══════ -->
+<nav class="topbar">
+  <!-- Logo -->
+  <a routerLink="/" class="tb-logo">
+    <div class="logo-icon" style="background-image: url('assets/icon.png');"></div>
+    <span class="logo-text">Pizzeria<span>&amp;</span>Colombianita</span>
+    <span class="admin-badge">Admin</span>
+  </a>
+
+  <!-- Breadcrumb -->
+  <div class="tb-breadcrumb">
+    <span>Panel</span>
+    <span class="sep">›</span>
+    <span class="current">Dashboard</span>
+  </div>
+
+  <div class="tb-spacer"></div>
+
+  <!-- Live metrics -->
+  <div class="tb-metrics">
+    <div class="metric-chip">
+      <div class="metric-dot green"></div>
+      <span class="metric-val">12</span>
+      <span class="metric-label">pedidos activos</span>
+    </div>
+    <div class="metric-divider"></div>
+    <div class="metric-chip">
+      <div class="metric-dot gold"></div>
+      <span class="metric-val">$1.24M</span>
+      <span class="metric-label">hoy</span>
+    </div>
+    <div class="metric-divider"></div>
+    <div class="metric-chip">
+      <div class="metric-dot red"></div>
+      <span class="metric-val">3</span>
+      <span class="metric-label">alertas</span>
+    </div>
+  </div>
+
+  <!-- Search -->
+  <div class="tb-search">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input type="text" placeholder="Buscar pedido, cliente…"/>
+    <span class="search-kbd">⌘K</span>
+  </div>
+
+  <!-- Actions -->
+  <div class="tb-actions">
+    <!-- Notifications -->
+    <button class="icon-btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+      <div class="notif-badge">5</div>
     </button>
-   
 
-    <c-header-nav class="d-none d-md-flex ms-auto ">
-    </c-header-nav>
-
-    <c-header-nav class="ms-auto ms-md-0">
-      <div class="nav-item py-1">
-        <div class="vr h-100 mx-2 text-body text-opacity-75"></div>
-      </div>
-      <ng-container *ngTemplateOutlet="themeDropdown" />
-      <div class="nav-item py-1">
-        <div class="vr h-100 mx-2 text-body text-opacity-75"></div>
-      </div>
-    </c-header-nav>
-
-    <c-header-nav class="mx-0">
-      <ng-container *ngTemplateOutlet="userDropdown" />
-    </c-header-nav>
-
-  </c-container>
-  <c-container [fluid]="true" class="px-4">
-    <c-breadcrumb-router />
-  </c-container>
-</ng-container>
-<!--</c-header>-->
+    <ng-container *ngTemplateOutlet="userDropdown" />
+  </div>
+</nav>
 
 <ng-template #userDropdown>
-  <c-dropdown [popperOptions]="{ placement: 'bottom-start' }" variant="nav-item">
-    <button [caret]="false" cDropdownToggle class="py-0 pe-0" aria-label="Open user menu">
-      <c-avatar
-        shape="rounded-1"
-        [size]="'md'"
-        src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/59/User-avatar.svg/2048px-User-avatar.svg.png"
-        status="success"
-        textColor="primary"
-        alt="User avatar"
-      />
-    </button>
-    <ul cDropdownMenu class="pt-0 w-auto">
-      <h6 class="text-center py-2" style="margin-top: 8px;">{{ userName }}</h6>
+  <c-dropdown [popperOptions]="{ placement: 'bottom-end' }">
+    <!-- Admin user (Utiliza el toggle de CoreUI adaptado al mockup) -->
+    <div class="admin-user" cDropdownToggle [caret]="false">
+      <div class="av">AD</div>
+      <div class="user-info">
+        <div class="user-name">{{ userName || 'Admin' }}</div>
+        <div class="user-role">Super Admin</div>
+      </div>
+      <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+
+    <ul cDropdownMenu class="pt-0 w-auto custom-dropdown">
+      <h6 class="text-center py-2" style="margin-top: 8px; color: #fff;">{{ userName || 'Admin' }}</h6>
+      <li><hr cDropdownDivider class="custom-divider"/></li>
       <li>
-        <hr cDropdownDivider />
-      </li>
-     
-      <li></li>
-      <li>
-        <a cDropdownItem routerLink="">
-          <svg cIcon class="me-2" name="cilUser"></svg>
-          Profile
+        <a cDropdownItem routerLink="" class="custom-dropdown-item">
+          <svg cIcon class="me-2" name="cilUser" style="width: 16px;"></svg> Profile
         </a>
       </li>
-      
-      
+      <li><hr cDropdownDivider class="custom-divider"/></li>
       <li>
-        <hr cDropdownDivider />
-      </li>
-     
-      <li>
-        <a cDropdownItem routerLink="">
-          <svg cIcon class="me-2" name="cilAccountLogout" (click)="logout()"></svg>
-          Logout
+        <a cDropdownItem href="javascript:void(0)" (click)="logout()" class="custom-dropdown-item text-danger">
+          <svg cIcon class="me-2" name="cilAccountLogout" style="width: 16px;"></svg> Logout
         </a>
       </li>
     </ul>
-  </c-dropdown>
-</ng-template>
-
-<ng-template #themeDropdown>
-  <c-dropdown alignment="end" variant="nav-item">
-    <button [caret]="false" cDropdownToggle aria-label="Open theme picker">
-      <svg cIcon [name]="icons()" size="lg"></svg>
-    </button>
-    <div cDropdownMenu>
-      @for (mode of colorModes; track mode.name) {
-        <button
-          (click)="colorMode.set(mode.name)"
-          [active]="colorMode()===mode.name"
-          cDropdownItem
-          class="d-flex align-items-center"
-        >
-          <svg cIcon class="me-2" [name]="mode.icon" size="lg"></svg>
-          {{ mode.text }}
-        </button>
-      }
-    </div>
   </c-dropdown>
 </ng-template>

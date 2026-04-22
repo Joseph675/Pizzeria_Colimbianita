@@ -1,44 +1,25 @@
-<!--sidebar-->
-<c-sidebar
-  #sidebar1="cSidebar"
-  class="d-print-none sidebar sidebar-fixed border-end"
-  colorScheme="dark"
-  id="sidebar1"
-  visible
->
-  <c-sidebar-header class="border-bottom" style="padding-top: 0px;padding-bottom: 0px;">
-    <c-sidebar-brand [routerLink]="[]">
+<div class="bg"></div>
+<div class="grain"></div>
 
-      <img src="assets/logo.png" alt="Logo" style="height: 150px;" />
-    </c-sidebar-brand>
-  </c-sidebar-header>
+<!-- ══════ TOP NAVBAR ══════ -->
+<!-- Delegamos el Topbar a tu componente default-header para preservar la lógica del dropdown y cierre de sesión -->
+<app-default-header></app-default-header>
 
-  <ng-scrollbar pointerEventsMethod="scrollbar" visibility="hover">
-    <app-custom-sidebar-nav [navItems]="navItems" />
-  </ng-scrollbar>
+<!-- ══════ SIDEBAR ══════ -->
+<aside class="sidebar">
+  
+  <!-- El sidebar dinamico renderizado desde _nav.ts -->
+  <app-custom-sidebar-nav [navItems]="navItems"></app-custom-sidebar-nav>
 
-  @if (!sidebar1.narrow) {
-    <c-sidebar-footer cSidebarToggle="sidebar1" class="border-top d-none d-lg-flex" toggle="unfoldable" style="cursor: pointer;">
-      <button cSidebarToggler aria-label="Toggle sidebar fold"></button>
-    </c-sidebar-footer>
-  }
-</c-sidebar>
-
-<!--main-->
-<div class="wrapper d-flex flex-column min-vh-100">
-  <!--app-header-->
-  <app-default-header
-    [cShadowOnScroll]="'sm'"
-    class="mb-4 d-print-none header header-sticky p-0 shadow-sm"
-    position="sticky"
-    sidebarId="sidebar1"
-  />
-  <!--app-body-->
-  <div class="body flex-grow-1">
-    <c-container breakpoint="lg" class="h-auto px-4">
-      <router-outlet />
-    </c-container>
+  <div class="sidebar-footer">
+    <a href="javascript:void(0)" class="side-link danger" (click)="logout()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Cerrar sesión
+    </a>
   </div>
-  <!--app footer-->
-  <app-default-footer />
-</div>
+</aside>
+
+<!-- ══════ MAIN CONTENT ══════ -->
+<main class="main">
+  <router-outlet></router-outlet>
+</main>

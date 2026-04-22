@@ -1,4 +1,4 @@
-import { RouterLink, RouterOutlet } from '@angular/router';
+import { RouterLink, RouterOutlet, Router } from '@angular/router';
 import { NgScrollbar } from 'ngx-scrollbar';
 import { AuthService } from '../../services/auth.service';
 import { INavData } from '@coreui/angular';
@@ -55,7 +55,7 @@ function isOverflown(element: HTMLElement) {
 export class DefaultLayoutComponent implements OnInit{
   public navItems = [...navItems];
 
-  constructor(private authService: AuthService) {}
+  constructor(private authService: AuthService, private router: Router) {}
 
   ngOnInit(): void {
     const user = this.authService.getUser(); // Recuperar el usuario desde localStorage
@@ -70,5 +70,10 @@ export class DefaultLayoutComponent implements OnInit{
       // Mostrar solo si el tipo de usuario está en `allowedFor`
       return item.allowedFor.includes(userType);
     });
+  }
+
+  logout() {
+    this.authService.logout();
+    this.router.navigate(['/login']);
   }
 }
