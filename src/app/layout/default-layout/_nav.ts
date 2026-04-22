@@ -49,6 +49,11 @@ export const navItems: CustomNavData[] = [
   },
 
   {
+    name: 'Ingredientes',
+    url: '/ingredientes',
+    materialIcon: 'local_pizza',  // Material icon name
+  },
+  {
     name: 'Inventario',
     url: '/inventario',
     materialIcon: 'inventory',  // Material icon name
@@ -62,7 +67,7 @@ export const navItems: CustomNavData[] = [
 
   {
     name: 'Usuario y Roles',
-    url: '/usuarios-roles',
+    url: '/usuarios',
     materialIcon: 'people',  // Material icon name
   },
 

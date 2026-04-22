@@ -1,0 +1,252 @@
+<c-card-body>
+
+
+  <c-row>
+
+    <div class="ph-left">
+      <div class="ph-title">Mis <em>Ingredientes</em></div>
+      <div class="ph-sub">{{totalIngredientes}} ingredientes registrados · Vinculados a productos</div>
+    </div>
+      
+    <!-- Filtros y botón de nuevo ingrediente -->
+    <div class="col-md-9" style="padding-top: 10px;">
+      <input id="search" type="text" class="form-control" placeholder="🔍 Buscar Ingrediente" [value]="searchTerm"
+        (input)="onSearch($any($event.target).value)" />
+    </div>
+
+
+    <div class="col-md-3 d-flex justify-content-end">
+      <button cButton color="primary" shape="rounded-pill" [cModalToggle]="nuevoproducto.id"
+        (click)="prepararNuevoIngrediente()">+ Nuevo Ingrediente</button>
+    </div>
+
+  </c-row>
+  <div class="col-md-3 d-flex justify-content-end mb-2"></div>
+
+
+
+
+</c-card-body>
+
+<c-row class="mt-4">
+  <c-col xs="12">
+    <c-card>
+      <c-card-header class="d-flex justify-content-between align-items-center">
+        <div>
+          <strong>Lista de Ingredientes</strong>
+        </div>
+        <div>
+          <div class="btn-group btn-group-sm" role="group" aria-label="Ver opciones">
+            <button type="button" class="btn btn-outline-primary" [class.active]="viewMode === 'table'"
+              (click)="setView('table')">
+              Lista
+            </button>
+            <button type="button" class="btn btn-outline-primary" [class.active]="viewMode === 'cards'"
+              (click)="setView('cards')">
+              Tarjetas
+            </button>
+          </div>
+        </div>
+      </c-card-header>
+
+
+      <c-card-body>
+
+        <!-- Vista en tabla -->
+        <div *ngIf="viewMode === 'table'" class="table-responsive">
+          <table class="table ">
+            <thead>
+              <tr>
+                <th>Id</th>
+                <th>Nombre</th>
+                <th>Unidad de Medida</th>
+                <th>Costo Unitario</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let ingre of ingredientesFiltrados">
+                <td>{{ ingre.idIngrediente }}</td>
+
+                <td>{{ ingre.nombre }}</td>
+                <td>{{ ingre.unidadMedida }}</td>
+                <td>{{ ingre.costoUnitario | currency }}</td>
+                <td>
+                  <button class="btn btn-sm btn-outline-primary me-2" title="Editar"
+                    [cModalToggle]="editaringrediente.id" (click)="openEditIngredienteModal(ingre)">
+                    ✏️
+                  </button>
+                  <button class="btn btn-sm btn-outline-danger" title="Eliminar" [cModalToggle]="eliminaringrediente.id"
+                    (click)="openDeleteIngredienteModal(ingre)">
+                    🗑️
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <!-- Vista en tabla -->
+
+        <!-- ---------------------------- -->
+
+        <!-- Vista en tarjetas -->
+
+        <div *ngIf="viewMode === 'cards'" class="row">
+          <div class="col-12 col-md-6 col-lg-4 mb-4" *ngFor="let ingre of ingredientesFiltrados">
+
+            <c-card>
+              <c-card-body>
+                <h5 cCardTitle>{{ ingre.nombre }}</h5>
+                <p cCardText>
+                  Medida: <strong>{{ ingre.unidadMedida }}</strong><br>
+                  Costo: <strong>{{ ingre.costoUnitario | currency }}</strong>
+                </p>
+              </c-card-body>
+              <c-card-footer class="d-flex justify-content-end gap-2">
+
+                <button cButton color="primary" variant="outline" [cModalToggle]="editaringrediente.id"
+                  (click)="openEditIngredienteModal(ingre)" class="d-flex align-items-center justify-content-center">
+                  <span class="material-icons">edit</span>
+                </button>
+
+                <button cButton color="danger" variant="outline" [cModalToggle]="eliminaringrediente.id"
+                  (click)="openDeleteIngredienteModal(ingre)" class="d-flex align-items-center justify-content-center">
+                  <span class="material-icons">delete</span>
+                </button>
+
+              </c-card-footer>
+            </c-card>
+
+
+          </div>
+        </div>
+      </c-card-body>
+
+    </c-card>
+  </c-col>
+</c-row>
+<!-- Vista en tarjetas -->
+
+<!-- ---------------------------- -->
+
+<!-- Modal para nuevo ingrediente -->
+<c-modal #nuevoproducto alignment="center" id="nuevoproducto">
+  <c-modal-header>
+    <h5 cModalTitle>Nuevo Ingrediente</h5>
+    <button [cModalToggle]="nuevoproducto.id" cButtonClose></button>
+  </c-modal-header>
+  <c-modal-body>
+
+    <form id="formNuevoIngrediente" [formGroup]="myForm" (ngSubmit)="crearIngrediente()">
+
+
+      <div class="col mb-2">
+        <label cLabel for="exampleFormControlInput1">Nombre</label>
+        <input cFormControl formControlName="nombre" type="text" />
+      </div>
+
+      <div class="mb-3">
+        <label cLabel for="exampleFormControlTextarea1">Unidad de medida</label>
+        <input cFormControl formControlName="unidadMedida" type="text" />
+
+      </div>
+
+      <div class="mb-3">
+        <label cLabel for="exampleFormControlInput1">Costo unitario</label>
+        <input cFormControl formControlName="costoUnitario" placeholder="Costo unitario" type="number" />
+      </div>
+
+    </form>
+
+  </c-modal-body>
+  <c-modal-footer>
+    <button [cModalToggle]="nuevoproducto.id" cButton color="danger">
+      Cancelar
+    </button>
+    <button [cModalToggle]="nuevoproducto.id" cButton type="submit" form="formNuevoIngrediente" color="primary">
+      Guardar Ingrediente
+    </button>
+  </c-modal-footer>
+</c-modal>
+<!-- Modal para nuevo producto -->
+
+<!-- ---------------------------- -->
+
+<!-- Modal para editar ingrediente -->
+<c-modal #editaringrediente alignment="center" id="editaringrediente">
+  <c-modal-header>
+    <h5 cModalTitle>Editar Ingrediente</h5>
+    <button [cModalToggle]="editaringrediente.id" cButtonClose></button>
+  </c-modal-header>
+  <c-modal-body>
+
+    <form id="formEditarIngrediente" [formGroup]="myForm" (ngSubmit)="actualizarIngrediente()">
+      <div class="col mb-2">
+        <label cLabel for="exampleFormControlInput1">Nombre</label>
+        <input cFormControl formControlName="nombre" type="text" />
+      </div>
+      <div class="mb-3">
+        <label cLabel for="exampleFormControlTextarea1">Unidad de medida</label>
+        <input cFormControl formControlName="unidadMedida" type="text" />
+      </div>
+
+      <div class="mb-3">
+        <label cLabel for="exampleFormControlInput1">Costo unitario</label>
+        <input cFormControl formControlName="costoUnitario" placeholder="Costo unitario" type="number" />
+      </div>
+
+    </form>
+
+  </c-modal-body>
+  <c-modal-footer>
+    <button [cModalToggle]="editaringrediente.id" cButton color="danger">
+      Cancelar
+    </button>
+    <button  cButton type="submit" form="formEditarIngrediente" color="primary">
+      Guardar Cambios
+    </button>
+  </c-modal-footer>
+</c-modal>
+<!-- Modal para editar ingrediente -->
+
+<!-- ---------------------------- -->
+
+<!-- Modal para CONFIRMAR ELIMINACIÓN de ingrediente -->
+<c-modal #eliminaringrediente alignment="center" id="eliminaringrediente">
+  <c-modal-header>
+    <h5 cModalTitle>Eliminar Ingrediente</h5>
+    <button [cModalToggle]="eliminaringrediente.id" cButtonClose></button>
+  </c-modal-header>
+  <c-modal-body>
+    <p style="text-align: center; font-size: 3rem;">
+      🗑️
+    </p>
+
+    <p class="mb-3" style="text-align: center;">
+      Esta acción no se puede deshacer.
+    </p>
+    <p class="mb-0" style="text-align: center;">
+      El ingrediente <strong>{{ selectedIngrediente?.nombre }}</strong> será eliminado permanentemente.
+    </p>
+  </c-modal-body>
+  <c-modal-footer>
+    <button [cModalToggle]="eliminaringrediente.id" cButton color="secondary">
+      Cancelar
+    </button>
+    <button cButton color="danger" style="color: white;" (click)="confirmEliminar(selectedIngrediente?.idIngrediente)"
+      [cModalToggle]="eliminaringrediente.id">
+      Eliminar Permanentemente
+    </button>
+  </c-modal-footer>
+</c-modal>
+<!-- Modal para eliminar ingrediente -->
+
+
+<!-- Toast -->
+
+<c-toaster [placement]="'top-end'" class="p-3" position="fixed">
+  <c-toast *ngFor="let toast of toasts" [autohide]="true" [fade]="true" [visible]="true" [color]="toast.type"
+    style="min-width: 220px; margin-bottom: 8px;">
+    <c-toast-body>{{ toast.message }}</c-toast-body>
+  </c-toast>
+</c-toaster>

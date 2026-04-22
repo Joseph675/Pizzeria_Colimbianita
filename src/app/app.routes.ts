@@ -36,75 +36,18 @@ export const routes: Routes = [
         canActivate: [AuthGuard]
       },
       {
-        path: 'theme',
-        loadChildren: () => import('./views/theme/routes').then((m) => m.routes),
+        path: 'ingredientes',
+        loadChildren: () => import('./views/ingredientes/routes').then((m) => m.routes),
         canActivate: [AuthGuard]
       },
       {
-        path: 'base',
-        loadChildren: () => import('./views/base/routes').then((m) => m.routes),
+        path: 'usuarios',
+        loadChildren: () => import('./views/usuarios/routes').then((m) => m.routes),
         canActivate: [AuthGuard]
       },
-      {
-        path: 'buttons',
-        loadChildren: () => import('./views/buttons/routes').then((m) => m.routes),
-        canActivate: [AuthGuard]
-      },
-      {
-        path: 'forms',
-        loadChildren: () => import('./views/forms/routes').then((m) => m.routes),
-        canActivate: [AuthGuard],
-        data: { allowedRoles: ['Admin'] }
-      },
-      {
-        path: 'tables',
-        loadChildren: () => import('./views/tables/routes').then((m) => m.routes),
-        canActivate: [AuthGuard],
-        data: { allowedRoles: ['Admin'] }
-      },
-      {
-        path: 'alumnos',
-        loadChildren: () => import('./views/alumnos/routes').then((m) => m.routes),
-        canActivate: [AuthGuard],
-        data: { allowedRoles: ['Alumno'] }
-      },
-      {
-        path: 'asistencias',
-        loadChildren: () => import('./views/asistencias/routes').then((m) => m.routes),
-        canActivate: [AuthGuard],
-        data: { allowedRoles: ["Profesor"] }
-      },
-       {
-        path: 'vercursos',
-        loadChildren: () => import('./views/cursosprofesor/routes').then((m) => m.routes),
-        canActivate: [AuthGuard],
-        data: { allowedRoles: ["Profesor"] }
-      },
-      {
-        path: 'icons',
-        loadChildren: () => import('./views/icons/routes').then((m) => m.routes),
-        canActivate: [AuthGuard]
-      },
-      {
-        path: 'notifications',
-        loadChildren: () => import('./views/notifications/routes').then((m) => m.routes),
-        canActivate: [AuthGuard]
-      },
-      {
-        path: 'widgets',
-        loadChildren: () => import('./views/widgets/routes').then((m) => m.routes),
-        canActivate: [AuthGuard]
-      },
-      {
-        path: 'charts',
-        loadChildren: () => import('./views/charts/routes').then((m) => m.routes),
-        canActivate: [AuthGuard]
-      },
-      {
-        path: 'pages',
-        loadChildren: () => import('./views/pages/routes').then((m) => m.routes),
-        canActivate: [AuthGuard]
-      }
+      
+      
+     
     ]
   },
   

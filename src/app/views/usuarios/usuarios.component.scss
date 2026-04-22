@@ -1,0 +1,14 @@
+:host {
+  .legend {
+    small {
+      font-size: x-small;
+    }
+  }
+}
+
+ .ph { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:1.8rem; gap:1rem; flex-wrap:wrap; }
+    .ph-left {}
+    .ph-title { font-family:'Bebas Neue',sans-serif; font-size:2rem; letter-spacing:.05em; color:var(--white); line-height:1; }
+    .ph-title em { color:var(--gold); font-style:normal; }
+    .ph-sub { font-size:.78rem; color:var(--muted); margin-top:.3rem; font-weight:300; }
+    .ph-actions { display:flex; gap:.7rem; align-items:center; }
