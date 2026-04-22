@@ -107,21 +107,20 @@
                 </tr>
               </thead>
               <tbody>
-                <tr *ngFor="let inventario of inventario" >
-                  <td>{{ inventario.id_sucursal  }}</td>
-                  <td>{{ inventario.id_ingrediente  }}</td>
-                  <td>{{ inventario.cantidad_actual || '—' }}</td>
-                  <td>{{ inventario.cantidad_minima || '—' }}</td>
+                <tr *ngFor="let item of inventario" >
+                  <td>{{ item.id_sucursal  }}</td>
+                  <td>{{ item.id_ingrediente  }}</td>
+                  <td>{{ item.cantidad_actual || '—' }}</td>
+                  <td>{{ item.cantidad_minima || '—' }}</td>
                   <td>
                     <button class="btn btn-sm btn-outline-primary me-2" title="Editar"
-                      [cModalToggle]="editarproducto.id" (click)="openEditProductModal(producto)">
+                      [cModalToggle]="editarproducto.id" (click)="openEditProductModal(item)">
                       ✏️
                     </button>
                     <button class="btn btn-sm btn-outline-danger" title="Inactivar"
-                      (click)="inactivarProducto(producto)">
+                      (click)="inactivarProducto(item)">
                       🗑️
                     </button>
-                    <span *ngIf="producto.estado === 0" class="badge bg-warning ms-2">Inactivo</span>
                   </td>
                 </tr>
               </tbody>
