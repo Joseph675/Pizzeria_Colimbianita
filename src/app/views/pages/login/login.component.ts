@@ -32,7 +32,9 @@ export class LoginComponent {
       },
       error: (err) => {
         console.error('Error al iniciar sesión:', err);
-        alert('Credenciales incorrectas. Por favor, inténtalo de nuevo.');
+        // Capturar correctamente el mensaje dependiendo de si el backend manda un texto o un JSON
+        const errorMessage = typeof err.error === 'string' ? err.error : (err.error?.message || err.error?.error || 'Credenciales incorrectas. Por favor, inténtalo de nuevo.');
+        alert(errorMessage);
       }
     });
   }

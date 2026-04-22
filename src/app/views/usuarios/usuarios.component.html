@@ -4,20 +4,20 @@
   <c-row>
 
     <div class="ph-left">
-      <div class="ph-title">Mis <em>Ingredientes</em></div>
-      <div class="ph-sub">{{totalIngredientes}} ingredientes registrados · Vinculados a productos</div>
+      <div class="ph-title">Mis <em>Usuarios</em></div>
+      <div class="ph-sub">{{totalUsuarios}} usuarios registrados</div>
     </div>
-      
-    <!-- Filtros y botón de nuevo ingrediente -->
+
+    <!-- Filtros y botón de nuevo usuario -->
     <div class="col-md-9" style="padding-top: 10px;">
-      <input id="search" type="text" class="form-control" placeholder="🔍 Buscar Ingrediente" [value]="searchTerm"
+      <input id="search" type="text" class="form-control" placeholder="🔍 Buscar Usuario" [value]="searchTerm"
         (input)="onSearch($any($event.target).value)" />
     </div>
 
 
     <div class="col-md-3 d-flex justify-content-end">
-      <button cButton color="primary" shape="rounded-pill" [cModalToggle]="nuevoproducto.id"
-        (click)="prepararNuevoIngrediente()">+ Nuevo Ingrediente</button>
+      <button cButton color="primary" shape="rounded-pill" [cModalToggle]="nuevousuario.id"
+        (click)="prepararNuevoUsuarios()">+ Nuevo Usuario</button>
     </div>
 
   </c-row>
@@ -33,7 +33,7 @@
     <c-card>
       <c-card-header class="d-flex justify-content-between align-items-center">
         <div>
-          <strong>Lista de Ingredientes</strong>
+          <strong>Lista de Usuarios</strong>
         </div>
         <div>
           <div class="btn-group btn-group-sm" role="group" aria-label="Ver opciones">
@@ -59,25 +59,26 @@
               <tr>
                 <th>Id</th>
                 <th>Nombre</th>
-                <th>Unidad de Medida</th>
-                <th>Costo Unitario</th>
+                <th>Email</th>
+                <th>Rol</th>
+                <th>Sucursal</th>
                 <th>Acciones</th>
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let ingre of ingredientesFiltrados">
-                <td>{{ ingre.idIngrediente }}</td>
-
-                <td>{{ ingre.nombre }}</td>
-                <td>{{ ingre.unidadMedida }}</td>
-                <td>{{ ingre.costoUnitario | currency }}</td>
+              <tr *ngFor="let usu of usuariosFiltrados">
+                <td>{{ usu.idUsuario }}</td>
+                <td>{{ usu.nombres }}</td>
+                <td>{{ usu.email }}</td>
+                <td>{{ usu.rol?.nombre }}</td>
+                <td>{{ usu.sucursal?.nombre }}</td>
                 <td>
                   <button class="btn btn-sm btn-outline-primary me-2" title="Editar"
-                    [cModalToggle]="editaringrediente.id" (click)="openEditIngredienteModal(ingre)">
+                    [cModalToggle]="editarusuario.id" (click)="openEditUsuarioModal(usu)">
                     ✏️
                   </button>
-                  <button class="btn btn-sm btn-outline-danger" title="Eliminar" [cModalToggle]="eliminaringrediente.id"
-                    (click)="openDeleteIngredienteModal(ingre)">
+                  <button class="btn btn-sm btn-outline-danger" title="Eliminar" [cModalToggle]="eliminarusuario.id"
+                    (click)="openDeleteUsuarioModal(usu)">
                     🗑️
                   </button>
                 </td>
@@ -92,25 +93,25 @@
         <!-- Vista en tarjetas -->
 
         <div *ngIf="viewMode === 'cards'" class="row">
-          <div class="col-12 col-md-6 col-lg-4 mb-4" *ngFor="let ingre of ingredientesFiltrados">
+          <div class="col-12 col-md-6 col-lg-4 mb-4" *ngFor="let usu of usuariosFiltrados">
 
             <c-card>
               <c-card-body>
-                <h5 cCardTitle>{{ ingre.nombre }}</h5>
+                <h5 cCardTitle>{{ usu.nombres }}</h5>
                 <p cCardText>
-                  Medida: <strong>{{ ingre.unidadMedida }}</strong><br>
-                  Costo: <strong>{{ ingre.costoUnitario | currency }}</strong>
+                  Rol: <strong>{{ usu.rol?.nombre }}</strong><br>
+                  Sucursal: <strong>{{ usu.sucursal?.nombre }}</strong>
                 </p>
               </c-card-body>
               <c-card-footer class="d-flex justify-content-end gap-2">
 
-                <button cButton color="primary" variant="outline" [cModalToggle]="editaringrediente.id"
-                  (click)="openEditIngredienteModal(ingre)" class="d-flex align-items-center justify-content-center">
+                <button cButton color="primary" variant="outline" [cModalToggle]="editarusuario.id"
+                  (click)="openEditUsuarioModal(usu)" class="d-flex align-items-center justify-content-center">
                   <span class="material-icons">edit</span>
                 </button>
 
-                <button cButton color="danger" variant="outline" [cModalToggle]="eliminaringrediente.id"
-                  (click)="openDeleteIngredienteModal(ingre)" class="d-flex align-items-center justify-content-center">
+                <button cButton color="danger" variant="outline" [cModalToggle]="eliminarusuario.id"
+                  (click)="openDeleteUsuarioModal(usu)" class="d-flex align-items-center justify-content-center">
                   <span class="material-icons">delete</span>
                 </button>
 
@@ -129,93 +130,131 @@
 
 <!-- ---------------------------- -->
 
-<!-- Modal para nuevo ingrediente -->
-<c-modal #nuevoproducto alignment="center" id="nuevoproducto">
+<!-- Modal para nuevo usuario -->
+<c-modal #nuevousuario alignment="center" id="nuevousuario">
   <c-modal-header>
-    <h5 cModalTitle>Nuevo Ingrediente</h5>
-    <button [cModalToggle]="nuevoproducto.id" cButtonClose></button>
+    <h5 cModalTitle>Nuevo Usuario</h5>
+    <button [cModalToggle]="nuevousuario.id" cButtonClose></button>
   </c-modal-header>
   <c-modal-body>
 
-    <form id="formNuevoIngrediente" [formGroup]="myForm" (ngSubmit)="crearIngrediente()">
+    <form id="formNuevoUsuario" [formGroup]="myForm" (ngSubmit)="crearUsuarios()">
+
+      <div class="row">
+        <div class="col mb-2">
+          <label cLabel for="exampleFormControlInput1">Sucursal</label>
+          <select class="form-select"  formControlName="idSucursal">
+            <option *ngFor="let sucursal of sucursales" [value]="sucursal.idSucursal">
+              {{ sucursal.nombre }}
+            </option>
+          </select>
+        </div>
+
+        <div class="col mb-2">
+          <label cLabel for="exampleFormControlInput1">Rol</label>
+         <select class="form-select"  formControlName="idRol">
+            <option *ngFor="let rol of roles" [value]="rol.idRol">
+              {{ rol.nombre }}
+            </option>
+          </select>
+        </div>
+
+      </div>
 
 
       <div class="col mb-2">
         <label cLabel for="exampleFormControlInput1">Nombre</label>
-        <input cFormControl formControlName="nombre" type="text" />
+        <input cFormControl formControlName="nombres" type="text" />
       </div>
 
       <div class="mb-3">
-        <label cLabel for="exampleFormControlTextarea1">Unidad de medida</label>
-        <input cFormControl formControlName="unidadMedida" type="text" />
-
+        <label cLabel for="exampleFormControlTextarea1">Email</label>
+        <input cFormControl formControlName="email" type="email" />
       </div>
 
       <div class="mb-3">
-        <label cLabel for="exampleFormControlInput1">Costo unitario</label>
-        <input cFormControl formControlName="costoUnitario" placeholder="Costo unitario" type="number" />
+        <label cLabel for="exampleFormControlInput1">Password</label>
+        <input cFormControl formControlName="passwordHash" placeholder="Password" type="password" />
       </div>
 
     </form>
 
   </c-modal-body>
   <c-modal-footer>
-    <button [cModalToggle]="nuevoproducto.id" cButton color="danger">
+    <button [cModalToggle]="nuevousuario.id" cButton color="danger">
       Cancelar
     </button>
-    <button [cModalToggle]="nuevoproducto.id" cButton type="submit" form="formNuevoIngrediente" color="primary">
-      Guardar Ingrediente
+    <button cButton type="submit" form="formNuevoUsuario" color="primary">
+      Guardar Usuario
     </button>
   </c-modal-footer>
 </c-modal>
-<!-- Modal para nuevo producto -->
+<!-- Modal para nuevo usuario -->
 
 <!-- ---------------------------- -->
 
-<!-- Modal para editar ingrediente -->
-<c-modal #editaringrediente alignment="center" id="editaringrediente">
+<!-- Modal para editar usuario -->
+<c-modal #editarusuario alignment="center" id="editarusuario">
   <c-modal-header>
-    <h5 cModalTitle>Editar Ingrediente</h5>
-    <button [cModalToggle]="editaringrediente.id" cButtonClose></button>
+    <h5 cModalTitle>Editar Usuario</h5>
+    <button [cModalToggle]="editarusuario.id" cButtonClose></button>
   </c-modal-header>
   <c-modal-body>
 
-    <form id="formEditarIngrediente" [formGroup]="myForm" (ngSubmit)="actualizarIngrediente()">
+    <form id="formEditarUsuario" [formGroup]="myForm" (ngSubmit)="actualizarUsuario()">
+
+      <div class="row">
+        <div class="col mb-2">
+          <label cLabel for="exampleFormControlInput1">Sucursal</label>
+          <select class="form-select" formControlName="idSucursal">
+            <option *ngFor="let sucursal of sucursales" [value]="sucursal.idSucursal">
+              {{ sucursal.nombre }}
+            </option>
+          </select>
+        </div>
+
+        <div class="col mb-2">
+          <label cLabel for="exampleFormControlInput1">Rol</label>
+          <select class="form-select" formControlName="idRol">
+            <option *ngFor="let rol of roles" [value]="rol.idRol">
+              {{ rol.nombre }}
+            </option>
+          </select>
+        </div>
+      </div>
+
       <div class="col mb-2">
         <label cLabel for="exampleFormControlInput1">Nombre</label>
-        <input cFormControl formControlName="nombre" type="text" />
-      </div>
-      <div class="mb-3">
-        <label cLabel for="exampleFormControlTextarea1">Unidad de medida</label>
-        <input cFormControl formControlName="unidadMedida" type="text" />
+        <input cFormControl formControlName="nombres" type="text" />
       </div>
 
       <div class="mb-3">
-        <label cLabel for="exampleFormControlInput1">Costo unitario</label>
-        <input cFormControl formControlName="costoUnitario" placeholder="Costo unitario" type="number" />
+        <label cLabel for="exampleFormControlTextarea1">Email</label>
+        <input cFormControl formControlName="email" type="email" />
       </div>
 
+     
     </form>
 
   </c-modal-body>
   <c-modal-footer>
-    <button [cModalToggle]="editaringrediente.id" cButton color="danger">
+    <button [cModalToggle]="editarusuario.id" cButton color="danger">
       Cancelar
     </button>
-    <button  cButton type="submit" form="formEditarIngrediente" color="primary">
+    <button cButton type="submit" form="formEditarUsuario" color="primary">
       Guardar Cambios
     </button>
   </c-modal-footer>
 </c-modal>
-<!-- Modal para editar ingrediente -->
+<!-- Modal para editar usuario -->
 
 <!-- ---------------------------- -->
 
-<!-- Modal para CONFIRMAR ELIMINACIÓN de ingrediente -->
-<c-modal #eliminaringrediente alignment="center" id="eliminaringrediente">
+<!-- Modal para CONFIRMAR ELIMINACIÓN de usuario -->
+<c-modal #eliminarusuario alignment="center" id="eliminarusuario">
   <c-modal-header>
-    <h5 cModalTitle>Eliminar Ingrediente</h5>
-    <button [cModalToggle]="eliminaringrediente.id" cButtonClose></button>
+    <h5 cModalTitle>Eliminar Usuario</h5>
+    <button [cModalToggle]="eliminarusuario.id" cButtonClose></button>
   </c-modal-header>
   <c-modal-body>
     <p style="text-align: center; font-size: 3rem;">
@@ -226,20 +265,20 @@
       Esta acción no se puede deshacer.
     </p>
     <p class="mb-0" style="text-align: center;">
-      El ingrediente <strong>{{ selectedIngrediente?.nombre }}</strong> será eliminado permanentemente.
+      El usuario <strong>{{ selectedUsuario?.nombres }}</strong> será eliminado permanentemente.
     </p>
   </c-modal-body>
   <c-modal-footer>
-    <button [cModalToggle]="eliminaringrediente.id" cButton color="secondary">
+    <button [cModalToggle]="eliminarusuario.id" cButton color="secondary">
       Cancelar
     </button>
-    <button cButton color="danger" style="color: white;" (click)="confirmEliminar(selectedIngrediente?.idIngrediente)"
-      [cModalToggle]="eliminaringrediente.id">
+    <button cButton color="danger" style="color: white;" (click)="confirmEliminar(selectedUsuario?.idUsuario || selectedUsuario?.id_usuario)"
+      [cModalToggle]="eliminarusuario.id">
       Eliminar Permanentemente
     </button>
   </c-modal-footer>
 </c-modal>
-<!-- Modal para eliminar ingrediente -->
+<!-- Modal para eliminar usuario -->
 
 
 <!-- Toast -->

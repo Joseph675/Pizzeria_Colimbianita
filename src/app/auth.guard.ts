@@ -11,7 +11,7 @@ export class AuthGuard implements CanActivate {
   canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): boolean {
     // DESHABILITAR temporalmente la verificación de login (sólo para desarrollo).
     // Cambia `bypassAuth` a true para acceder sin token ni usuario.
-    const bypassAuth = true;
+    const bypassAuth = false;
     if (bypassAuth) {
       return true;
     }
@@ -24,7 +24,7 @@ export class AuthGuard implements CanActivate {
 
     // Obtener el usuario y su tipo desde el AuthService
     const user = this.authService.getUser();
-    const userType = user?.tipo || ''; // Obtener el tipo de usuario
+    const userType = user?.rol?.nombre || ''; // Obtener el rol del usuario
 
     // Verificar si la ruta tiene roles permitidos
     const allowedRoles = route.data['allowedRoles'] as string[];

@@ -26,6 +26,11 @@ export const routes: Routes = [
         canActivate: [AuthGuard]
       },
       {
+        path: 'presentaciones',
+        loadChildren: () => import('./views/presentacion_productos/routes').then((m) => m.routes),
+        canActivate: [AuthGuard]
+      },
+      {
         path: 'categorias',
         loadChildren: () => import('./views/categorias/routes').then((m) => m.routes),
         canActivate: [AuthGuard]

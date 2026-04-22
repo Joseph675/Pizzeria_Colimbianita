@@ -59,7 +59,7 @@ export class DefaultLayoutComponent implements OnInit{
 
   ngOnInit(): void {
     const user = this.authService.getUser(); // Recuperar el usuario desde localStorage
-    const userType = user?.tipo || ''; // Obtener el tipo de usuario
+    const userType = user?.rol?.nombre || ''; // Obtener el nombre del rol (ej. 'Admin')
 
     // Filtrar el menú según el tipo de usuario
     this.navItems = navItems.filter((item) => {
