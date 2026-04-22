@@ -1,0 +1,216 @@
+<div class="pos-wrap">
+  <!-- ══ CATALOG ══ -->
+  <div class="catalog-pane">
+    <div class="catalog-header">
+      <div class="catalog-top">
+        <div class="cat-search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" placeholder="Buscar producto..." [value]="searchTerm" (input)="onSearch($any($event.target).value)" />
+        </div>
+        <div class="mesa-selector">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+          Mesa / Local
+        </div>
+      </div>
+      <div class="cat-tabs" id="catTabs">
+        <div class="ctab" [class.active]="activeCategory === 'todo'" (click)="setCategory('todo')"><span class="ctab-icon">⚡</span>Todo</div>
+        <div class="ctab" [class.active]="activeCategory === 'pizza'" (click)="setCategory('pizza')"><span class="ctab-icon">🍕</span>Pizzas</div>
+        <div class="ctab" [class.active]="activeCategory === 'burger'" (click)="setCategory('burger')"><span class="ctab-icon">🍔</span>Burgers</div>
+        <div class="ctab" [class.active]="activeCategory === 'perro'" (click)="setCategory('perro')"><span class="ctab-icon">🌭</span>Hot Dogs</div>
+        <div class="ctab" [class.active]="activeCategory === 'snack'" (click)="setCategory('snack')"><span class="ctab-icon">🍟</span>Snacks</div>
+        <div class="ctab" [class.active]="activeCategory === 'bebida'" (click)="setCategory('bebida')"><span class="ctab-icon">🥤</span>Bebidas</div>
+        <div class="ctab" [class.active]="activeCategory === 'postre'" (click)="setCategory('postre')"><span class="ctab-icon">🍰</span>Postres</div>
+      </div>
+    </div>
+
+    <div class="products-scroll">
+      <div class="prod-grid">
+
+        <!-- Tarjetas de Producto -->
+        <div class="pos-card" *ngFor="let pre of presentacionesFiltrados" (click)="openItemModal(pre)">
+          <div class="pc-img">
+            {{ getEmoji(pre.producto?.nombre) }}
+            <div class="pc-add">+</div>
+          </div>
+          <div class="pc-body">
+            <div class="pc-cat">{{ pre.producto?.nombre }}</div>
+            <div class="pc-name">{{ pre.nombrePresentacion || pre.nombre_presentacion }}</div>
+            <div class="pc-price">{{ pre.precio | currency:'USD':'symbol':'1.0-0' }}</div>
+          </div>
+        </div>
+
+        <!-- Empty state -->
+        <div *ngIf="presentacionesFiltrados.length === 0" style="grid-column: 1 / -1; text-align: center; margin-top: 2rem; color: var(--muted);">
+          No se encontraron presentaciones...
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ ORDER PANEL ══ -->
+  <div class="order-pane">
+    <div class="order-header">
+      <div class="oh-top">
+        <div>
+          <div class="oh-title">Pedido <em>#NUEVO</em></div>
+          <div class="oh-num">{{ orderItems.length }} items</div>
+        </div>
+        <button class="icon-btn" title="Limpiar pedido" (click)="clearOrder()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+        </button>
+      </div>
+      <div class="order-type-row">
+        <div class="otype" [class.active]="orderType === 'mesa'" (click)="setType('mesa')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>Mesa
+        </div>
+        <div class="otype" [class.active]="orderType === 'llevar'" (click)="setType('llevar')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12H3l9-9 9 9h-2"/><path d="M9 21V12h6v9"/></svg>Para llevar
+        </div>
+        <div class="otype" [class.active]="orderType === 'domicilio'" (click)="setType('domicilio')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Domicilio
+        </div>
+      </div>
+    </div>
+
+    <div class="order-items" id="orderItems">
+      <!-- Empty state -->
+      <div class="empty-order" *ngIf="orderItems.length === 0">
+        <div class="empty-icon">🛒</div>
+        <span>Sin productos aún<br>Selecciona del catálogo</span>
+      </div>
+
+      <!-- Items -->
+      <ng-container *ngFor="let item of orderItems; let i = index">
+        <div class="order-item">
+          <div class="oi-emoji">{{ item.emoji }}</div>
+          <div class="oi-info">
+            <div class="oi-name">{{ item.nombreProducto }}</div>
+            <div class="oi-mods">{{ item.nombrePresentacion }}</div>
+            <div class="oi-price">{{ item.precio | currency:'USD':'symbol':'1.0-0' }}</div>
+          </div>
+          <div class="oi-qty-ctrl">
+            <div class="qty-btn minus" (click)="changeOrderQty(i, -1)">−</div>
+            <div class="qty-num">{{ item.qty }}</div>
+            <div class="qty-btn" (click)="changeOrderQty(i, 1)">+</div>
+          </div>
+        </div>
+      </ng-container>
+    </div>
+
+    <div class="order-footer">
+      <div class="totals">
+        <div class="total-row"><span class="label">Subtotal</span><span class="val">{{ orderSubtotal | currency:'USD':'symbol':'1.0-0' }}</span></div>
+        <div class="total-row discount"><span class="label">Descuento</span><span class="val">−$0</span></div>
+        <div class="total-row grand"><span class="label">Total</span><span class="val" id="grandTotal">{{ orderTotal | currency:'USD':'symbol':'1.0-0' }}</span></div>
+      </div>
+
+      <div class="payment-methods">
+        <div class="pay-btn" [class.active]="paymentMethod === 'Efectivo'" [class.cash]="paymentMethod === 'Efectivo'" (click)="setPaymentMethod('Efectivo')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+          Efectivo
+        </div>
+        <div class="pay-btn" [class.active]="paymentMethod === 'Tarjeta'" [class.card]="paymentMethod === 'Tarjeta'" (click)="setPaymentMethod('Tarjeta')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/><path d="M4 14h4M4 17h2"/></svg>
+          Tarjeta
+        </div>
+        <div class="pay-btn" [class.active]="paymentMethod === 'Transferencia'" (click)="setPaymentMethod('Transferencia')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+          Nequi/Dale
+        </div>
+      </div>
+
+      <button class="btn-charge" (click)="openNumpad()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Cobrar
+        <span class="charge-amount">{{ orderTotal | currency:'USD':'symbol':'1.0-0' }}</span>
+      </button>
+    </div>
+  </div>
+
+<!-- ══ ITEM MODAL ══ -->
+<div class="modal-overlay" [class.open]="showItemModal" (click)="closeItemModal()">
+  <div class="item-modal" (click)="$event.stopPropagation()">
+    <div class="nm-header">
+      <div class="nm-title">Agregar <em>{{ selectedItemModal?.producto?.nombre }}</em></div>
+      <button class="modal-close" (click)="closeItemModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="im-top">
+      <div class="im-emoji">{{ getEmoji(selectedItemModal?.producto?.nombre) }}</div>
+      <div class="im-info">
+        <div class="im-name">{{ selectedItemModal?.nombrePresentacion || selectedItemModal?.nombre_presentacion }}</div>
+        <div class="im-price">Precio: <strong>{{ selectedItemModal?.precio | currency:'USD':'symbol':'1.0-0' }}</strong></div>
+      </div>
+    </div>
+    <div class="im-qty-row mt-4">
+      <div class="im-qty-ctrl">
+        <div class="im-qty-btn" (click)="changeModalQty(-1)">−</div>
+        <div class="im-qty-num">{{ modalQty }}</div>
+        <div class="im-qty-btn" (click)="changeModalQty(1)">+</div>
+      </div>
+      <button class="btn-add-to-order" (click)="addToOrder()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg>
+        Agregar al pedido
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ NUMPAD MODAL ══ -->
+<div class="modal-overlay" [class.open]="showNumpadModal" (click)="closeNumpad()">
+  <div class="numpad-modal" (click)="$event.stopPropagation()">
+    <div class="nm-header">
+      <div class="nm-title">Pago en <em>{{ paymentMethod }}</em></div>
+      <button class="modal-close" (click)="closeNumpad()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="nm-display">
+      <div class="nm-label">Monto recibido</div>
+      <div class="nm-amount">${{ numpadValue || '0' }}</div>
+      <div class="nm-change" [ngStyle]="{'color': changeAmount >= 0 ? 'var(--green)' : 'var(--red)'}">
+        <span *ngIf="numpadValue && changeAmount >= 0">Cambio: {{ changeAmount | currency:'USD':'symbol':'1.0-0' }}</span>
+        <span *ngIf="numpadValue && changeAmount < 0">Faltan: {{ (changeAmount * -1) | currency:'USD':'symbol':'1.0-0' }}</span>
+      </div>
+    </div>
+    <div class="nm-quick">
+      <div class="quick-btn" (click)="quickAmt(100000)">$100.000</div>
+      <div class="quick-btn" (click)="quickAmt(50000)">$50.000</div>
+      <div class="quick-btn" (click)="quickAmt(20000)">$20.000</div>
+      <div class="quick-btn" (click)="quickAmt(orderTotal)">Exacto</div>
+    </div>
+    <div class="numpad">
+      <div class="np-btn" (click)="npInput('7')">7</div>
+      <div class="np-btn" (click)="npInput('8')">8</div>
+      <div class="np-btn" (click)="npInput('9')">9</div>
+      <div class="np-btn" (click)="npInput('4')">4</div>
+      <div class="np-btn" (click)="npInput('5')">5</div>
+      <div class="np-btn" (click)="npInput('6')">6</div>
+      <div class="np-btn" (click)="npInput('1')">1</div>
+      <div class="np-btn" (click)="npInput('2')">2</div>
+      <div class="np-btn" (click)="npInput('3')">3</div>
+      <div class="np-btn special" (click)="npInput('000')">000</div>
+      <div class="np-btn" (click)="npInput('0')">0</div>
+      <div class="np-btn del" (click)="npDel()">⌫</div>
+    </div>
+    <div class="nm-confirm">
+      <button class="btn-nm-cancel" (click)="closeNumpad()">Cancelar</button>
+      <button class="btn-nm-confirm" (click)="confirmPayment()">✓ Confirmar pago</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SUCCESS MODAL ══ -->
+<div class="modal-overlay" [class.open]="showSuccessModal">
+  <div class="success-modal">
+    <div class="success-icon">✅</div>
+    <div class="success-title">¡Venta completada!</div>
+    <div class="success-sub">Pedido #NUEVO — {{ paymentMethod }}</div>
+    <div class="success-change">Cambio: <span>{{ changeAmount | currency:'USD':'symbol':'1.0-0' }}</span></div>
+    <div class="success-actions">
+      <button class="btn-print" (click)="closeSuccess()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        Imprimir
+      </button>
+      <button class="btn-new-order" (click)="closeSuccess()">+ Nueva venta</button>
+    </div>
+  </div>
+</div>

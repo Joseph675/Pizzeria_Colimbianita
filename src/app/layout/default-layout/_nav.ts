@@ -12,6 +12,11 @@ export const navItems: CustomNavData[] = [
     url: '/dashboard',
     materialIcon: 'dashboard',
   },
+  {
+    name: 'Pos Ventas',
+    url: '/pos',
+    materialIcon: 'dashboard',
+  },
 
   {
     name: 'Productos',
