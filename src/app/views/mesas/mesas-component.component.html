@@ -1,0 +1,358 @@
+<div class="mesas-container">
+  <div class="grain"></div>
+
+  <!-- MAIN -->
+  <div class="main-wrap" [style.right.px]="panelAbierto ? 340 : 0">
+
+    <!-- HEADER -->
+    <div class="mesas-header">
+      <div class="mh-top">
+        <div class="mh-title">Plano de <span>Mesas</span></div>
+        <div class="mh-spacer"></div>
+        <button class="btn-nueva-mesa" (click)="openNuevaMesaModal()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Nueva mesa
+        </button>
+      </div>
+      <div class="filter-row">
+        <div class="filt-btn" [class.active]="filtroActual === 'todas'" (click)="filtrar('todas')">
+          Todas <span style="font-family:'Bebas Neue';font-size:.9rem;margin-left:.3rem;">{{ mesas.length }}</span></div>
+        <div class="filt-btn" [class.active]="filtroActual === 'ocupada'" (click)="filtrar('ocupada')">
+          <div class="fdot" style="background:var(--green);"></div>Ocupadas <span style="font-family:'Bebas Neue';font-size:.9rem;margin-left:.2rem;">{{ cuentaOcupadas }}</span></div>
+        <div class="filt-btn" [class.active]="filtroActual === 'libre'" (click)="filtrar('libre')">
+          <div class="fdot" style="background:rgba(255,255,255,.2);"></div>Libres <span style="font-family:'Bebas Neue';font-size:.9rem;margin-left:.2rem;">{{ cuentaLibres }}</span></div>
+        <div class="filt-btn" [class.active]="filtroActual === 'cuenta'" (click)="filtrar('cuenta')">
+          <div class="fdot" style="background:var(--gold);"></div>Piden cuenta <span style="font-family:'Bebas Neue';font-size:.9rem;margin-left:.2rem;">{{ cuentaPidenCuenta }}</span></div>
+        <div class="filt-btn" [class.active]="filtroActual === 'reservada'" (click)="filtrar('reservada')">
+          <div class="fdot" style="background:var(--blue);"></div>Reservadas <span style="font-family:'Bebas Neue';font-size:.9rem;margin-left:.2rem;">{{ cuentaReservadas }}</span></div>
+        <div class="filt-spacer"></div>
+        <div class="zona-select">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+          Salón principal
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:10px;height:10px;"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats-bar">
+      <div class="stat-chip"><span class="sc-num green">${{ totalVentasActivas | number:'1.0-0' }}</span><span class="sc-lbl" style="margin-left:.5rem;">Ventas activas</span></div>
+      <div class="stat-chip"><span class="sc-num gold" style="margin-right:.3rem;">{{ cuentaOcupadas + cuentaPidenCuenta }}</span><span class="sc-lbl">Con pedido</span></div>
+      <div class="stat-chip"><span class="sc-num red" style="margin-right:.3rem;">{{ cuentaPidenCuenta }}</span><span class="sc-lbl">Piden cuenta</span></div>
+      <div class="stat-chip"><span class="sc-num muted" style="margin-right:.3rem;">{{ cuentaLibres }}</span><span class="sc-lbl">Libres</span></div>
+      <div class="stat-chip" style="margin-left:auto;"><span class="sc-lbl">Tiempo prom.</span><span class="sc-num gold" style="margin-left:.5rem;">48 min</span></div>
+    </div>
+
+    <!-- FLOOR -->
+    <div class="floor-scroll">
+
+      <ng-container *ngIf="mesasSalonPrincipal.length > 0">
+        <div class="zona-label">Salón Principal</div>
+        <div class="mesas-grid">
+
+          <!-- ITERADOR DE MESAS (Salón Principal) -->
+          <div *ngFor="let mesa of mesasSalonPrincipal" 
+               class="mesa-card" 
+               [ngClass]="mesa.estado" 
+               (click)="abrirDetalle(mesa.id)">
+            <div class="mc-top">
+              <div>
+                <div class="mc-num">{{ mesa.num }}</div>
+                <div class="mc-cap">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+                  {{ mesa.capacidad }} pers.
+                </div>
+              </div>
+              <div class="mc-status-badge">{{ badgeCfg[mesa.estado].label }}</div>
+            </div>
+            
+            <!-- SVG DYNAMIC SHAPES -->
+            <div class="mc-visual">
+              <svg class="table-svg" viewBox="0 0 150 64" [attr.opacity]="mesa.estado === 'libre' ? .25 : (mesa.estado === 'reservada' ? .55 : 1)">
+                <ng-container [ngSwitch]="mesa.svgType">
+                  <ng-container *ngSwitchCase="'rect4'">
+                    <rect x="25" y="20" width="100" height="24" rx="6" [attr.fill]="formatMesaSVGClass(mesa.estado, true)" [attr.stroke]="formatMesaSVGStroke(mesa.estado, true)" [attr.stroke-width]="mesa.estado==='libre'?'1':'1.5'" [attr.stroke-dasharray]="mesa.estado==='reservada'?'5,3':''"/>
+                    <circle cx="15" cy="32" r="8" [attr.fill]="formatMesaSVGClass(mesa.estado, true)" [attr.stroke]="formatMesaSVGStroke(mesa.estado, true)" stroke-width="1"/>
+                    <circle cx="135" cy="32" r="8" [attr.fill]="formatMesaSVGClass(mesa.estado, true)" [attr.stroke]="formatMesaSVGStroke(mesa.estado, true)" stroke-width="1"/>
+                    <circle cx="58" cy="10" r="8" [attr.fill]="formatMesaSVGClass(mesa.estado)" [attr.stroke]="formatMesaSVGStroke(mesa.estado)" stroke-width="1"/>
+                    <circle cx="92" cy="10" r="8" [attr.fill]="formatMesaSVGClass(mesa.estado)" [attr.stroke]="formatMesaSVGStroke(mesa.estado)" stroke-width="1"/>
+                    <circle cx="58" cy="54" r="8" [attr.fill]="formatMesaSVGClass(mesa.estado)" [attr.stroke]="formatMesaSVGStroke(mesa.estado)" stroke-width="1"/>
+                    <circle cx="92" cy="54" r="8" [attr.fill]="formatMesaSVGClass(mesa.estado)" [attr.stroke]="formatMesaSVGStroke(mesa.estado)" stroke-width="1"/>
+                  </ng-container>
+                  
+                  <ng-container *ngSwitchCase="'rect2'">
+                    <rect x="40" y="20" width="70" height="24" rx="6" [attr.fill]="formatMesaSVGClass(mesa.estado, true)" [attr.stroke]="formatMesaSVGStroke(mesa.estado, true)" [attr.stroke-width]="mesa.estado==='libre'?'1':'1.5'"/>
+                    <circle cx="62" cy="10" r="8" [attr.fill]="formatMesaSVGClass(mesa.estado)" [attr.stroke]="formatMesaSVGStroke(mesa.estado)" stroke-width="1"/>
+                    <circle cx="88" cy="10" r="8" [attr.fill]="formatMesaSVGClass(mesa.estado)" [attr.stroke]="formatMesaSVGStroke(mesa.estado)" stroke-width="1"/>
+                    <circle cx="62" cy="54" r="8" [attr.fill]="formatMesaSVGClass(mesa.estado)" [attr.stroke]="formatMesaSVGStroke(mesa.estado)" stroke-width="1"/>
+                    <circle cx="88" cy="54" r="8" [attr.fill]="formatMesaSVGClass(mesa.estado)" [attr.stroke]="formatMesaSVGStroke(mesa.estado)" stroke-width="1"/>
+                  </ng-container>
+                  
+                  <ng-container *ngSwitchCase="'rect6'">
+                    <rect x="15" y="20" width="120" height="24" rx="6" [attr.fill]="formatMesaSVGClass(mesa.estado, true)" [attr.stroke]="formatMesaSVGStroke(mesa.estado, true)" [attr.stroke-width]="mesa.estado==='libre'?'1':'1.5'"/>
+                    <circle cx="38" cy="10" r="8" [attr.fill]="formatMesaSVGClass(mesa.estado)" [attr.stroke]="formatMesaSVGStroke(mesa.estado)" stroke-width="1"/>
+                    <circle cx="75" cy="10" r="8" [attr.fill]="formatMesaSVGClass(mesa.estado)" [attr.stroke]="formatMesaSVGStroke(mesa.estado)" stroke-width="1"/>
+                    <circle cx="112" cy="10" r="8" [attr.fill]="formatMesaSVGClass(mesa.estado)" [attr.stroke]="formatMesaSVGStroke(mesa.estado)" stroke-width="1"/>
+                    <circle cx="38" cy="54" r="8" [attr.fill]="formatMesaSVGClass(mesa.estado)" [attr.stroke]="formatMesaSVGStroke(mesa.estado)" stroke-width="1"/>
+                    <circle cx="75" cy="54" r="8" [attr.fill]="formatMesaSVGClass(mesa.estado)" [attr.stroke]="formatMesaSVGStroke(mesa.estado)" stroke-width="1"/>
+                    <circle cx="112" cy="54" r="8" [attr.fill]="formatMesaSVGClass(mesa.estado)" [attr.stroke]="formatMesaSVGStroke(mesa.estado)" stroke-width="1"/>
+                  </ng-container>
+
+                  <ng-container *ngSwitchCase="'rect3'">
+                    <rect x="35" y="20" width="80" height="24" rx="6" [attr.fill]="formatMesaSVGClass(mesa.estado, true)" [attr.stroke]="formatMesaSVGStroke(mesa.estado, true)" [attr.stroke-width]="mesa.estado==='libre'?'1':'1.5'"/>
+                    <circle cx="55" cy="10" r="8" [attr.fill]="formatMesaSVGClass(mesa.estado)" [attr.stroke]="formatMesaSVGStroke(mesa.estado)" stroke-width="1"/>
+                    <circle cx="95" cy="10" r="8" [attr.fill]="formatMesaSVGClass(mesa.estado)" [attr.stroke]="formatMesaSVGStroke(mesa.estado)" stroke-width="1"/>
+                    <circle cx="75" cy="54" r="8" [attr.fill]="formatMesaSVGClass(mesa.estado)" [attr.stroke]="formatMesaSVGStroke(mesa.estado)" stroke-width="1"/>
+                  </ng-container>
+
+                  <ng-container *ngSwitchCase="'rect5'">
+                    <rect x="15" y="20" width="120" height="24" rx="6" [attr.fill]="formatMesaSVGClass(mesa.estado, true)" [attr.stroke]="formatMesaSVGStroke(mesa.estado, true)" [attr.stroke-width]="mesa.estado==='libre'?'1':'1.5'"/>
+                    <circle cx="38" cy="10" r="8" [attr.fill]="formatMesaSVGClass(mesa.estado)" [attr.stroke]="formatMesaSVGStroke(mesa.estado)" stroke-width="1"/>
+                    <circle cx="112" cy="10" r="8" [attr.fill]="formatMesaSVGClass(mesa.estado)" [attr.stroke]="formatMesaSVGStroke(mesa.estado)" stroke-width="1"/>
+                    <circle cx="38" cy="54" r="8" [attr.fill]="formatMesaSVGClass(mesa.estado)" [attr.stroke]="formatMesaSVGStroke(mesa.estado)" stroke-width="1"/>
+                    <circle cx="75" cy="54" r="8" [attr.fill]="formatMesaSVGClass(mesa.estado)" [attr.stroke]="formatMesaSVGStroke(mesa.estado)" stroke-width="1"/>
+                    <circle cx="112" cy="54" r="8" [attr.fill]="formatMesaSVGClass(mesa.estado)" [attr.stroke]="formatMesaSVGStroke(mesa.estado)" stroke-width="1"/>
+                  </ng-container>
+                </ng-container>
+              </svg>
+            </div>
+            
+            <div class="mc-bottom">
+              <ng-container *ngIf="mesa.estado === 'libre'; else mesaOcupada">
+                <div class="mc-info-row"><span style="font-size:.72rem;color:var(--muted);font-weight:300;">Disponible</span></div>
+                <div style="height:14px;"></div>
+              </ng-container>
+              <ng-template #mesaOcupada>
+                <div class="mc-info-row">
+                  <span class="mc-client" [style.color]="mesa.estado === 'reservada' ? 'var(--blue)' : ''">{{ mesa.cliente }}</span>
+                  <span class="mc-time" [style.color]="mesa.estado === 'reservada' ? 'var(--blue)' : ''">{{ mesa.timer }}</span>
+                </div>
+                <div class="mc-info-row" *ngIf="mesa.estado !== 'reservada'">
+                  <span class="mc-amount">{{ mesa.total }}</span>
+                  <span class="mc-items">{{ mesa.items?.length }} items</span>
+                </div>
+                <div *ngIf="mesa.estado === 'reservada'" style="font-size:.65rem;color:rgba(52,152,219,.55);">Reserva confirmada</div>
+                <div class="mc-progress" *ngIf="mesa.progress"><div class="mc-progress-fill" [style.width]="mesa.progress"></div></div>
+              </ng-template>
+            </div>
+          </div>
+        </div>
+      </ng-container>
+
+      <ng-container *ngIf="mesasTerraza.length > 0">
+        <div class="zona-label">Terraza</div>
+        <div class="mesas-grid">
+
+          <!-- ITERADOR DE MESAS (Terraza) -->
+          <div *ngFor="let mesa of mesasTerraza" 
+               class="mesa-card" 
+               [ngClass]="mesa.estado" 
+               (click)="abrirDetalle(mesa.id)">
+            <div class="mc-top">
+              <div>
+                <div class="mc-num">{{ mesa.num }}</div>
+                <div class="mc-cap">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+                  {{ mesa.capacidad }} pers.
+                </div>
+              </div>
+              <div class="mc-status-badge">{{ badgeCfg[mesa.estado].label }}</div>
+            </div>
+            
+            <!-- SVG DYNAMIC SHAPES -->
+            <div class="mc-visual">
+              <svg class="table-svg" viewBox="0 0 150 64" [attr.opacity]="mesa.estado === 'libre' ? .25 : (mesa.estado === 'reservada' ? .55 : 1)">
+                <ng-container [ngSwitch]="mesa.svgType">
+                  <!-- Copiamos las lógicas de dibujo aquí tmb (Solo usaremos circle2 y rect6, rect4 para terraza como el mockup) -->
+                  <ng-container *ngSwitchCase="'circle2'">
+                    <circle cx="75" cy="32" r="20" [attr.fill]="formatMesaSVGClass(mesa.estado, true)" [attr.stroke]="formatMesaSVGStroke(mesa.estado, true)" [attr.stroke-width]="mesa.estado==='libre'?'1':'1.5'"/>
+                    <circle cx="38" cy="32" r="9" [attr.fill]="formatMesaSVGClass(mesa.estado)" [attr.stroke]="formatMesaSVGStroke(mesa.estado)" stroke-width="1"/>
+                    <circle cx="112" cy="32" r="9" [attr.fill]="formatMesaSVGClass(mesa.estado)" [attr.stroke]="formatMesaSVGStroke(mesa.estado)" stroke-width="1"/>
+                  </ng-container>
+                  <ng-container *ngSwitchCase="'rect6'">
+                    <rect x="15" y="20" width="120" height="24" rx="6" [attr.fill]="formatMesaSVGClass(mesa.estado, true)" [attr.stroke]="formatMesaSVGStroke(mesa.estado, true)" [attr.stroke-width]="mesa.estado==='libre'?'1':'1.5'" [attr.stroke-dasharray]="mesa.estado==='reservada'?'5,3':''"/>
+                    <circle cx="38" cy="10" r="8" [attr.fill]="formatMesaSVGClass(mesa.estado)" [attr.stroke]="formatMesaSVGStroke(mesa.estado)" stroke-width="1"/>
+                    <circle cx="75" cy="10" r="8" [attr.fill]="formatMesaSVGClass(mesa.estado)" [attr.stroke]="formatMesaSVGStroke(mesa.estado)" stroke-width="1"/>
+                    <circle cx="112" cy="10" r="8" [attr.fill]="formatMesaSVGClass(mesa.estado)" [attr.stroke]="formatMesaSVGStroke(mesa.estado)" stroke-width="1"/>
+                    <circle cx="38" cy="54" r="8" [attr.fill]="formatMesaSVGClass(mesa.estado)" [attr.stroke]="formatMesaSVGStroke(mesa.estado)" stroke-width="1"/>
+                    <circle cx="75" cy="54" r="8" [attr.fill]="formatMesaSVGClass(mesa.estado)" [attr.stroke]="formatMesaSVGStroke(mesa.estado)" stroke-width="1"/>
+                    <circle cx="112" cy="54" r="8" [attr.fill]="formatMesaSVGClass(mesa.estado)" [attr.stroke]="formatMesaSVGStroke(mesa.estado)" stroke-width="1"/>
+                  </ng-container>
+                  <ng-container *ngSwitchCase="'rect4'">
+                    <rect x="25" y="20" width="100" height="24" rx="6" [attr.fill]="formatMesaSVGClass(mesa.estado, true)" [attr.stroke]="formatMesaSVGStroke(mesa.estado, true)" [attr.stroke-width]="mesa.estado==='libre'?'1':'1.5'" [attr.stroke-dasharray]="mesa.estado==='reservada'?'5,3':''"/>
+                    <circle cx="15" cy="32" r="8" [attr.fill]="formatMesaSVGClass(mesa.estado, true)" [attr.stroke]="formatMesaSVGStroke(mesa.estado, true)" stroke-width="1"/>
+                    <circle cx="135" cy="32" r="8" [attr.fill]="formatMesaSVGClass(mesa.estado, true)" [attr.stroke]="formatMesaSVGStroke(mesa.estado, true)" stroke-width="1"/>
+                    <circle cx="58" cy="10" r="8" [attr.fill]="formatMesaSVGClass(mesa.estado)" [attr.stroke]="formatMesaSVGStroke(mesa.estado)" stroke-width="1"/>
+                    <circle cx="92" cy="10" r="8" [attr.fill]="formatMesaSVGClass(mesa.estado)" [attr.stroke]="formatMesaSVGStroke(mesa.estado)" stroke-width="1"/>
+                    <circle cx="58" cy="54" r="8" [attr.fill]="formatMesaSVGClass(mesa.estado)" [attr.stroke]="formatMesaSVGStroke(mesa.estado)" stroke-width="1"/>
+                    <circle cx="92" cy="54" r="8" [attr.fill]="formatMesaSVGClass(mesa.estado)" [attr.stroke]="formatMesaSVGStroke(mesa.estado)" stroke-width="1"/>
+                  </ng-container>
+                </ng-container>
+              </svg>
+            </div>
+            
+            <div class="mc-bottom">
+              <ng-container *ngIf="mesa.estado === 'libre'; else mesaOcupadaT">
+                <div class="mc-info-row"><span style="font-size:.72rem;color:var(--muted);font-weight:300;">Disponible</span></div>
+                <div style="height:14px;"></div>
+              </ng-container>
+              <ng-template #mesaOcupadaT>
+                <div class="mc-info-row">
+                  <span class="mc-client" [style.color]="mesa.estado === 'reservada' ? 'var(--blue)' : ''">{{ mesa.cliente }}</span>
+                  <span class="mc-time" [style.color]="mesa.estado === 'reservada' ? 'var(--blue)' : ''">{{ mesa.timer }}</span>
+                </div>
+                <div class="mc-info-row" *ngIf="mesa.estado !== 'reservada'">
+                  <span class="mc-amount">{{ mesa.total }}</span>
+                  <span class="mc-items">{{ mesa.items?.length }} items</span>
+                </div>
+                <div *ngIf="mesa.estado === 'reservada'" style="font-size:.65rem;color:rgba(52,152,219,.55);">Reserva confirmada</div>
+                <div class="mc-progress" *ngIf="mesa.progress"><div class="mc-progress-fill" [style.width]="mesa.progress"></div></div>
+              </ng-template>
+            </div>
+          </div>
+        </div>
+      </ng-container>
+    </div>
+  </div>
+
+  <!-- DETAIL PANEL -->
+  <div class="detail-panel" [class.open]="panelAbierto">
+    <ng-container *ngIf="mesaSeleccionada as sel">
+      <div class="dp-header">
+        <div class="dp-header-top">
+          <div class="dp-mesa-num" [style.color]="badgeCfg[sel.estado].numColor">Mesa {{ sel.num }}</div>
+          <div class="dp-close" (click)="cerrarDetalle()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>
+        </div>
+        <div class="dp-meta">
+          <div class="dp-badge" [style.background]="badgeCfg[sel.estado].bg" [style.color]="badgeCfg[sel.estado].color" [style.border]="'1px solid ' + badgeCfg[sel.estado].border">{{ badgeCfg[sel.estado].label }}</div>
+          <div class="dp-zone">· {{ sel.zona }}</div>
+          <div class="dp-timer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span>{{ sel.timer }}</span></div>
+        </div>
+      </div>
+      
+      <!-- CUERPO DEL PANEL (DINÁMICO SEGÚN ESTADO) -->
+      <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
+        <ng-container [ngSwitch]="sel.estado">
+          
+          <ng-container *ngSwitchCase="'libre'">
+            <div class="dp-libre-content">
+              <div class="dp-libre-icon">🪑</div>
+              <div class="dp-libre-title">Mesa libre</div>
+              <div class="dp-libre-sub">Sin clientes asignados</div>
+            </div>
+          </ng-container>
+
+          <ng-container *ngSwitchCase="'reservada'">
+            <div class="dp-client">
+              <div class="dp-av" [style.background]="sel.avatarBg">{{ sel.avatar }}</div>
+              <div>
+                <div class="dp-cname">{{ sel.cliente }}</div>
+                <div class="dp-csub">{{ sel.sub }}</div>
+              </div>
+            </div>
+            <div class="dp-libre-content" style="flex:1;opacity:.6;">
+              <div class="dp-libre-icon">📅</div>
+              <div class="dp-libre-title">Aún no ha llegado</div>
+              <div class="dp-libre-sub">Reserva confirmada para {{ sel.timer }}</div>
+            </div>
+          </ng-container>
+
+          <ng-container *ngSwitchDefault> <!-- ocupada / cuenta -->
+            <div class="cuenta-alert" *ngIf="sel.estado === 'cuenta'">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              Cliente solicita la cuenta
+            </div>
+            
+            <div class="dp-client">
+              <div class="dp-av" [style.background]="sel.avatarBg">{{ sel.avatar }}</div>
+              <div>
+                <div class="dp-cname">{{ sel.cliente }}</div>
+                <div class="dp-csub">{{ sel.sub }}</div>
+              </div>
+            </div>
+
+            <div class="dp-items">
+              <div class="dp-item" *ngFor="let item of sel.items">
+                <div class="dp-i-emoji">{{ item.e }}</div>
+                <div style="flex:1;">
+                  <div class="dp-i-name">{{ item.n }}</div>
+                  <div class="dp-i-qty">{{ item.q }}</div>
+                </div>
+                <div class="dp-i-price">{{ item.p }}</div>
+              </div>
+              
+              <div class="dp-divider"></div>
+              
+              <div class="dp-totals">
+                <div class="dp-tr"><span class="lbl">Subtotal</span><span class="val">{{ sel.sub_total }}</span></div>
+                <div class="dp-tr"><span class="lbl">Descuento</span><span class="val" style="color:var(--green);">{{ sel.descuento }}</span></div>
+                <div class="dp-tr grand"><span class="lbl">Total</span><span class="val">{{ sel.total }}</span></div>
+              </div>
+            </div>
+          </ng-container>
+        </ng-container>
+      </div>
+
+      <!-- ACCIONES DEL PANEL (DINÁMICO SEGÚN ESTADO) -->
+      <div class="dp-actions">
+        <ng-container [ngSwitch]="sel.estado">
+          <ng-container *ngSwitchCase="'libre'">
+            <button class="dp-btn primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Abrir pedido aquí</button>
+            <button class="dp-btn ghost">Registrar reserva</button>
+          </ng-container>
+
+          <ng-container *ngSwitchCase="'reservada'">
+            <button class="dp-btn secondary">Confirmar llegada</button>
+            <button class="dp-btn ghost">Cancelar reserva</button>
+          </ng-container>
+
+          <ng-container *ngSwitchDefault>
+            <button class="dp-btn primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>Cobrar mesa</button>
+            <div class="dp-btn-row">
+              <button class="dp-btn secondary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg>Agregar items</button>
+              <button class="dp-btn ghost"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 014-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>Transferir</button>
+            </div>
+            <button class="dp-btn ghost" style="color:rgba(232,52,42,.6);border-color:rgba(232,52,42,.15);font-size:.73rem;">Liberar mesa</button>
+          </ng-container>
+        </ng-container>
+      </div>
+    </ng-container>
+  </div>
+
+  <!-- ══ NUEVA MESA MODAL ══ -->
+  <div class="modal-overlay" [class.open]="showNuevaMesaModal" (click)="closeNuevaMesaModal()">
+    <div class="nm-modal" (click)="$event.stopPropagation()">
+      <div class="nm-header">
+        <div class="nm-title">Nueva <em>Mesa</em></div>
+        <button class="modal-close" (click)="closeNuevaMesaModal()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="nm-body">
+        <div class="form-group">
+          <label>Número o nombre de mesa</label>
+          <input type="text" class="nm-input" placeholder="Ej. 15 o Mesa VIP">
+        </div>
+        <div class="form-group">
+          <label>Capacidad (Personas)</label>
+          <div class="im-qty-ctrl" style="margin-top: 0.2rem; justify-content: space-between; width: 140px;">
+            <div class="im-qty-btn" (click)="changeCapacidad(-1)">−</div>
+            <div class="im-qty-num">{{ nuevaMesaCapacidad }}</div>
+            <div class="im-qty-btn" (click)="changeCapacidad(1)">+</div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Zona</label>
+          <select class="nm-select">
+            <option>Salón Principal</option>
+            <option>Terraza</option>
+          </select>
+        </div>
+      </div>
+      <div class="nm-footer">
+        <button class="dp-btn ghost" (click)="closeNuevaMesaModal()">Cancelar</button>
+        <button class="dp-btn primary" (click)="guardarNuevaMesa()">Guardar Mesa</button>
+      </div>
+    </div>
+  </div>
+</div>

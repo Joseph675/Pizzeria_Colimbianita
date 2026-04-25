@@ -55,8 +55,11 @@ export const routes: Routes = [
         loadChildren: () => import('./views/usuarios/routes').then((m) => m.routes),
         canActivate: [AuthGuard]
       },
-      
-      
+      {
+        path: 'mesas',
+        loadChildren: () => import('./views/mesas/routes').then((m) => m.routes),
+        canActivate: [AuthGuard]
+      },
      
     ]
   },
