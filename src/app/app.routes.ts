@@ -60,7 +60,6 @@ export const routes: Routes = [
         loadChildren: () => import('./views/mesas/routes').then((m) => m.routes),
         canActivate: [AuthGuard]
       },
-     
     ]
   },
   

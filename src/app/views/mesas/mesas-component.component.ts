@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 
 export interface MesaItem {
   e: string;
@@ -30,7 +31,7 @@ export interface Mesa {
 @Component({
   selector: 'app-mesas',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './mesas-component.component.html',
   styleUrls: ['./mesas-component.component.scss']
 })
@@ -42,6 +43,25 @@ export class MesasComponent implements OnInit {
   // Estado del Modal "Nueva Mesa"
   showNuevaMesaModal: boolean = false;
   nuevaMesaCapacidad: number = 2;
+  nuevaMesaNombre: string = '';
+  nuevaMesaZona: string = 'Salón Principal';
+  mesaEnEdicion: Mesa | null = null;
+
+  // Estado del Modal "Menú"
+  showMenuModal: boolean = false;
+  categoriaActual: string = 'todo';
+
+  // Catálogo de productos (Simulando tu base de datos)
+  productosMenu: any[] = [
+    { e: '🍕', n: 'Pizza Margherita', cat: 'pizza', p: '$24.900' },
+    { e: '🍕', n: 'Pizza Pepperoni', cat: 'pizza', p: '$28.900' },
+    { e: '🍔', n: 'Classic Smash', cat: 'burger', p: '$22.900' },
+    { e: '🍔', n: 'Double Bacon', cat: 'burger', p: '$27.900' },
+    { e: '🌭', n: 'Hot Dog Clásico', cat: 'hotdog', p: '$12.900' },
+    { e: '🍟', n: 'Papas Medianas', cat: 'snack', p: '$8.900' },
+    { e: '🥤', n: 'Gaseosa Personal', cat: 'bebida', p: '$4.500' },
+    { e: '🍰', n: 'Brownie con Helado', cat: 'postre', p: '$9.900' }
+  ];
 
   badgeCfg: any = {
     ocupada: { bg: 'rgba(46,204,113,.14)', color: 'var(--green)', border: 'rgba(46,204,113,.3)', label: 'Ocupada', numColor: 'var(--green)' },
@@ -103,6 +123,15 @@ export class MesasComponent implements OnInit {
   constructor() { }
 
   ngOnInit(): void {
+    // Cargar mesas desde LocalStorage al abrir la página
+    const mesasGuardadas = localStorage.getItem('mesas_pizzeria');
+    if (mesasGuardadas) {
+      this.mesas = JSON.parse(mesasGuardadas);
+    }
+  }
+
+  guardarEnStorage(): void {
+    localStorage.setItem('mesas_pizzeria', JSON.stringify(this.mesas));
   }
 
   get mesasFiltradas(): Mesa[] {
@@ -197,12 +226,23 @@ export class MesasComponent implements OnInit {
 
   // ----- NUEVA MESA MODAL LOGIC -----
   openNuevaMesaModal(): void {
+    this.mesaEnEdicion = null;
     this.showNuevaMesaModal = true;
     this.nuevaMesaCapacidad = 2; // Resetea la capacidad por defecto
+    this.nuevaMesaNombre = '';
+    this.nuevaMesaZona = 'Salón Principal';
   }
 
   closeNuevaMesaModal(): void {
     this.showNuevaMesaModal = false;
+  }
+
+  editarMesa(mesa: Mesa): void {
+    this.mesaEnEdicion = mesa;
+    this.nuevaMesaNombre = mesa.num;
+    this.nuevaMesaCapacidad = mesa.capacidad;
+    this.nuevaMesaZona = mesa.zona;
+    this.showNuevaMesaModal = true;
   }
 
   changeCapacidad(delta: number): void {
@@ -210,8 +250,164 @@ export class MesasComponent implements OnInit {
   }
 
   guardarNuevaMesa(): void {
-    console.log("Guardando mesa con capacidad:", this.nuevaMesaCapacidad);
-    // Aquí podrías agregar la lógica POST a tu base de datos
+    if (!this.nuevaMesaNombre || this.nuevaMesaNombre.trim() === '') {
+      alert('Por favor ingresa un número o nombre para la mesa.');
+      return;
+    }
+
+    // Asignar un SVG visual apropiado basado en la zona y la capacidad
+    let tipoSvg = 'rect4';
+    if (this.nuevaMesaZona === 'Terraza' && this.nuevaMesaCapacidad <= 2) {
+      tipoSvg = 'circle2';
+    } else if (this.nuevaMesaCapacidad <= 2) {
+      tipoSvg = 'rect2';
+    } else if (this.nuevaMesaCapacidad > 4) {
+      tipoSvg = 'rect6';
+    }
+
+    if (this.mesaEnEdicion) {
+      // Editar existente
+      this.mesas = this.mesas.map(m => {
+        if (m.id === this.mesaEnEdicion!.id) {
+          return { ...m, num: this.nuevaMesaNombre.trim(), capacidad: this.nuevaMesaCapacidad, zona: this.nuevaMesaZona, svgType: tipoSvg };
+        }
+        return m;
+      });
+    } else {
+      // Crear nueva
+      const nuevaMesa: Mesa = {
+        id: Date.now(), // Generamos un ID único temporal
+        num: this.nuevaMesaNombre.trim(),
+        estado: 'libre',
+        zona: this.nuevaMesaZona,
+        timer: '—',
+        capacidad: this.nuevaMesaCapacidad,
+        svgType: tipoSvg
+      };
+  
+      // Reasignamos el arreglo completo para forzar la detección de cambios de Angular
+      this.mesas = [...this.mesas, nuevaMesa];
+    }
+
+    // Guardar los cambios en el almacenamiento local
+    this.guardarEnStorage();
+
+    // Limpiamos los campos del formulario para la próxima vez que se abra el modal
+    this.nuevaMesaNombre = '';
+    this.nuevaMesaCapacidad = 2;
+    this.nuevaMesaZona = 'Salón Principal';
+
     this.closeNuevaMesaModal();
+  }
+
+  borrarMesa(mesa: Mesa): void {
+    if (confirm(`¿Estás seguro de que deseas eliminar la Mesa ${mesa.num}?`)) {
+      this.mesas = this.mesas.filter(m => m.id !== mesa.id);
+      this.guardarEnStorage();
+    }
+  }
+
+  abrirPedido(mesa: Mesa): void {
+    // Cambiamos el estado y asignamos valores iniciales por defecto
+    mesa.estado = 'ocupada';
+    mesa.timer = '1 min';
+    mesa.cliente = 'Cliente Mesa ' + mesa.num;
+    mesa.avatar = 'CM'; // Iniciales
+    mesa.avatarBg = 'linear-gradient(135deg,#3498db,#2980b9)'; // Fondo azul por defecto
+    mesa.sub = mesa.capacidad + ' personas · Pedido abierto';
+    mesa.items = [];
+    mesa.sub_total = '$0';
+    mesa.descuento = '$0';
+    mesa.total = '$0';
+    mesa.progress = '5%';
+
+    // Guardar cambios en el almacenamiento local
+    this.guardarEnStorage();
+  }
+
+  liberarMesa(mesa: Mesa): void {
+    // Pedimos confirmación para no borrar la mesa por error
+    if (confirm(`¿Estás seguro de que deseas liberar la Mesa ${mesa.num}? Se borrarán los datos del pedido actual.`)) {
+      mesa.estado = 'libre';
+      mesa.timer = '—';
+      mesa.cliente = null;
+      mesa.avatar = undefined;
+      mesa.avatarBg = undefined;
+      mesa.sub = undefined;
+      mesa.items = [];
+      mesa.sub_total = undefined;
+      mesa.descuento = undefined;
+      mesa.total = undefined;
+      mesa.progress = undefined;
+
+      this.guardarEnStorage();
+    }
+  }
+
+  // ----- LÓGICA DEL MENÚ MODAL -----
+  
+  get productosFiltrados() {
+    if (this.categoriaActual === 'todo') return this.productosMenu;
+    return this.productosMenu.filter(p => p.cat === this.categoriaActual);
+  }
+
+  abrirMenu(): void {
+    this.showMenuModal = true;
+    this.categoriaActual = 'todo';
+  }
+
+  cerrarMenuModal(): void {
+    this.showMenuModal = false;
+  }
+
+  filtrarMenu(categoria: string): void {
+    this.categoriaActual = categoria;
+  }
+
+  seleccionarProductoDelMenu(prod: any): void {
+    if (!this.mesaSeleccionada) return;
+    if (!this.mesaSeleccionada.items) {
+      this.mesaSeleccionada.items = [];
+    }
+
+    const nuevoItem: MesaItem = {
+      e: prod.e,
+      n: prod.n,
+      q: '×1',
+      p: prod.p
+    };
+
+    this.mesaSeleccionada.items.push(nuevoItem);
+    this.recalcularTotales(this.mesaSeleccionada);
+    this.guardarEnStorage();
+  }
+
+  eliminarItem(mesa: Mesa, index: number): void {
+    if (!mesa.items) return;
+    mesa.items.splice(index, 1); // Remueve 1 elemento en la posición "index"
+    this.recalcularTotales(mesa);
+    this.guardarEnStorage();
+  }
+
+  recalcularTotales(mesa: Mesa): void {
+    if (!mesa.items) return;
+
+    let suma = 0;
+    mesa.items.forEach(item => {
+      const precio = parseInt(item.p.replace('$', '').replace(/\./g, ''), 10);
+      if (!isNaN(precio)) suma += precio;
+    });
+
+    let descuentoValor = 0;
+    if (mesa.descuento && mesa.descuento !== '$0') {
+      descuentoValor = parseInt(mesa.descuento.replace(/−/g, '-').replace('-$', '').replace(/\./g, ''), 10);
+      if (isNaN(descuentoValor)) descuentoValor = 0;
+    }
+
+    const total = suma - descuentoValor;
+    const formatoMoneda = (num: number) => '$' + num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+
+    mesa.sub_total = formatoMoneda(suma);
+    mesa.total = formatoMoneda(total);
   }
 }
