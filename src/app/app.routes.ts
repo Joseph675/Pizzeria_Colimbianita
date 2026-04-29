@@ -74,7 +74,12 @@ export const routes: Routes = [
         path: 'facturacion',
         loadChildren: () => import('./views/facturacion/routes').then((m) => m.routes),
         canActivate: [AuthGuard]
-      }
+      },
+      {
+        path: 'clientes',
+        loadChildren: () => import('./views/Clientes/routes').then((m) => m.routes),
+        canActivate: [AuthGuard]
+      },
 
 
     ]

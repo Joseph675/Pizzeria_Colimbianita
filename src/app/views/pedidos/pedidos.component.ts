@@ -5,6 +5,7 @@ import { Component } from '@angular/core';
   imports: [],
   templateUrl: './pedidos.component.html',
   styleUrl: './pedidos.component.scss'
+  
 })
 export class PedidosComponent {
 

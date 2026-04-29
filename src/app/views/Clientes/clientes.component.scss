@@ -1,0 +1,178 @@
+:host {
+  --red: #E8342A;
+  --gold: #F5C842;
+  --white: #F7F4EE;
+  --border: rgba(255, 255, 255, 0.07);
+  --muted: rgba(247, 244, 238, 0.42);
+
+  .legend {
+    small {
+      font-size: x-small;
+    }
+  }
+}
+
+ .ph { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:1.8rem; gap:1rem; flex-wrap:wrap; }
+    .ph-left {}
+    .ph-title { font-family:'Bebas Neue',sans-serif; font-size:2rem; letter-spacing:.05em; color:var(--white); line-height:1; }
+    .ph-title em { color:var(--gold); font-style:normal; }
+    .ph-sub { font-size:.78rem; color:var(--muted); margin-top:.3rem; font-weight:300; }
+    .ph-actions { display:flex; gap:.7rem; align-items:center; }
+
+/* ══ OVERLAY & MODAL NUEVO CLIENTE ══ */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1050;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+  
+  &.open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+.nm-modal {
+  width: 92%;
+  max-width: 480px;
+  background: rgba(13, 13, 13, 0.98);
+  border: 1px solid var(--border);
+  border-radius: 1.2rem;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+  transform: translateY(20px);
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 10px !important;
+}
+
+.modal-overlay.open .nm-modal {
+  transform: translateY(0);
+}
+
+.nm-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.8rem 2.2rem 1.2rem;
+  border-bottom: 1px solid var(--border);
+  
+  .nm-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.6rem;
+    letter-spacing: 0.04em;
+    color: var(--white);
+    margin: 0;
+    em {
+      color: var(--gold);
+      font-style: normal;
+    }
+  }
+  
+  .modal-close {
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    transition: color 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    
+    svg { width: 20px; height: 20px; }
+    &:hover { color: var(--red); }
+  }
+}
+
+.nm-body {
+  padding: 1.5rem 2.2rem 2.2rem 2.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.6rem;
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+
+    label {
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--muted);
+      margin-bottom: 0.2rem;
+    }
+
+    .nm-input {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border);
+      color: var(--white);
+      padding: 0.95rem 1.2rem;
+      border-radius: 0.6rem;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.95rem;
+      transition: border-color 0.2s;
+      outline: none;
+
+      &:focus {
+        border-color: var(--gold);
+        background: rgba(255, 255, 255, 0.06);
+      }
+    }
+  }
+}
+
+.nm-footer {
+  display: flex;
+  justify-content: stretch;
+  gap: 1rem;
+  padding: 1.2rem 2.2rem 1.8rem;
+  border-top: 1px solid var(--border);
+  background: rgba(0,0,0,0.2);
+
+  .dp-btn {
+    flex: 1;
+    padding: 0.85rem 1rem;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 0.6rem;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    transition: all 0.18s;
+    
+    &.primary {
+      background: var(--red);
+      color: #fff;
+      font-weight: 600;
+      box-shadow: 0 4px 14px rgba(232, 52, 42, 0.25);
+      &:hover {
+        box-shadow: 0 6px 20px rgba(232, 52, 42, 0.35);
+        transform: translateY(-1px);
+      }
+    }
+    
+    &.ghost {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      &:hover {
+        background: rgba(255, 255, 255, 0.08);
+        color: var(--white);
+      }
+    }
+  }
+}

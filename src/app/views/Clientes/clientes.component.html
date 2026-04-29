@@ -1,0 +1,256 @@
+<c-card-body>
+
+
+  <c-row>
+
+    <div class="ph-left">
+      <div class="ph-title">Mis <em>Clientes</em></div>
+      <div class="ph-sub">{{totalClientes}} clientes registrados</div>
+    </div>
+
+    <!-- Filtros y botón de nuevo cliente -->
+    <div class="col-md-9" style="padding-top: 10px;">
+      <input id="search" type="text" class="form-control" placeholder="🔍 Buscar Cliente" [value]="searchTerm"
+        (input)="onSearch($any($event.target).value)" />
+    </div>
+
+
+    <div class="col-md-3 d-flex justify-content-end">
+      <button cButton color="primary" shape="rounded-pill"
+        (click)="openNuevoClienteModal()">+ Nuevo Cliente</button>
+    </div>
+
+  </c-row>
+  <div class="col-md-3 d-flex justify-content-end mb-2"></div>
+
+
+
+
+</c-card-body>
+
+<c-row class="mt-4">
+  <c-col xs="12">
+    <c-card>
+      <c-card-header class="d-flex justify-content-between align-items-center">
+        <div>
+          <strong>Lista de Clientes</strong>
+        </div>
+        <div>
+          <div class="btn-group btn-group-sm" role="group" aria-label="Ver opciones">
+            <button type="button" class="btn btn-outline-primary" [class.active]="viewMode === 'table'"
+              (click)="setView('table')">
+              Lista
+            </button>
+            <button type="button" class="btn btn-outline-primary" [class.active]="viewMode === 'cards'"
+              (click)="setView('cards')">
+              Tarjetas
+            </button>
+          </div>
+        </div>
+      </c-card-header>
+
+
+      <c-card-body>
+
+        <!-- Vista en tabla -->
+        <div *ngIf="viewMode === 'table'" class="table-responsive">
+          <table class="table ">
+            <thead>
+              <tr>
+                <th>Id</th>
+                <th>Celular</th>
+                <th>Nombres</th>
+                <th>Dirección</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let cli of clientesFiltrados">
+                <td>{{ cli.idCliente || cli.id_cliente }}</td>
+                <td>{{ cli.celular }}</td>
+                <td>{{ cli.nombres }}</td>
+                <td>{{ cli.direccionPredeterminada }}</td>
+                <td>
+                  <span class="badge" [ngClass]="cli.estado === 1 ? 'bg-success' : 'bg-danger'">
+                    {{ cli.estado === 1 ? 'Activo' : 'Inactivo' }}
+                  </span>
+                </td>
+                <td>
+                  <button class="btn btn-sm btn-outline-primary me-2" title="Editar"
+                    (click)="openEditClienteModal(cli)">
+                    ✏️
+                  </button>
+                  <button class="btn btn-sm btn-outline-danger" title="Eliminar"
+                    (click)="openDeleteClienteModal(cli)">
+                    🗑️
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <!-- Vista en tabla -->
+
+        <!-- ---------------------------- -->
+
+        <!-- Vista en tarjetas -->
+
+        <div *ngIf="viewMode === 'cards'" class="row">
+          <div class="col-12 col-md-6 col-lg-4 mb-4" *ngFor="let cli of clientesFiltrados">
+
+            <c-card>
+              <c-card-body>
+                <h5 cCardTitle>{{ cli.nombres }}</h5>
+                <p cCardText>
+                  Celular: <strong>{{ cli.celular }}</strong><br>
+                  Dirección: <strong>{{ cli.direccionPredeterminada || 'N/A' }}</strong><br>
+                  Estado: <strong [ngClass]="cli.estado === 1 ? 'text-success' : 'text-danger'">{{ cli.estado === 1 ? 'Activo' : 'Inactivo' }}</strong>
+                </p>
+              </c-card-body>
+              <c-card-footer class="d-flex justify-content-end gap-2">
+
+                <button cButton color="primary" variant="outline"
+                  (click)="openEditClienteModal(cli)" class="d-flex align-items-center justify-content-center">
+                  <span class="material-icons">edit</span>
+                </button>
+
+                <button cButton color="danger" variant="outline"
+                  (click)="openDeleteClienteModal(cli)" class="d-flex align-items-center justify-content-center">
+                  <span class="material-icons">delete</span>
+                </button>
+
+              </c-card-footer>
+            </c-card>
+
+
+          </div>
+        </div>
+      </c-card-body>
+
+    </c-card>
+  </c-col>
+</c-row>
+<!-- Vista en tarjetas -->
+
+<!-- ---------------------------- -->
+
+<!-- Modal para nuevo cliente -->
+<div class="modal-overlay" [class.open]="showNuevoClienteModal" (click)="closeNuevoClienteModal()">
+  <div class="nm-modal" (click)="$event.stopPropagation()">
+    <div class="nm-header">
+      <div class="nm-title">Nuevo <em>Cliente</em></div>
+      <button class="modal-close" type="button" (click)="closeNuevoClienteModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    
+    <form [formGroup]="myForm" (ngSubmit)="crearCliente()">
+      <div class="nm-body">
+        <div class="form-group">
+          <label>Celular</label>
+          <input class="nm-input" formControlName="celular" type="number" placeholder="Ej. 3001234567" />
+        </div>
+
+        <div class="form-group">
+          <label>Nombres</label>
+          <input class="nm-input" formControlName="nombres" type="text" placeholder="Ej. Juan Pérez" />
+        </div>
+
+        <div class="form-group">
+          <label>Dirección Predeterminada</label>
+          <input class="nm-input" formControlName="direccion_predeterminada" type="text" placeholder="Ej. Calle 1 # 23 - 45" />
+        </div>
+      </div>
+      
+      <div class="nm-footer">
+        <button type="button" class="dp-btn ghost" (click)="closeNuevoClienteModal()">Cancelar</button>
+        <button type="submit" class="dp-btn primary">Guardar Cliente</button>
+      </div>
+    </form>
+  </div>
+</div>
+<!-- Modal para nuevo cliente -->
+
+<!-- ---------------------------- -->
+
+<!-- Modal para editar cliente -->
+<div class="modal-overlay" [class.open]="showEditarClienteModal" (click)="closeEditarClienteModal()">
+  <div class="nm-modal" (click)="$event.stopPropagation()">
+    <div class="nm-header">
+      <div class="nm-title">Editar <em>Cliente</em></div>
+      <button class="modal-close" type="button" (click)="closeEditarClienteModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    
+    <form [formGroup]="myForm" (ngSubmit)="actualizarCliente()">
+      <div class="nm-body">
+        <div class="form-group">
+          <label>Celular</label>
+          <input class="nm-input" formControlName="celular" type="text" />
+        </div>
+
+        <div class="form-group">
+          <label>Nombres</label>
+          <input class="nm-input" formControlName="nombres" type="text" />
+        </div>
+
+        <div class="form-group">
+          <label>Dirección Predeterminada</label>
+          <input class="nm-input" formControlName="direccion_predeterminada" type="text" />
+        </div>
+
+        <div class="form-group">
+          <label>Estado</label>
+          <select class="nm-input" formControlName="estado">
+            <option [value]="1" style="color: black;">Activo</option>
+            <option [value]="0" style="color: black;">Inactivo</option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="nm-footer">
+        <button type="button" class="dp-btn ghost" (click)="closeEditarClienteModal()">Cancelar</button>
+        <button type="submit" class="dp-btn primary">Guardar Cambios</button>
+      </div>
+    </form>
+  </div>
+</div>
+<!-- Modal para editar cliente -->
+
+<!-- ---------------------------- -->
+
+<!-- Modal para CONFIRMAR ELIMINACIÓN de cliente -->
+<div class="modal-overlay" [class.open]="showEliminarClienteModal" (click)="closeEliminarClienteModal()">
+  <div class="nm-modal" (click)="$event.stopPropagation()">
+    <div class="nm-header">
+      <div class="nm-title">Eliminar <em>Cliente</em></div>
+      <button class="modal-close" type="button" (click)="closeEliminarClienteModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="nm-body">
+      <p style="text-align: center; font-size: 3rem; margin-bottom: 0;">🗑️</p>
+      <p class="mb-3" style="text-align: center; color: var(--white);">Esta acción no se puede deshacer.</p>
+      <p class="mb-0" style="text-align: center; color: var(--muted);">
+        El cliente <strong style="color: var(--white);">{{ selectedCliente?.nombres }}</strong> será eliminado permanentemente.
+      </p>
+    </div>
+    <div class="nm-footer">
+      <button type="button" class="dp-btn ghost" (click)="closeEliminarClienteModal()">Cancelar</button>
+      <button type="button" class="dp-btn primary" style="background: var(--red);" (click)="confirmEliminar(selectedCliente?.idCliente || selectedCliente?.id_cliente)">Eliminar Permanentemente</button>
+    </div>
+  </div>
+</div>
+<!-- Modal para eliminar cliente -->
+
+
+<!-- Toast -->
+
+<c-toaster [placement]="'top-end'" class="p-3" position="fixed">
+  <c-toast *ngFor="let toast of toasts" [autohide]="true" [fade]="true" [visible]="true" [color]="toast.type"
+    style="min-width: 220px; margin-bottom: 8px;">
+    <c-toast-body>{{ toast.message }}</c-toast-body>
+  </c-toast>
+</c-toaster>
