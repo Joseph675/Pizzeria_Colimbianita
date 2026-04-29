@@ -1,13 +1,13 @@
 ﻿import { Component, OnInit, signal  } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { NgForOf, NgIf, NgClass, NgStyle, CurrencyPipe } from '@angular/common';
+import { NgForOf, NgIf, NgClass, NgStyle, CurrencyPipe, UpperCasePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 @Component({
   templateUrl: 'pos.component.html',
   styleUrls: ['pos.component.scss'],
   standalone: true,
-  imports: [NgIf, NgForOf, NgClass, NgStyle, CurrencyPipe, FormsModule]
+  imports: [NgIf, NgForOf, NgClass, NgStyle, CurrencyPipe, UpperCasePipe, FormsModule]
 })
 export class PosComponent implements OnInit {
   public presentaciones: any[] = [];
@@ -28,6 +28,10 @@ export class PosComponent implements OnInit {
   public selectedItemModal: any = null;
   public modalQty = 1;
 
+  public showMesaModal = false;
+  public mesasDisponibles: any[] = [];
+  public selectedMesa: any = null;
+
   public showNumpadModal = false;
   public numpadValue = '';
   public changeAmount = 0;
@@ -38,6 +42,22 @@ export class PosComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadPresentaciones();
+    this.loadMesas();
+  }
+
+  loadMesas(): void {
+    this.http.get<any[]>('http://localhost:8080/api/mesas').subscribe({
+      next: (data) => {
+        // Filtramos solo las mesas con estado 'LIBRE' y las ordenamos
+        this.mesasDisponibles = (data || [])
+          .filter((mesa: any) => mesa.estado && mesa.estado.toUpperCase() === 'LIBRE')
+          .sort((a, b) => (a.numeroMesa || 0) - (b.numeroMesa || 0));
+        console.log('Mesas libres cargadas en POS:', this.mesasDisponibles);
+      },
+      error: (err) => {
+        console.error('Error al cargar mesas en POS:', err);
+      }
+    });
   }
 
   loadPresentaciones(): void {
@@ -59,10 +79,9 @@ export class PosComponent implements OnInit {
     let filtered = [...this.presentaciones];
 
     if (this.activeCategory !== 'todo') {
-      // Simulamos filtro de categoría buscando en el nombre del producto
-      filtered = filtered.filter((p) => 
-        (p.producto?.nombre || '').toLowerCase().includes(this.activeCategory)
-      );
+      // CORRECCIÓN: Filtrar por el nombre de la categoría del producto, no por el nombre del producto.
+      const categoryToFilter = this.activeCategory.toLowerCase();
+      filtered = filtered.filter(p => p.producto?.categoria?.nombre?.toLowerCase() === categoryToFilter);
     }
 
     if (this.searchTerm.trim() !== '') {
@@ -79,6 +98,7 @@ export class PosComponent implements OnInit {
   setCategory(cat: string): void {
     this.activeCategory = cat;
     this.applyFilters();
+    console.log('Categoría seleccionada:', cat, 'Presentaciones filtradas:', this.presentacionesFiltrados);
   }
 
   onSearch(value: string): void {
@@ -100,10 +120,28 @@ export class PosComponent implements OnInit {
 
   setType(type: string): void {
     this.orderType = type;
+    if (type !== 'mesa') {
+      this.selectedMesa = null; // Limpiamos la mesa si elige domicilio o llevar
+    }
   }
 
   setPaymentMethod(method: string): void {
     this.paymentMethod = method;
+  }
+
+  // ----- MESA MODAL LOGIC -----
+  openMesaModal(): void {
+    this.showMesaModal = true;
+  }
+
+  closeMesaModal(): void {
+    this.showMesaModal = false;
+  }
+
+  selectMesa(mesa: any): void {
+    this.selectedMesa = mesa;
+    this.orderType = 'mesa'; // Forzamos el tipo a "mesa" si selecciona una
+    this.closeMesaModal();
   }
 
   // ----- ITEM MODAL LOGIC -----
@@ -161,6 +199,59 @@ export class PosComponent implements OnInit {
     this.orderTotal = this.orderSubtotal; 
   }
 
+  // ----- ENVIAR PEDIDO -----
+  enviarPedido(): void {
+    if (this.orderItems.length === 0) {
+      alert('Por favor, agrega al menos un producto al pedido.');
+      return;
+    }
+
+    if (this.orderType === 'mesa' && !this.selectedMesa) {
+      alert('Por favor, selecciona una mesa para este pedido.');
+      this.openMesaModal();
+      return;
+    }
+
+    console.log('Enviando pedido a cocina...', {
+      orderType: this.orderType,
+      selectedMesa: this.selectedMesa,
+      orderItems: this.orderItems,
+      orderTotal: this.orderTotal
+    });
+
+    // 1. Mapeamos los items del carrito al formato DetallePedidoDTO
+    const detalles = this.orderItems.map(item => ({
+      idPresentacion: item.idPresentacion,
+      fraccion: item.qty,
+      precioCobrado: item.precio
+    }));
+
+    // 2. Construimos el objeto JSON (Cabecera + Detalles)
+    const payload = {
+      sucursal: { idSucursal: 1 }, // El backend espera el objeto anidado 'sucursal'
+      tipoPedido: this.orderType.toUpperCase(),
+      mesa: this.orderType === 'mesa' && this.selectedMesa 
+              ? { idMesa: this.selectedMesa.idMesa || this.selectedMesa.id_mesa } 
+              : null, // Lo mismo para la mesa, espera un objeto anidado 'mesa'
+      total: this.orderTotal,
+      estado: 'PENDIENTE',
+      detalles: detalles
+    };
+
+    console.log('Enviando a Spring Boot:', payload);
+
+    this.http.post('http://localhost:8080/api/pedidos/crear', payload).subscribe({
+      next: (res) => {
+        this.showSuccessModal = true; // Abre el modal de éxito animado
+        this.loadMesas(); // Recargamos las mesas libres (la seleccionada desaparecerá porque pasó a OCUPADA)
+      },
+      error: (err) => {
+        console.error('Error al enviar el pedido:', err);
+        alert('Ocurrió un error al enviar el pedido a cocina.');
+      }
+    });
+  }
+
   // ----- NUMPAD MODAL LOGIC -----
   openNumpad(): void {
     if (this.orderItems.length === 0) return;
@@ -206,6 +297,8 @@ export class PosComponent implements OnInit {
   // ----- SUCCESS MODAL LOGIC -----
   closeSuccess(): void {
     this.showSuccessModal = false;
+    this.selectedMesa = null;
+    this.orderType = 'mesa';
     this.clearOrder();
   }
 

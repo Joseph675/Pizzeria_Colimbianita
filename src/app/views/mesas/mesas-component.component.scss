@@ -9,8 +9,6 @@
   
   *, *::before, *::after {
     box-sizing: border-box;
-    margin: 0;
-    padding: 0;
   }
 
   /* RESET PARA BLOQUEAR A COREUI */
@@ -205,8 +203,8 @@
 }
 
 .nm-modal {
-  width: 100%;
-  max-width: 700px;
+  width: 92%; /* Reducimos para que no toque los bordes del todo en pantallas de celular */
+  max-width: 480px; /* Un ancho más compacto y elegante para un formulario corto */
   background: rgba(13, 13, 13, 0.98);
   border: 1px solid var(--border);
   border-radius: 1.2rem;
@@ -216,6 +214,7 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  padding: 10!important; /* Aseguramos que el padding del modal no sea sobrescrito por CoreUI */  
 }
 
 .modal-overlay.open .nm-modal {
@@ -226,7 +225,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1.2rem 1.5rem;
+  padding: 1.8rem 2.2rem 1.2rem; /* Más espacio en los laterales y la parte superior */
   border-bottom: 1px solid var(--border);
   
   .nm-title {
@@ -257,20 +256,21 @@
 }
 
 .nm-body {
-  padding: 1.5rem;
+  padding: 1.5rem 2.2rem 2.2rem 2.2rem; /* Incrementamos el padding a los costados */
   display: flex;
   flex-direction: column;
-  gap: 1.2rem;
+  gap: 1.6rem; /* Separamos un poco más los campos entre sí */
 
   .form-group {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0.6rem;
 
     label {
       font-size: 0.8rem;
       font-weight: 500;
       color: var(--muted);
+      margin-bottom: 0.2rem; /* Separamos la etiqueta ligeramente del input */
     }
 
     .nm-input, .nm-select {
@@ -339,7 +339,7 @@
   display: flex;
   justify-content: stretch;
   gap: 1rem;
-  padding: 1.2rem 1.5rem;
+  padding: 1.2rem 2.2rem 1.8rem; /* Alinear el padding lateral con el cuerpo */
   border-top: 1px solid var(--border);
   background: rgba(0,0,0,0.2);
 
