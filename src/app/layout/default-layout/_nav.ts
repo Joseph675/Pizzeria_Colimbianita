@@ -17,11 +17,26 @@ export const navItems: CustomNavData[] = [
     url: '/pos',
     materialIcon: 'dashboard',
   },
+   {
+    name: 'Modulo Cocina',
+    url: '/cocina',
+    materialIcon: 'kebab_dining',
+  },
+  {    
+    name: 'Pedidos',
+    url: '/pedidos',
+    materialIcon: 'fastfood',  
+  },
 
   {
     name: 'Productos',
     url: '/productos',
     materialIcon: 'restaurant',  // Material icon name
+  },
+  {
+    name: 'facturación',
+    url: '/facturacion',
+    materialIcon: 'receipt_long',  // Material icon name
   },
 
   {

@@ -60,6 +60,23 @@ export const routes: Routes = [
         loadChildren: () => import('./views/mesas/routes').then((m) => m.routes),
         canActivate: [AuthGuard]
       },
+      {
+        path: 'cocina',
+        loadChildren: () => import('./views/cocina/routes').then((m) => m.routes) ,
+        canActivate: [AuthGuard]
+      },
+      {
+        path: 'pedidos',
+        loadChildren: () => import('./views/pedidos/routes').then((m) => m.routes),
+        canActivate: [AuthGuard]
+      },
+      {
+        path: 'facturacion',
+        loadChildren: () => import('./views/facturacion/routes').then((m) => m.routes),
+        canActivate: [AuthGuard]
+      }
+
+
     ]
   },
   
