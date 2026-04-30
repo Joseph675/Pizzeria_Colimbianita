@@ -28,7 +28,7 @@
 
 
     <div class="col-md-3 d-flex justify-content-end">
-      <button cButton color="primary" shape="rounded-pill" [cModalToggle]="nuevapresentacion.id" (click)="prepararNuevaPresentacion()">+ Nueva Presentación</button>
+      <button cButton color="primary" shape="rounded-pill" (click)="prepararNuevaPresentacion()">+ Nueva Presentación</button>
     </div>
   </c-row>
   <div class="col-md-3 d-flex justify-content-end mb-2"></div>
@@ -119,7 +119,7 @@
                   <td>{{ pre.precio | currency }}</td>
                   <td>
                     <button class="btn btn-sm btn-outline-primary me-2" title="Editar"
-                      [cModalToggle]="editarpresentacion.id" (click)="openEditPresentacionModal(pre)">
+                      (click)="openEditPresentacionModal(pre)">
                       ✏️
                     </button>
                     <button class="btn btn-sm btn-outline-danger" title="Inactivar"
@@ -161,14 +161,14 @@
                 </c-card-body>
                 <c-card-footer class="d-flex justify-content-end gap-2">
 
-                  <button cButton color="primary" variant="outline" [cModalToggle]="editarpresentacion.id"
+                  <button cButton color="primary" variant="outline"
                     (click)="openEditPresentacionModal(pre)" class="d-flex align-items-center justify-content-center">
 
                     <span class="material-icons">edit</span>
 
                   </button>
 
-                  <button cButton color="danger" variant="outline" [cModalToggle]="eliminarpresentacion.id"
+                  <button cButton color="danger" variant="outline"
                     (click)="openDeletePresentacionModal(pre)" class="d-flex align-items-center justify-content-center">
 
                     <span class="material-icons">delete</span>
@@ -191,129 +191,127 @@
 <!-- ---------------------------- -->
 
 <!-- Modal para nueva presentacion -->
-<c-modal #nuevapresentacion alignment="center" id="nuevapresentacion">
-  <c-modal-header>
-    <h5 cModalTitle>Nueva Presentación</h5>
-    <button [cModalToggle]="nuevapresentacion.id" cButtonClose></button>
-  </c-modal-header>
-  <c-modal-body>
-
+<div class="modal-overlay" [class.open]="showNuevaPresentacionModal" (click)="closeNuevaPresentacionModal()">
+  <div class="nm-modal" (click)="$event.stopPropagation()">
+    <div class="nm-header">
+      <div class="nm-title">Nueva <em>Presentación</em></div>
+      <button class="modal-close" type="button" (click)="closeNuevaPresentacionModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    
     <form [formGroup]="myForm" (ngSubmit)="crearPresentacion()">
-      <div class="col mb-2">
-        <label cLabel for="exampleFormControlInput1">Producto (Puedes buscar)</label>
-        <input cFormControl class="mb-2" type="text" placeholder="Buscar producto..." 
-          [value]="searchProductoModal" (input)="filtrarProductosModal($any($event.target).value)" />
-        <select class="form-select" formControlName="idProducto">
-          <option value="">Seleccione un producto</option>
-          <option *ngFor="let prod of productosParaModal" [value]="prod.idProducto || prod.id_producto">
-            {{ prod.nombre }}
-          </option>
-        </select>
-        <div *ngIf="productosCargaError" class="text-danger mt-1">
-          {{ productosCargaError }}
+      <div class="nm-body">
+        <div class="form-group mb-3">
+          <label>Producto (Puedes buscar)</label>
+          <input class="nm-input mb-2" type="search" placeholder="🔍 Buscar producto..." 
+                 [value]="searchProductoModal" 
+                 (input)="filtrarProductosModal($any($event.target).value)" />
+          <select class="nm-input" formControlName="idProducto">
+            <option value="">Seleccione un producto</option>
+            <option *ngFor="let prod of productosParaModal" [value]="prod.idProducto || prod.id_producto">
+              {{ prod.nombre }}
+            </option>
+          </select>
+          <div *ngIf="productosCargaError" class="text-danger mt-1">
+            {{ productosCargaError }}
+          </div>
+        </div>
+
+        <div class="form-group mb-3">
+          <label>Nombre de la Presentación</label>
+          <input class="nm-input" formControlName="nombrePresentacion" placeholder="Ej: Pizza Mediana" type="text" />
+        </div>
+
+        <div class="form-group mb-3">
+          <label>Precio</label>
+          <input class="nm-input" formControlName="precio" placeholder="Precio" type="number" step="0.01" />
         </div>
       </div>
-
-      <div class="col mb-2">
-        <label cLabel for="exampleFormControlInput1">Nombre de la Presentación</label>
-        <input cFormControl formControlName="nombrePresentacion" placeholder="Ej: Pizza Mediana" type="text" />
+      
+      <div class="nm-footer">
+        <button type="button" class="dp-btn ghost" (click)="closeNuevaPresentacionModal()">Cancelar</button>
+        <button type="submit" class="dp-btn primary">Guardar Presentación</button>
       </div>
-      <div class="mb-3">
-        <label cLabel for="exampleFormControlInput1">Precio</label>
-        <input cFormControl formControlName="precio" placeholder="Precio" type="number" step="0.01" />
-      </div>
-
-      <button cButton type="submit" color="primary">Guardar Presentación</button>
-
     </form>
-
-  </c-modal-body>
-  <c-modal-footer>
-    <button [cModalToggle]="nuevapresentacion.id" cButton color="danger">
-      Cancelar
-    </button>
-  </c-modal-footer>
-</c-modal>
+  </div>
+</div>
 <!-- Modal para nueva presentacion -->
 
 <!-- ---------------------------- -->
 
 <!-- Modal para editar presentacion -->
-<c-modal #editarpresentacion alignment="center" id="editarpresentacion">
-  <c-modal-header>
-    <h5 cModalTitle>Editar Presentación</h5>
-    <button [cModalToggle]="editarpresentacion.id" cButtonClose></button>
-  </c-modal-header>
-  <c-modal-body>
-
+<div class="modal-overlay" [class.open]="showEditarPresentacionModal" (click)="closeEditarPresentacionModal()">
+  <div class="nm-modal" (click)="$event.stopPropagation()">
+    <div class="nm-header">
+      <div class="nm-title">Editar <em>Presentación</em></div>
+      <button class="modal-close" type="button" (click)="closeEditarPresentacionModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    
     <form [formGroup]="myForm" (ngSubmit)="actualizarPresentacion()">
-      <div class="col mb-2">
-        <label cLabel for="exampleFormControlInput1">Producto (Puedes buscar)</label>
-        <input cFormControl class="mb-2" type="text" placeholder="Buscar producto..." 
-          [value]="searchProductoModal" (input)="filtrarProductosModal($any($event.target).value)" />
-        <select id="tipo" class="form-select" formControlName="idProducto">
-          <option value="">Seleccione un producto</option>
-          <option *ngFor="let prod of productosParaModal" [value]="prod.idProducto || prod.id_producto">
-            {{ prod.nombre }}
-          </option>
-        </select>
-        <div *ngIf="productosCargaError" class="text-danger mt-1">
-          {{ productosCargaError }}
+      <div class="nm-body">
+        <div class="form-group mb-3">
+          <label>Producto (Puedes buscar)</label>
+          <input class="nm-input mb-2" type="search" placeholder="🔍 Buscar producto..." 
+                 [value]="searchProductoModal" 
+                 (input)="filtrarProductosModal($any($event.target).value)" />
+          <select id="tipo" class="nm-input" formControlName="idProducto">
+            <option value="">Seleccione un producto</option>
+            <option *ngFor="let prod of productosParaModal" [value]="prod.idProducto || prod.id_producto">
+              {{ prod.nombre }}
+            </option>
+          </select>
+          <div *ngIf="productosCargaError" class="text-danger mt-1">
+            {{ productosCargaError }}
+          </div>
+        </div>
+
+        <div class="form-group mb-3">
+          <label>Nombre de la Presentación</label>
+          <input class="nm-input" formControlName="nombrePresentacion" type="text" />
+        </div>
+
+        <div class="form-group mb-3">
+          <label>Precio</label>
+          <input class="nm-input" formControlName="precio" type="number" step="0.01" />
         </div>
       </div>
-
-      <div class="col mb-2">
-        <label cLabel for="exampleFormControlInput1">Nombre de la Presentación</label>
-        <input cFormControl formControlName="nombrePresentacion" type="text" />
+      
+      <div class="nm-footer">
+        <button type="button" class="dp-btn ghost" (click)="closeEditarPresentacionModal()">Cancelar</button>
+        <button type="submit" class="dp-btn primary">Guardar Cambios</button>
       </div>
-      <div class="mb-3">
-        <label cLabel for="exampleFormControlInput1">Precio</label>
-        <input cFormControl formControlName="precio" type="number" step="0.01" />
-      </div>
-
-      <button cButton type="submit" color="primary" >Guardar Cambios</button>
-
     </form>
-
-  </c-modal-body>
-  <c-modal-footer>
-    <button [cModalToggle]="editarpresentacion.id" cButton color="danger">
-      Cancelar
-    </button>
-  </c-modal-footer>
-</c-modal>
+  </div>
+</div>
 <!-- Modal para editar presentacion -->
 
 <!-- ---------------------------- -->
 
 <!-- Modal para CONFIRMAR ELIMINACIÓN de presentacion -->
-<c-modal #eliminarpresentacion alignment="center" id="eliminarpresentacion">
-  <c-modal-header>
-    <h5 cModalTitle>Eliminar Presentación</h5>
-    <button [cModalToggle]="eliminarpresentacion.id" cButtonClose></button>
-  </c-modal-header>
-  <c-modal-body>
-    <p style="text-align: center; font-size: 3rem;">
-      🗑️
-    </p>
-
-    <p class="mb-3" style="text-align: center;">
-      Esta acción no se puede deshacer.
-    </p>
-    <p class="mb-0" style="text-align: center;">
-      La presentación <strong>{{ selectedPresentacion?.nombrePresentacion || selectedPresentacion?.nombre_presentacion }}</strong> será eliminada permanentemente.
-    </p>
-  </c-modal-body>
-  <c-modal-footer>
-    <button [cModalToggle]="eliminarpresentacion.id" cButton color="secondary">
-      Cancelar
-    </button>
-    <button cButton color="danger" style="color: white;" (click)="confirmEliminar(selectedPresentacion?.idPresentacion || selectedPresentacion?.id_presentacion)"
-      [cModalToggle]="eliminarpresentacion.id">
-      Eliminar Permanentemente
-    </button>
-  </c-modal-footer>
-</c-modal>
+<div class="modal-overlay" [class.open]="showEliminarPresentacionModal" (click)="closeEliminarPresentacionModal()">
+  <div class="nm-modal" (click)="$event.stopPropagation()">
+    <div class="nm-header">
+      <div class="nm-title">Eliminar <em>Presentación</em></div>
+      <button class="modal-close" type="button" (click)="closeEliminarPresentacionModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="nm-body">
+      <p style="text-align: center; font-size: 3rem; margin-bottom: 0;">🗑️</p>
+      <p class="mb-3" style="text-align: center; color: var(--white);">Esta acción no se puede deshacer.</p>
+      <p class="mb-0" style="text-align: center; color: var(--muted);">
+        La presentación <strong style="color: var(--white);">{{ selectedPresentacion?.nombrePresentacion || selectedPresentacion?.nombre_presentacion }}</strong> será eliminada permanentemente.
+      </p>
+    </div>
+    <div class="nm-footer">
+      <button type="button" class="dp-btn ghost" (click)="closeEliminarPresentacionModal()">Cancelar</button>
+      <button type="button" class="dp-btn primary" style="background: var(--red);" (click)="confirmEliminar(selectedPresentacion?.idPresentacion || selectedPresentacion?.id_presentacion)">Eliminar Permanentemente</button>
+    </div>
+  </div>
+</div>
 <!-- Modal para eliminar presentacion -->
 
 

@@ -57,6 +57,8 @@ export class CategoriasComponent implements OnInit {
   // ── NUEVO: categoría seleccionada en el panel derecho ──────────────────────
   public selectedCat: { id_categoria: number; nombre: string; descripcion?: string } | null = null;
 
+  public showNuevaCategoriaModal: boolean = false;
+
   constructor(private http: HttpClient, private fromproductos: FormBuilder) {
     this.myForm = this.fromproductos.group({
       nombre: ['', Validators.required],
@@ -71,6 +73,15 @@ export class CategoriasComponent implements OnInit {
 
   public setView(mode: 'table' | 'cards') {
     this.viewMode = mode;
+  }
+
+  openNuevaCategoriaModal(): void {
+    this.myForm.reset({ nombre: '', descripcion: '' });
+    this.showNuevaCategoriaModal = true;
+  }
+
+  closeNuevaCategoriaModal(): void {
+    this.showNuevaCategoriaModal = false;
   }
 
   // ── NUEVO: seleccionar categoría para el panel derecho ─────────────────────
@@ -215,6 +226,7 @@ export class CategoriasComponent implements OnInit {
             descripcion: ''
           });
 
+          this.closeNuevaCategoriaModal();
           setTimeout(() => (this.showToast = false), 3000);
         },
         (error) => {

@@ -80,6 +80,10 @@ export class ProductosComponent implements OnInit {
   public categoriasCargaError: string | null = null;
   public viewMode: 'table' | 'cards' = 'table';
 
+  public showNuevoProductoModal: boolean = false;
+  public showEditarProductoModal: boolean = false;
+  public showEliminarProductoModal: boolean = false;
+
   constructor(private http: HttpClient, private fromproductos: FormBuilder) { 
 
     this.myForm = this.fromproductos.group({
@@ -115,7 +119,14 @@ export class ProductosComponent implements OnInit {
     this.percentage.set($event * 25);
   }
 
+  openNuevoProductoModal(): void {
+    this.myForm.reset({ idCategoria: '', nombre: '', descripcion: '', imagenUrl: '' });
+    this.showNuevoProductoModal = true;
+  }
 
+  closeNuevoProductoModal(): void {
+    this.showNuevoProductoModal = false;
+  }
   
 
   loadproductos(): void {
@@ -177,6 +188,7 @@ export class ProductosComponent implements OnInit {
           this.addToast('Producto registrado exitosamente!', 'success');
           this.loadproductos();
           this.myForm.reset({ idCategoria: '', nombre: '', descripcion: '', imagenUrl: '' });
+          this.closeNuevoProductoModal();
         },
         (error) => {
           console.error('Error al crear producto:', error.error);
@@ -210,6 +222,7 @@ export class ProductosComponent implements OnInit {
           this.loadproductos();
           this.selectedProducto = null;
           this.myForm.reset({ idCategoria: '', nombre: '', descripcion: '', imagenUrl: '' });
+          this.closeEditarProductoModal();
         },
         (error) => {
           console.error('Error al actualizar producto:', error.error);
@@ -329,11 +342,23 @@ export class ProductosComponent implements OnInit {
       imagenUrl: producto.imagenUrl || ''
     });
     console.log('Producto seleccionado para editar:', this.selectedProducto);
+    this.showEditarProductoModal = true;
+  }
+
+  closeEditarProductoModal(): void {
+    this.showEditarProductoModal = false;
+    this.selectedProducto = null;
   }
 
   openDeleteProductModal(producto: any): void {
     this.selectedProducto = { ...producto }; // Copia del producto para mostrar en el modal
     console.log('Producto seleccionado para eliminar:', this.selectedProducto);
+    this.showEliminarProductoModal = true;
+  }
+
+  closeEliminarProductoModal(): void {
+    this.showEliminarProductoModal = false;
+    this.selectedProducto = null;
   }
 
   confirmEliminar(productoId: number | undefined): void {
@@ -349,6 +374,7 @@ export class ProductosComponent implements OnInit {
         console.log('Producto eliminado exitosamente:', response);
         this.addToast('Producto eliminado permanentemente', 'success');
         this.loadproductos();
+        this.closeEliminarProductoModal();
       },
       (error) => {
         console.error('Error al eliminar producto:', error.error);

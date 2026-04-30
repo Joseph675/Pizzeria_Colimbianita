@@ -81,6 +81,10 @@ export class PresentacionesComponent implements OnInit {
   public productosCargaError: string | null = null;
   public viewMode: 'table' | 'cards' = 'table';
 
+  public showNuevaPresentacionModal: boolean = false;
+  public showEditarPresentacionModal: boolean = false;
+  public showEliminarPresentacionModal: boolean = false;
+
   constructor(private http: HttpClient, private fromproductos: FormBuilder) { 
 
     this.myForm = this.fromproductos.group({
@@ -144,8 +148,9 @@ export class PresentacionesComponent implements OnInit {
       .get<any[]>('http://localhost:8080/api/productos')
       .subscribe(
         (data) => {
-          this.productos = (data || []).filter(p => p.estado === 1).sort((a, b) => a.nombre.localeCompare(b.nombre));
+          this.productos = (data || []).filter(p => p.estado !== 0).sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
           this.productosParaModal = [...this.productos];
+          console.log('Productos disponibles cargados para el modal:', this.productos.length);
         },
         (error) => {
           console.error('Error al cargar los productos:', error);
@@ -168,6 +173,7 @@ export class PresentacionesComponent implements OnInit {
           this.addToast('Presentación registrada exitosamente!', 'success');
           this.loadPresentaciones();
           this.myForm.reset({ idProducto: '', nombrePresentacion: '', precio: '' });
+          this.closeNuevaPresentacionModal();
         },
         (error) => {
           console.error('Error al crear presentación:', error.error);
@@ -196,6 +202,7 @@ export class PresentacionesComponent implements OnInit {
           this.loadPresentaciones();
           this.selectedPresentacion = null;
           this.myForm.reset({ idProducto: '', nombrePresentacion: '', precio: '' });
+          this.closeEditarPresentacionModal();
         },
         (error) => {
           console.error('Error al actualizar presentación:', error.error);
@@ -297,18 +304,39 @@ export class PresentacionesComponent implements OnInit {
     this.applyFilters();
   }
 
-  filtrarProductosModal(value: string): void {
-    this.searchProductoModal = value.toLowerCase();
-    this.productosParaModal = this.productos.filter(p => 
-      p.nombre.toLowerCase().includes(this.searchProductoModal)
-    );
+  filtrarProductosModal(value?: string): void {
+    if (value !== undefined) {
+      this.searchProductoModal = value;
+    }
+    const searchTerm = (this.searchProductoModal || '').trim().toLowerCase();
+    
+    if (!searchTerm) {
+      this.productosParaModal = [...this.productos];
+    } else {
+      this.productosParaModal = this.productos.filter(p => 
+        (p.nombre || '').toLowerCase().includes(searchTerm)
+      );
+    }
+
+    console.log(`Buscando producto "${searchTerm}": ${this.productosParaModal.length} coincidencias encontradas.`);
+
+    // Si el producto seleccionado actualmente ya no se encuentra en los resultados filtrados, limpiamos el select
+    const currentSelectedId = this.myForm.get('idProducto')?.value;
+    if (currentSelectedId && !this.productosParaModal.some(p => (p.idProducto || p.id_producto) == currentSelectedId)) {
+      this.myForm.patchValue({ idProducto: '' });
+    }
   }
 
   prepararNuevaPresentacion(): void {
     this.selectedPresentacion = null;
-    this.myForm.reset();
+    this.myForm.reset({ idProducto: '', nombrePresentacion: '', precio: '' });
     this.searchProductoModal = '';
     this.productosParaModal = [...this.productos];
+    this.showNuevaPresentacionModal = true;
+  }
+
+  closeNuevaPresentacionModal(): void {
+    this.showNuevaPresentacionModal = false;
   }
 
   openEditPresentacionModal(presentacion: any): void {
@@ -320,10 +348,22 @@ export class PresentacionesComponent implements OnInit {
       nombrePresentacion: presentacion.nombrePresentacion || presentacion.nombre_presentacion || '',
       precio: presentacion.precio || ''
     });
+    this.showEditarPresentacionModal = true;
+  }
+
+  closeEditarPresentacionModal(): void {
+    this.showEditarPresentacionModal = false;
+    this.selectedPresentacion = null;
   }
 
   openDeletePresentacionModal(presentacion: any): void {
     this.selectedPresentacion = { ...presentacion };
+    this.showEliminarPresentacionModal = true;
+  }
+
+  closeEliminarPresentacionModal(): void {
+    this.showEliminarPresentacionModal = false;
+    this.selectedPresentacion = null;
   }
 
   confirmEliminar(id: number | undefined): void {
@@ -336,6 +376,7 @@ export class PresentacionesComponent implements OnInit {
       (response) => {
         this.addToast('Presentación eliminada permanentemente', 'success');
         this.loadPresentaciones();
+        this.closeEliminarPresentacionModal();
       },
       (error) => {
         console.error('Error al eliminar:', error.error);

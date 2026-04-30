@@ -16,8 +16,7 @@
 
 
     <div class="col-md-3 d-flex justify-content-end">
-      <button cButton color="primary" shape="rounded-pill" [cModalToggle]="nuevoproducto.id"
-        (click)="prepararNuevoIngrediente()">+ Nuevo Ingrediente</button>
+      <button cButton color="primary" shape="rounded-pill" (click)="prepararNuevoIngrediente()">+ Nuevo Ingrediente</button>
     </div>
 
   </c-row>
@@ -73,11 +72,10 @@
                 <td>{{ ingre.costoUnitario | currency }}</td>
                 <td>
                   <button class="btn btn-sm btn-outline-primary me-2" title="Editar"
-                    [cModalToggle]="editaringrediente.id" (click)="openEditIngredienteModal(ingre)">
+                    (click)="openEditIngredienteModal(ingre)">
                     ✏️
                   </button>
-                  <button class="btn btn-sm btn-outline-danger" title="Eliminar" [cModalToggle]="eliminaringrediente.id"
-                    (click)="openDeleteIngredienteModal(ingre)">
+                  <button class="btn btn-sm btn-outline-danger" title="Eliminar" (click)="openDeleteIngredienteModal(ingre)">
                     🗑️
                   </button>
                 </td>
@@ -104,13 +102,11 @@
               </c-card-body>
               <c-card-footer class="d-flex justify-content-end gap-2">
 
-                <button cButton color="primary" variant="outline" [cModalToggle]="editaringrediente.id"
-                  (click)="openEditIngredienteModal(ingre)" class="d-flex align-items-center justify-content-center">
+                <button cButton color="primary" variant="outline" (click)="openEditIngredienteModal(ingre)" class="d-flex align-items-center justify-content-center">
                   <span class="material-icons">edit</span>
                 </button>
 
-                <button cButton color="danger" variant="outline" [cModalToggle]="eliminaringrediente.id"
-                  (click)="openDeleteIngredienteModal(ingre)" class="d-flex align-items-center justify-content-center">
+                <button cButton color="danger" variant="outline" (click)="openDeleteIngredienteModal(ingre)" class="d-flex align-items-center justify-content-center">
                   <span class="material-icons">delete</span>
                 </button>
 
@@ -130,115 +126,105 @@
 <!-- ---------------------------- -->
 
 <!-- Modal para nuevo ingrediente -->
-<c-modal #nuevoproducto alignment="center" id="nuevoproducto">
-  <c-modal-header>
-    <h5 cModalTitle>Nuevo Ingrediente</h5>
-    <button [cModalToggle]="nuevoproducto.id" cButtonClose></button>
-  </c-modal-header>
-  <c-modal-body>
+<div class="modal-overlay" [class.open]="showNuevoIngredienteModal" (click)="closeNuevoIngredienteModal()">
+  <div class="nm-modal" (click)="$event.stopPropagation()">
+    <div class="nm-header">
+      <div class="nm-title">Nuevo <em>Ingrediente</em></div>
+      <button class="modal-close" type="button" (click)="closeNuevoIngredienteModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    
+    <form [formGroup]="myForm" (ngSubmit)="crearIngrediente()">
+      <div class="nm-body">
+        <div class="form-group mb-3">
+          <label>Nombre</label>
+          <input class="nm-input" formControlName="nombre" type="text" placeholder="Ej. Tomate" />
+        </div>
 
-    <form id="formNuevoIngrediente" [formGroup]="myForm" (ngSubmit)="crearIngrediente()">
+        <div class="form-group mb-3">
+          <label>Unidad de medida</label>
+          <input class="nm-input" formControlName="unidadMedida" type="text" placeholder="Ej. kg, g, ml, l" />
+        </div>
 
-
-      <div class="col mb-2">
-        <label cLabel for="exampleFormControlInput1">Nombre</label>
-        <input cFormControl formControlName="nombre" type="text" />
+        <div class="form-group mb-3">
+          <label>Costo unitario</label>
+          <input class="nm-input" formControlName="costoUnitario" placeholder="Ej. 1500" type="number" />
+        </div>
       </div>
-
-      <div class="mb-3">
-        <label cLabel for="exampleFormControlTextarea1">Unidad de medida</label>
-        <input cFormControl formControlName="unidadMedida" type="text" />
-
+      
+      <div class="nm-footer">
+        <button type="button" class="dp-btn ghost" (click)="closeNuevoIngredienteModal()">Cancelar</button>
+        <button type="submit" class="dp-btn primary">Guardar Ingrediente</button>
       </div>
-
-      <div class="mb-3">
-        <label cLabel for="exampleFormControlInput1">Costo unitario</label>
-        <input cFormControl formControlName="costoUnitario" placeholder="Costo unitario" type="number" />
-      </div>
-
     </form>
-
-  </c-modal-body>
-  <c-modal-footer>
-    <button [cModalToggle]="nuevoproducto.id" cButton color="danger">
-      Cancelar
-    </button>
-    <button [cModalToggle]="nuevoproducto.id" cButton type="submit" form="formNuevoIngrediente" color="primary">
-      Guardar Ingrediente
-    </button>
-  </c-modal-footer>
-</c-modal>
-<!-- Modal para nuevo producto -->
+  </div>
+</div>
+<!-- Modal para nuevo ingrediente -->
 
 <!-- ---------------------------- -->
 
 <!-- Modal para editar ingrediente -->
-<c-modal #editaringrediente alignment="center" id="editaringrediente">
-  <c-modal-header>
-    <h5 cModalTitle>Editar Ingrediente</h5>
-    <button [cModalToggle]="editaringrediente.id" cButtonClose></button>
-  </c-modal-header>
-  <c-modal-body>
+<div class="modal-overlay" [class.open]="showEditarIngredienteModal" (click)="closeEditarIngredienteModal()">
+  <div class="nm-modal" (click)="$event.stopPropagation()">
+    <div class="nm-header">
+      <div class="nm-title">Editar <em>Ingrediente</em></div>
+      <button class="modal-close" type="button" (click)="closeEditarIngredienteModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    
+    <form [formGroup]="myForm" (ngSubmit)="actualizarIngrediente()">
+      <div class="nm-body">
+        <div class="form-group mb-3">
+          <label>Nombre</label>
+          <input class="nm-input" formControlName="nombre" type="text" />
+        </div>
 
-    <form id="formEditarIngrediente" [formGroup]="myForm" (ngSubmit)="actualizarIngrediente()">
-      <div class="col mb-2">
-        <label cLabel for="exampleFormControlInput1">Nombre</label>
-        <input cFormControl formControlName="nombre" type="text" />
-      </div>
-      <div class="mb-3">
-        <label cLabel for="exampleFormControlTextarea1">Unidad de medida</label>
-        <input cFormControl formControlName="unidadMedida" type="text" />
-      </div>
+        <div class="form-group mb-3">
+          <label>Unidad de medida</label>
+          <input class="nm-input" formControlName="unidadMedida" type="text" />
+        </div>
 
-      <div class="mb-3">
-        <label cLabel for="exampleFormControlInput1">Costo unitario</label>
-        <input cFormControl formControlName="costoUnitario" placeholder="Costo unitario" type="number" />
+        <div class="form-group mb-3">
+          <label>Costo unitario</label>
+          <input class="nm-input" formControlName="costoUnitario" type="number" />
+        </div>
       </div>
-
+      
+      <div class="nm-footer">
+        <button type="button" class="dp-btn ghost" (click)="closeEditarIngredienteModal()">Cancelar</button>
+        <button type="submit" class="dp-btn primary">Guardar Cambios</button>
+      </div>
     </form>
-
-  </c-modal-body>
-  <c-modal-footer>
-    <button [cModalToggle]="editaringrediente.id" cButton color="danger">
-      Cancelar
-    </button>
-    <button  cButton type="submit" form="formEditarIngrediente" color="primary">
-      Guardar Cambios
-    </button>
-  </c-modal-footer>
-</c-modal>
+  </div>
+</div>
 <!-- Modal para editar ingrediente -->
 
 <!-- ---------------------------- -->
 
 <!-- Modal para CONFIRMAR ELIMINACIÓN de ingrediente -->
-<c-modal #eliminaringrediente alignment="center" id="eliminaringrediente">
-  <c-modal-header>
-    <h5 cModalTitle>Eliminar Ingrediente</h5>
-    <button [cModalToggle]="eliminaringrediente.id" cButtonClose></button>
-  </c-modal-header>
-  <c-modal-body>
-    <p style="text-align: center; font-size: 3rem;">
-      🗑️
-    </p>
-
-    <p class="mb-3" style="text-align: center;">
-      Esta acción no se puede deshacer.
-    </p>
-    <p class="mb-0" style="text-align: center;">
-      El ingrediente <strong>{{ selectedIngrediente?.nombre }}</strong> será eliminado permanentemente.
-    </p>
-  </c-modal-body>
-  <c-modal-footer>
-    <button [cModalToggle]="eliminaringrediente.id" cButton color="secondary">
-      Cancelar
-    </button>
-    <button cButton color="danger" style="color: white;" (click)="confirmEliminar(selectedIngrediente?.idIngrediente)"
-      [cModalToggle]="eliminaringrediente.id">
-      Eliminar Permanentemente
-    </button>
-  </c-modal-footer>
-</c-modal>
+<div class="modal-overlay" [class.open]="showEliminarIngredienteModal" (click)="closeEliminarIngredienteModal()">
+  <div class="nm-modal" (click)="$event.stopPropagation()">
+    <div class="nm-header">
+      <div class="nm-title">Eliminar <em>Ingrediente</em></div>
+      <button class="modal-close" type="button" (click)="closeEliminarIngredienteModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="nm-body">
+      <p style="text-align: center; font-size: 3rem; margin-bottom: 0;">🗑️</p>
+      <p class="mb-3" style="text-align: center; color: var(--white);">Esta acción no se puede deshacer.</p>
+      <p class="mb-0" style="text-align: center; color: var(--muted);">
+        El ingrediente <strong style="color: var(--white);">{{ selectedIngrediente?.nombre }}</strong> será eliminado permanentemente.
+      </p>
+    </div>
+    <div class="nm-footer">
+      <button type="button" class="dp-btn ghost" (click)="closeEliminarIngredienteModal()">Cancelar</button>
+      <button type="button" class="dp-btn primary" style="background: var(--red);" (click)="confirmEliminar(selectedIngrediente?.idIngrediente)">Eliminar Permanentemente</button>
+    </div>
+  </div>
+</div>
 <!-- Modal para eliminar ingrediente -->
 
 

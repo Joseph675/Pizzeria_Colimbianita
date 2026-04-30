@@ -9,7 +9,7 @@
 
 
     <div class="col-md-3 d-flex justify-content-end">
-      <button cButton color="primary" shape="rounded-pill" [cModalToggle]="nuevacategoria.id">+ Nueva Categoría</button>
+      <button cButton color="primary" shape="rounded-pill" (click)="openNuevaCategoriaModal()">+ Nueva Categoría</button>
     </div>
   </c-row>
   <div class="col-md-3 d-flex justify-content-end mb-2"></div>
@@ -152,30 +152,29 @@
   </c-col>
 </c-row>
 
-<c-modal #nuevacategoria alignment="center" id="nuevacategoria">
-  <c-modal-header>
-    <h5 cModalTitle>Nueva Categoría</h5>
-    <button [cModalToggle]="nuevacategoria.id" cButtonClose></button>
-  </c-modal-header>
-  <c-modal-body>
-
-    <form  [formGroup]="myForm" (ngSubmit)="registrarcategoria()">
-      <div class="col mb-2">
-        <label cLabel for="nombreCategoria">Nombre</label>
-        <input cFormControl formControlName="nombre" type="text" id="nombreCategoria" />
+<!-- Modal para nueva categoria -->
+<div class="modal-overlay" [class.open]="showNuevaCategoriaModal" (click)="closeNuevaCategoriaModal()">
+  <div class="nm-modal" (click)="$event.stopPropagation()">
+    <div class="nm-header">
+      <div class="nm-title">Nueva <em>Categoría</em></div>
+      <button class="modal-close" type="button" (click)="closeNuevaCategoriaModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    
+    <form [formGroup]="myForm" (ngSubmit)="registrarcategoria()">
+      <div class="nm-body">
+        <div class="form-group">
+          <label>Nombre de la Categoría</label>
+          <input class="nm-input" formControlName="nombre" type="text" placeholder="Ej. Pizzas Tradicionales" />
+        </div>
       </div>
-
       
-
-    <button cButton type="submit" color="primary">Guardar Categoría</button>
-
+      <div class="nm-footer">
+        <button type="button" class="dp-btn ghost" (click)="closeNuevaCategoriaModal()">Cancelar</button>
+        <button type="submit" class="dp-btn primary">Guardar Categoría</button>
+      </div>
     </form>
-
-  </c-modal-body>
-  <c-modal-footer>
-    <button [cModalToggle]="nuevacategoria.id" cButton color="danger">
-      Cancelar
-    </button>
-    <button cButton type="submit" color="primary">Guardar Categoría</button>
-  </c-modal-footer>
-</c-modal>
+  </div>
+</div>
+<!-- Modal para nueva categoria -->

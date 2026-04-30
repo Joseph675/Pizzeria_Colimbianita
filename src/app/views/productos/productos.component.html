@@ -23,7 +23,7 @@
 
 
     <div class="col-md-3 d-flex justify-content-end">
-      <button cButton color="primary" shape="rounded-pill" [cModalToggle]="nuevoproducto.id">+ Nuevo Producto</button>
+      <button cButton color="primary" shape="rounded-pill" (click)="openNuevoProductoModal()">+ Nuevo Producto</button>
     </div>
   </c-row>
   <div class="col-md-3 d-flex justify-content-end mb-2"></div>
@@ -129,7 +129,7 @@
                   </td>
                   <td>
                     <button class="btn btn-sm btn-outline-primary me-2" title="Editar"
-                      [cModalToggle]="editarproducto.id" (click)="openEditProductModal(producto)">
+                      (click)="openEditProductModal(producto)">
                       ✏️
                     </button>
                     <button class="btn btn-sm btn-outline-danger" title="Inactivar"
@@ -173,14 +173,14 @@
                 </c-card-body>
                 <c-card-footer class="d-flex justify-content-end gap-2">
 
-                  <button cButton color="primary" variant="outline" [cModalToggle]="editarproducto.id"
+                  <button cButton color="primary" variant="outline"
                     (click)="openEditProductModal(producto)" class="d-flex align-items-center justify-content-center">
 
                     <span class="material-icons">edit</span>
 
                   </button>
 
-                  <button cButton color="danger" variant="outline" [cModalToggle]="eliminarproducto.id"
+                  <button cButton color="danger" variant="outline"
                     (click)="openDeleteProductModal(producto)" class="d-flex align-items-center justify-content-center">
 
                     <span class="material-icons">delete</span>
@@ -202,138 +202,131 @@
 
 <!-- ---------------------------- -->
 
-<!-- Modal para nuevo producto -->
-<c-modal #nuevoproducto alignment="center" id="nuevoproducto">
-  <c-modal-header>
-    <h5 cModalTitle>Nuevo Producto</h5>
-    <button [cModalToggle]="nuevoproducto.id" cButtonClose></button>
-  </c-modal-header>
-  <c-modal-body>
+<!-- ---------------------------- -->
 
+<!-- Modal para nuevo producto -->
+<div class="modal-overlay" [class.open]="showNuevoProductoModal" (click)="closeNuevoProductoModal()">
+  <div class="nm-modal" (click)="$event.stopPropagation()">
+    <div class="nm-header">
+      <div class="nm-title">Nuevo <em>Producto</em></div>
+      <button class="modal-close" type="button" (click)="closeNuevoProductoModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    
     <form [formGroup]="myForm" (ngSubmit)="crearProducto()">
-      <div class="col mb-2">
-        <label cLabel for="exampleFormControlInput1">Categoria</label>
-        <select class="form-select" formControlName="idCategoria">
-          <option value="">Seleccione una categoría</option>
-          <option *ngFor="let categoria of categorias" [value]="categoria.idCategoria">
-            {{ categoria.nombre }}
-          </option>
-        </select>
-        <div *ngIf="categoriasCargaError" class="text-danger mt-1">
-          {{ categoriasCargaError }}
+      <div class="nm-body">
+        <div class="form-group mb-3">
+          <label>Categoría</label>
+          <select class="nm-input" formControlName="idCategoria">
+            <option value="">Seleccione una categoría</option>
+            <option *ngFor="let categoria of categorias" [value]="categoria.idCategoria">
+              {{ categoria.nombre }}
+            </option>
+          </select>
+        </div>
+
+        <div class="form-group mb-3">
+          <label>Nombre</label>
+          <input class="nm-input" formControlName="nombre" type="text" placeholder="Ej. Pizza Hawaiana" />
+        </div>
+
+        <div class="form-group mb-3">
+          <label>Descripción</label>
+          <textarea class="nm-input" formControlName="descripcion" rows="3" placeholder="Descripción breve..."></textarea>
+        </div>
+
+        <div class="form-group mb-3">
+          <label>URL de Imagen</label>
+          <input class="nm-input" formControlName="imagenUrl" type="text" placeholder="https://ejemplo.com/imagen.jpg" />
         </div>
       </div>
-
-      <div class="col mb-2">
-        <label cLabel for="exampleFormControlInput1">Nombre</label>
-        <input cFormControl formControlName="nombre" type="text" />
+      
+      <div class="nm-footer">
+        <button type="button" class="dp-btn ghost" (click)="closeNuevoProductoModal()">Cancelar</button>
+        <button type="submit" class="dp-btn primary">Guardar Producto</button>
       </div>
-      <div class="mb-3">
-        <label cLabel for="exampleFormControlTextarea1">Descripción</label>
-        <textarea cFormControl formControlName="descripcion" rows="3"></textarea>
-      </div>
-
-      <div class="mb-3">
-        <label cLabel for="exampleFormControlInput1">Imagen</label>
-        <input cFormControl formControlName="imagenUrl" placeholder="URL de la imagen" type="text" />
-      </div>
-
-      <button cButton type="submit" color="primary">Guardar Producto</button>
-
     </form>
-
-  </c-modal-body>
-  <c-modal-footer>
-    <button [cModalToggle]="nuevoproducto.id" cButton color="danger">
-      Cancelar
-    </button>
-  </c-modal-footer>
-</c-modal>
+  </div>
+</div>
 <!-- Modal para nuevo producto -->
 
 <!-- ---------------------------- -->
 
 <!-- Modal para editar producto -->
-<c-modal #editarproducto alignment="center" id="editarproducto">
-  <c-modal-header>
-    <h5 cModalTitle>Editar Producto</h5>
-    <button [cModalToggle]="editarproducto.id" cButtonClose></button>
-  </c-modal-header>
-  <c-modal-body>
-
+<div class="modal-overlay" [class.open]="showEditarProductoModal" (click)="closeEditarProductoModal()">
+  <div class="nm-modal" (click)="$event.stopPropagation()">
+    <div class="nm-header">
+      <div class="nm-title">Editar <em>Producto</em></div>
+      <button class="modal-close" type="button" (click)="closeEditarProductoModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    
     <form [formGroup]="myForm" (ngSubmit)="actualizarProducto()">
-      <div class="col mb-2">
-        <label cLabel for="exampleFormControlInput1">Categoria</label>
-        <select id="tipo" class="form-select" formControlName="idCategoria">
-          <option value="">Seleccione una categoría</option>
-          <option *ngFor="let categoria of categorias" [value]="categoria.idCategoria">
-            {{ categoria.nombre }}
-          </option>
-        </select>
-        <div *ngIf="categoriasCargaError" class="text-danger mt-1">
-          {{ categoriasCargaError }}
+      <div class="nm-body">
+        <div class="form-group mb-3">
+          <label>Categoría</label>
+          <select class="nm-input" formControlName="idCategoria">
+            <option value="">Seleccione una categoría</option>
+            <option *ngFor="let categoria of categorias" [value]="categoria.idCategoria">
+              {{ categoria.nombre }}
+            </option>
+          </select>
+        </div>
+
+        <div class="form-group mb-3">
+          <label>Nombre</label>
+          <input class="nm-input" formControlName="nombre" type="text" />
+        </div>
+
+        <div class="form-group mb-3">
+          <label>Descripción</label>
+          <textarea class="nm-input" formControlName="descripcion" rows="3"></textarea>
+        </div>
+
+        <div class="form-group mb-3">
+          <label>URL de Imagen</label>
+          <input class="nm-input" formControlName="imagenUrl" type="text" />
         </div>
       </div>
-
-      <div class="col mb-2">
-        <label cLabel for="exampleFormControlInput1">Nombre</label>
-        <input cFormControl formControlName="nombre" type="text" />
+      
+      <div class="nm-footer">
+        <button type="button" class="dp-btn ghost" (click)="closeEditarProductoModal()">Cancelar</button>
+        <button type="submit" class="dp-btn primary">Guardar Cambios</button>
       </div>
-      <div class="mb-3">
-        <label cLabel for="exampleFormControlTextarea1">Descripción</label>
-        <textarea cFormControl formControlName="descripcion" rows="3"></textarea>
-      </div>
-
-      <div class="mb-3">
-        <label cLabel for="exampleFormControlInput1">Imagen</label>
-        <input cFormControl formControlName="imagenUrl" placeholder="URL de la imagen" type="text" />
-      </div>
-
-      <button cButton type="submit" color="primary" >Guardar Producto</button>
-
     </form>
-
-  </c-modal-body>
-  <c-modal-footer>
-    <button [cModalToggle]="editarproducto.id" cButton color="danger">
-      Cancelar
-    </button>
-  </c-modal-footer>
-</c-modal>
+  </div>
+</div>
 <!-- Modal para editar producto -->
 
 <!-- ---------------------------- -->
 
 <!-- Modal para CONFIRMAR ELIMINACIÓN de producto -->
-<c-modal #eliminarproducto alignment="center" id="eliminarproducto">
-  <c-modal-header>
-    <h5 cModalTitle>Eliminar Producto</h5>
-    <button [cModalToggle]="eliminarproducto.id" cButtonClose></button>
-  </c-modal-header>
-  <c-modal-body>
-    <p style="text-align: center; font-size: 3rem;">
-      🗑️
-    </p>
+<div class="modal-overlay" [class.open]="showEliminarProductoModal" (click)="closeEliminarProductoModal()">
+  <div class="nm-modal" (click)="$event.stopPropagation()">
+    <div class="nm-header">
+      <div class="nm-title">Eliminar <em>Producto</em></div>
+      <button class="modal-close" type="button" (click)="closeEliminarProductoModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="nm-body">
+      <p style="text-align: center; font-size: 3rem; margin-bottom: 0;">🗑️</p>
+      <p class="mb-3" style="text-align: center; color: var(--white);">Esta acción no se puede deshacer.</p>
+      <p class="mb-0" style="text-align: center; color: var(--muted);">
+        El producto <strong style="color: var(--white);">{{ selectedProducto?.nombre }}</strong> será eliminado permanentemente.
+      </p>
+    </div>
+    <div class="nm-footer">
+      <button type="button" class="dp-btn ghost" (click)="closeEliminarProductoModal()">Cancelar</button>
+      <button type="button" class="dp-btn primary" style="background: var(--red);" (click)="confirmEliminar(selectedProducto?.idProducto || selectedProducto?.id_producto)">Eliminar Permanentemente</button>
+    </div>
+  </div>
+</div>
+<!-- Modal para eliminar producto -->
 
-    <p class="mb-3" style="text-align: center;">
-      Esta acción no se puede deshacer.
-    </p>
-    <p class="mb-0" style="text-align: center;">
-      El producto <strong>{{ selectedProducto?.nombre }}</strong> será eliminado permanentemente.
-    </p>
-  </c-modal-body>
-  <c-modal-footer>
-    <button [cModalToggle]="eliminarproducto.id" cButton color="secondary">
-      Cancelar
-    </button>
-    <button cButton color="danger" style="color: white;" (click)="confirmEliminar(selectedProducto.idProducto)"
-      [cModalToggle]="eliminarproducto.id">
-      Eliminar Permanentemente
-    </button>
-  </c-modal-footer>
-</c-modal>
-<!-- Modal para editar producto -->
-
+<!-- ---------------------------- -->
 
 <!-- Toast -->
 

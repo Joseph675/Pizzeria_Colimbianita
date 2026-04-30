@@ -73,6 +73,10 @@ export class IngredientesComponent implements OnInit {
   public totalIngredientes = 0;
   public viewMode: 'table' | 'cards' = 'table';
 
+  public showNuevoIngredienteModal: boolean = false;
+  public showEditarIngredienteModal: boolean = false;
+  public showEliminarIngredienteModal: boolean = false;
+
   constructor(private http: HttpClient, private formBuilder: FormBuilder) { 
 
     this.myForm = this.formBuilder.group({
@@ -126,6 +130,11 @@ export class IngredientesComponent implements OnInit {
   prepararNuevoIngrediente(): void {
     this.selectedIngrediente = null;
     this.myForm.reset();
+    this.showNuevoIngredienteModal = true;
+  }
+
+  closeNuevoIngredienteModal(): void {
+    this.showNuevoIngredienteModal = false;
   }
 
   crearIngrediente(): void {
@@ -145,6 +154,7 @@ export class IngredientesComponent implements OnInit {
           this.addToast('Ingrediente registrado exitosamente!', 'success');
           this.myForm.reset();
           this.cargarIngredientes();
+          this.closeNuevoIngredienteModal();
         },
         (error) => {
           console.error('Error al crear ingrediente:', error.error);
@@ -172,6 +182,7 @@ export class IngredientesComponent implements OnInit {
           this.selectedIngrediente = null;
           this.myForm.reset();
           this.cargarIngredientes();
+          this.closeEditarIngredienteModal();
         },
         (error) => {
           console.error('Error al actualizar ingrediente:', error.error);
@@ -213,10 +224,22 @@ export class IngredientesComponent implements OnInit {
       unidadMedida: ingrediente.unidadMedida || ingrediente.unidad_medida || '',
       costoUnitario: ingrediente.costoUnitario || ingrediente.costo_unitario || ''
     });
+    this.showEditarIngredienteModal = true;
+  }
+
+  closeEditarIngredienteModal(): void {
+    this.showEditarIngredienteModal = false;
+    this.selectedIngrediente = null;
   }
 
   openDeleteIngredienteModal(ingrediente: any): void {
     this.selectedIngrediente = { ...ingrediente }; 
+    this.showEliminarIngredienteModal = true;
+  }
+
+  closeEliminarIngredienteModal(): void {
+    this.showEliminarIngredienteModal = false;
+    this.selectedIngrediente = null;
   }
 
   confirmEliminar(ingredienteId: number | undefined): void {
@@ -230,6 +253,7 @@ export class IngredientesComponent implements OnInit {
       (response) => {
         this.addToast('Ingrediente eliminado permanentemente', 'success');
         this.cargarIngredientes();
+        this.closeEliminarIngredienteModal();
       },
       (error) => {
         console.error('Error al eliminar ingrediente:', error.error);
