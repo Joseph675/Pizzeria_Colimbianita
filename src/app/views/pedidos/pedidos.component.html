@@ -1,1 +1,104 @@
-<p>pedidos works!</p>
+<div class="pedidos-wrap">
+  <div class="page-header">
+    <h2 class="page-title">Historial de <em>Pedidos</em></h2>
+    <div class="stats">
+      <span>{{ pedidos.length }} pedidos registrados</span>
+    </div>
+  </div>
+
+  <div class="cargando-state" *ngIf="cargando">
+    <p>Cargando pedidos...</p>
+  </div>
+
+  <div class="pedidos-grid" *ngIf="!cargando && pedidos.length > 0">
+    <!-- Tarjeta de Pedido -->
+    <div class="pedido-card" *ngFor="let p of pedidos">
+      <div class="pc-header">
+        <div class="pc-id">Pedido #{{ p.id_pedido || p.idPedido }}</div>
+        <!-- Select interactivo para cambiar el estado -->
+        <select 
+          class="pc-status-select" 
+          [ngClass]="(p.estado || '').toLowerCase()" 
+          [(ngModel)]="p.estado" 
+          (change)="cambiarEstado(p, $any($event.target).value)">
+          <option value="PENDIENTE">Pendiente</option>
+          <option value="PREPARANDO">Preparando</option>
+          <option value="LISTO">Listo</option>
+          <option value="PAGADO">Pagado</option>
+          <option value="CANCELADO">Cancelado</option>
+        </select>
+      </div>
+      
+      <div class="pc-meta">
+        <div class="meta-item"><span class="icon">📅</span> {{ (p.fecha_hora || p.fechaHora) | date:'medium' }}</div>
+        <div class="meta-item"><span class="icon">🏷️</span> {{ p.tipo_pedido || p.tipoPedido }} <span *ngIf="p.mesa"> (Mesa {{ p.mesa?.numero_mesa || p.mesa?.numeroMesa }})</span></div>
+      </div>
+
+      <!-- Detalles del Carrito (Vista Previa Clickable) -->
+      <div class="pc-details" (click)="abrirDetalles(p)" title="Haz clic para ver todos los detalles">
+        <div class="detail-item" *ngFor="let det of p.detalles">
+          <div class="di-qty">{{ det.fraccion }}x</div>
+          <div class="di-name">
+            <strong>{{ det.presentacion?.producto?.nombre || 'Desconocido' }}</strong><br>
+            <small>{{ det.presentacion?.nombre_presentacion || det.presentacion?.nombrePresentacion }}</small>
+          </div>
+          <div class="di-price">{{ (det.precio_cobrado || det.precioCobrado) | currency:'USD':'symbol':'1.0-0' }}</div>
+        </div>
+        <div *ngIf="!p.detalles || p.detalles.length === 0" class="no-details">
+          Sin detalles registrados.
+        </div>
+      </div>
+
+      <div class="pc-footer">
+        <div class="total-label">Total</div>
+        <div class="total-val">{{ p.total | currency:'USD':'symbol':'1.0-0' }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="empty-state" *ngIf="!cargando && pedidos.length === 0">
+    <div class="empty-icon">🧾</div>
+    <p>No hay pedidos registrados aún.</p>
+  </div>
+
+  <!-- MODAL DE DETALLES AMPLIADOS -->
+  <div class="modal-overlay" [class.open]="pedidoSeleccionado" (click)="cerrarDetalles()">
+    <div class="pedido-modal" (click)="$event.stopPropagation()" *ngIf="pedidoSeleccionado">
+      <div class="pm-header">
+        <h3>Detalle del Pedido #{{ pedidoSeleccionado.id_pedido || pedidoSeleccionado.idPedido }}</h3>
+        <button class="close-btn" (click)="cerrarDetalles()">✖</button>
+      </div>
+      
+      <div class="pm-body">
+        <div class="pm-item" *ngFor="let det of pedidoSeleccionado.detalles">
+          <div class="pm-qty">{{ det.fraccion }}x</div>
+          <div class="pm-info">
+            <div class="pm-prod">{{ det.presentacion?.producto?.nombre || 'Producto Desconocido' }}</div>
+            <div class="pm-pres">{{ det.presentacion?.nombre_presentacion || det.presentacion?.nombrePresentacion }}</div>
+          </div>
+          <div class="pm-price">
+            {{ (det.precio_cobrado || det.precioCobrado) | currency:'USD':'symbol':'1.0-0' }}
+          </div>
+        </div>
+        
+        <div *ngIf="!pedidoSeleccionado.detalles || pedidoSeleccionado.detalles.length === 0" style="text-align: center; color: #888; margin-top: 2rem;">
+          Este pedido no tiene productos registrados.
+        </div>
+      </div>
+      
+      <div class="pm-footer">
+        <span class="pm-total-lbl">Total Cobrado</span>
+        <span class="pm-total-val">{{ pedidoSeleccionado.total | currency:'USD':'symbol':'1.0-0' }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST DE NOTIFICACIÓN NUEVO PEDIDO -->
+  <div class="toast-notificacion" [class.show]="mostrarNotificacion">
+    <div class="toast-icon">🔔</div>
+    <div class="toast-content">
+      <h4>¡Nuevo Pedido!</h4>
+      <p>Se ha recibido un nuevo pedido en cocina.</p>
+    </div>
+  </div>
+</div>
