@@ -69,11 +69,11 @@ export class PresentacionesComponent implements OnInit {
   public presentacionesFiltrados: any[] = [];
   public presentacionesCargaError: string | null = null;
   public productos: any[] = [];
-  public productosParaModal: any[] = []; // Para el filtro del modal
+  public productosFiltrados: any[] = []; // Lista que se muestra en el <select>
   public selectedProductoId: string = 'all';
   public selectedEstado: 'all' | 'active' | 'inactive' = 'all';
   public searchTerm: string = '';
-  public searchProductoModal: string = '';
+  public terminoBusqueda: string = ''; // Lo que el usuario escribe en el input
 
   public totalPresentaciones = 0;
   public totalActivos = 0;
@@ -149,7 +149,7 @@ export class PresentacionesComponent implements OnInit {
       .subscribe(
         (data) => {
           this.productos = (data || []).filter(p => p.estado !== 0).sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
-          this.productosParaModal = [...this.productos];
+          this.productosFiltrados = [...this.productos];
           console.log('Productos disponibles cargados para el modal:', this.productos.length);
         },
         (error) => {
@@ -304,25 +304,23 @@ export class PresentacionesComponent implements OnInit {
     this.applyFilters();
   }
 
-  filtrarProductosModal(value?: string): void {
-    if (value !== undefined) {
-      this.searchProductoModal = value;
-    }
-    const searchTerm = (this.searchProductoModal || '').trim().toLowerCase();
+  // Esta función se dispara cada vez que tecleas algo en el buscador
+  filtrarProductos(): void {
+    const termino = (this.terminoBusqueda || '').trim().toLowerCase();
     
-    if (!searchTerm) {
-      this.productosParaModal = [...this.productos];
+    if (!termino) {
+      // Si el buscador está vacío, mostramos todos los productos
+      this.productosFiltrados = [...this.productos];
     } else {
-      this.productosParaModal = this.productos.filter(p => 
-        (p.nombre || '').toLowerCase().includes(searchTerm)
+      // Filtramos la lista original ignorando mayúsculas y minúsculas
+      this.productosFiltrados = this.productos.filter(p => 
+        (p.nombre || '').toLowerCase().includes(termino)
       );
     }
 
-    console.log(`Buscando producto "${searchTerm}": ${this.productosParaModal.length} coincidencias encontradas.`);
-
-    // Si el producto seleccionado actualmente ya no se encuentra en los resultados filtrados, limpiamos el select
+    // El ID del producto que finalmente elige está controlado por myForm.get('idProducto')
     const currentSelectedId = this.myForm.get('idProducto')?.value;
-    if (currentSelectedId && !this.productosParaModal.some(p => (p.idProducto || p.id_producto) == currentSelectedId)) {
+    if (currentSelectedId && !this.productosFiltrados.some(p => (p.idProducto || p.id_producto) == currentSelectedId)) {
       this.myForm.patchValue({ idProducto: '' });
     }
   }
@@ -330,8 +328,8 @@ export class PresentacionesComponent implements OnInit {
   prepararNuevaPresentacion(): void {
     this.selectedPresentacion = null;
     this.myForm.reset({ idProducto: '', nombrePresentacion: '', precio: '' });
-    this.searchProductoModal = '';
-    this.productosParaModal = [...this.productos];
+    this.terminoBusqueda = '';
+    this.productosFiltrados = [...this.productos];
     this.showNuevaPresentacionModal = true;
   }
 
@@ -341,8 +339,8 @@ export class PresentacionesComponent implements OnInit {
 
   openEditPresentacionModal(presentacion: any): void {
     this.selectedPresentacion = { ...presentacion };
-    this.searchProductoModal = '';
-    this.productosParaModal = [...this.productos];
+    this.terminoBusqueda = '';
+    this.productosFiltrados = [...this.productos];
     this.myForm.patchValue({
       idProducto: presentacion.producto?.idProducto || presentacion.id_producto || '',
       nombrePresentacion: presentacion.nombrePresentacion || presentacion.nombre_presentacion || '',

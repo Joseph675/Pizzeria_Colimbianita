@@ -204,15 +204,25 @@
       <div class="nm-body">
         <div class="form-group mb-3">
           <label>Producto (Puedes buscar)</label>
-          <input class="nm-input mb-2" type="search" placeholder="🔍 Buscar producto..." 
-                 [value]="searchProductoModal" 
-                 (input)="filtrarProductosModal($any($event.target).value)" />
-          <select class="nm-input" formControlName="idProducto">
-            <option value="">Seleccione un producto</option>
-            <option *ngFor="let prod of productosParaModal" [value]="prod.idProducto || prod.id_producto">
-              {{ prod.nombre }}
-            </option>
-          </select>
+          
+          <!-- 1. El cuadro de búsqueda -->
+          <div class="search-box mb-2">
+            <i class="icono-lupa"></i>
+            <input class="nm-input" type="search" placeholder="🔍 Buscar producto..." 
+                   [(ngModel)]="terminoBusqueda" 
+                   [ngModelOptions]="{standalone: true}"
+                   (input)="filtrarProductos()" />
+          </div>
+
+          <!-- 2. La lista desplegable -->
+          <div class="select-box">
+            <select class="nm-input" formControlName="idProducto">
+              <option value="" disabled selected>Seleccione un producto</option>
+              <option *ngFor="let prod of productosFiltrados" [value]="prod.idProducto || prod.id_producto">
+                {{ prod.nombre }}
+              </option>
+            </select>
+          </div>
           <div *ngIf="productosCargaError" class="text-danger mt-1">
             {{ productosCargaError }}
           </div>
@@ -254,15 +264,25 @@
       <div class="nm-body">
         <div class="form-group mb-3">
           <label>Producto (Puedes buscar)</label>
-          <input class="nm-input mb-2" type="search" placeholder="🔍 Buscar producto..." 
-                 [value]="searchProductoModal" 
-                 (input)="filtrarProductosModal($any($event.target).value)" />
-          <select id="tipo" class="nm-input" formControlName="idProducto">
-            <option value="">Seleccione un producto</option>
-            <option *ngFor="let prod of productosParaModal" [value]="prod.idProducto || prod.id_producto">
-              {{ prod.nombre }}
-            </option>
-          </select>
+
+          <!-- 1. El cuadro de búsqueda -->
+          <div class="search-box mb-2">
+            <i class="icono-lupa"></i>
+            <input class="nm-input" type="search" placeholder="🔍 Buscar producto..." 
+                   [(ngModel)]="terminoBusqueda" 
+                   [ngModelOptions]="{standalone: true}"
+                   (input)="filtrarProductos()" />
+          </div>
+
+          <!-- 2. La lista desplegable -->
+          <div class="select-box">
+            <select id="tipo" class="nm-input" formControlName="idProducto">
+              <option value="" disabled selected>Seleccione un producto</option>
+              <option *ngFor="let prod of productosFiltrados" [value]="prod.idProducto || prod.id_producto">
+                {{ prod.nombre }}
+              </option>
+            </select>
+          </div>
           <div *ngIf="productosCargaError" class="text-danger mt-1">
             {{ productosCargaError }}
           </div>
