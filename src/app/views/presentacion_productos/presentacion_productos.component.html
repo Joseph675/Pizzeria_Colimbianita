@@ -1,3 +1,4 @@
+<div class="presentaciones-wrap">
 
 <c-card-body>
   <c-row>
@@ -192,7 +193,7 @@
 
 <!-- Modal para nueva presentacion -->
 <div class="modal-overlay" [class.open]="showNuevaPresentacionModal" (click)="closeNuevaPresentacionModal()">
-  <div class="nm-modal" (click)="$event.stopPropagation()">
+  <div class="nm-modal" (click)="$event.stopPropagation()" [style.top]="modalTop">
     <div class="nm-header">
       <div class="nm-title">Nueva <em>Presentación</em></div>
       <button class="modal-close" type="button" (click)="closeNuevaPresentacionModal()">
@@ -252,7 +253,7 @@
 
 <!-- Modal para editar presentacion -->
 <div class="modal-overlay" [class.open]="showEditarPresentacionModal" (click)="closeEditarPresentacionModal()">
-  <div class="nm-modal" (click)="$event.stopPropagation()">
+  <div class="nm-modal" (click)="$event.stopPropagation()" [style.top]="modalTop">
     <div class="nm-header">
       <div class="nm-title">Editar <em>Presentación</em></div>
       <button class="modal-close" type="button" (click)="closeEditarPresentacionModal()">
@@ -312,7 +313,7 @@
 
 <!-- Modal para CONFIRMAR ELIMINACIÓN de presentacion -->
 <div class="modal-overlay" [class.open]="showEliminarPresentacionModal" (click)="closeEliminarPresentacionModal()">
-  <div class="nm-modal" (click)="$event.stopPropagation()">
+  <div class="nm-modal" (click)="$event.stopPropagation()" [style.top]="modalTop">
     <div class="nm-header">
       <div class="nm-title">Eliminar <em>Presentación</em></div>
       <button class="modal-close" type="button" (click)="closeEliminarPresentacionModal()">
@@ -342,3 +343,4 @@
     <c-toast-body>{{ toast.message }}</c-toast-body>
   </c-toast>
 </c-toaster>
+</div>

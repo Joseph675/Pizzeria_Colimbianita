@@ -2,17 +2,20 @@
    ESTILOS PARA LOS MODALES PERSONALIZADOS (Overlay y Contenido)
    ========================================================================== */
 
+.productos-wrap {
+  position: relative; /* CRUCIAL: El cálculo matemático de TypeScript depende de esto */
+}
+
 .modal-overlay {
-  position: fixed;
+  position: absolute; /* Reemplaza fixed para evitar bloqueos del framework */
   top: 0;
   left: 0;
-  width: 100vw;
-  height: 100vh;
+  right: 0;
+  bottom: 0;
+  height: 100%;
+  min-height: 100vh;
   background: rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(3px);
-  display: flex;
-  justify-content: center;
-  align-items: center;
   z-index: 9999;
   opacity: 0;
   visibility: hidden;
@@ -25,6 +28,9 @@
 }
 
 .nm-modal {
+  position: absolute;
+  left: 50%;
+  transform: translate(-50%, calc(-50% - 30px)); /* Mantiene la animación inicial adaptada al centrado */
   background-color: #1e1e1e; /* Ajusta según el fondo oscuro de tu diseño */
   color: #fff;
   border-radius: 12px;
@@ -32,12 +38,11 @@
   max-width: 500px;
   padding: 24px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-  transform: translateY(-30px);
   transition: transform 0.3s ease;
 }
 
 .modal-overlay.open .nm-modal {
-  transform: translateY(0);
+  transform: translate(-50%, -50%); /* Centrado exacto basado en el cálculo de TypeScript */
 }
 
 .nm-header {

@@ -84,6 +84,7 @@ export class PresentacionesComponent implements OnInit {
   public showNuevaPresentacionModal: boolean = false;
   public showEditarPresentacionModal: boolean = false;
   public showEliminarPresentacionModal: boolean = false;
+  public modalTop: string = '50%';
 
   constructor(private http: HttpClient, private fromproductos: FormBuilder) { 
 
@@ -325,12 +326,25 @@ export class PresentacionesComponent implements OnInit {
     }
   }
 
+  calcularPosicionModal(): void {
+    setTimeout(() => {
+      const container = document.querySelector('.presentaciones-wrap') as HTMLElement;
+      if (container) {
+        const rect = container.getBoundingClientRect();
+        const viewportCenterY = window.innerHeight / 2;
+        const positionY = viewportCenterY - rect.top;
+        this.modalTop = `${positionY}px`;
+      }
+    }, 0);
+  }
+
   prepararNuevaPresentacion(): void {
     this.selectedPresentacion = null;
     this.myForm.reset({ idProducto: '', nombrePresentacion: '', precio: '' });
     this.terminoBusqueda = '';
     this.productosFiltrados = [...this.productos];
     this.showNuevaPresentacionModal = true;
+    this.calcularPosicionModal();
   }
 
   closeNuevaPresentacionModal(): void {
@@ -347,6 +361,7 @@ export class PresentacionesComponent implements OnInit {
       precio: presentacion.precio || ''
     });
     this.showEditarPresentacionModal = true;
+    this.calcularPosicionModal();
   }
 
   closeEditarPresentacionModal(): void {
@@ -357,6 +372,7 @@ export class PresentacionesComponent implements OnInit {
   openDeletePresentacionModal(presentacion: any): void {
     this.selectedPresentacion = { ...presentacion };
     this.showEliminarPresentacionModal = true;
+    this.calcularPosicionModal();
   }
 
   closeEliminarPresentacionModal(): void {

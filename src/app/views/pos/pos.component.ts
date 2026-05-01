@@ -1,4 +1,4 @@
-﻿import { Component, OnInit, signal  } from '@angular/core';
+﻿﻿import { Component, OnInit, signal  } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { NgForOf, NgIf, NgClass, NgStyle, CurrencyPipe, UpperCasePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -48,6 +48,7 @@ export class PosComponent implements OnInit {
   public changeAmount = 0;
 
   public showSuccessModal = false;
+  public modalTop: string = '50%';
 
   constructor(private http: HttpClient) {}
 
@@ -55,6 +56,18 @@ export class PosComponent implements OnInit {
     this.loadPresentaciones();
     this.loadMesas();
     this.loadClientes();
+  }
+
+  calcularPosicionModal(): void {
+    setTimeout(() => {
+      const container = document.querySelector('.pos-wrap') as HTMLElement;
+      if (container) {
+        const rect = container.getBoundingClientRect();
+        const viewportCenterY = window.innerHeight / 2;
+        const positionY = viewportCenterY - rect.top;
+        this.modalTop = `${positionY}px`;
+      }
+    }, 0);
   }
 
   loadClientes(): void {
@@ -181,6 +194,7 @@ export class PosComponent implements OnInit {
     this.creandoCliente = false;
     this.clienteSearchTerm = '';
     this.clientesFiltrados = [...this.clientesRegistrados];
+    this.calcularPosicionModal();
   }
 
   closeClienteModal(): void {
@@ -237,6 +251,7 @@ export class PosComponent implements OnInit {
     this.modalQty = 1;
     this.modalNotas = ''; // Resetear las notas cada vez que abramos un producto
     this.showItemModal = true;
+    this.calcularPosicionModal();
   }
 
   closeItemModal(): void {
@@ -350,6 +365,7 @@ export class PosComponent implements OnInit {
     this.numpadValue = '';
     this.changeAmount = 0;
     this.showNumpadModal = true;
+    this.calcularPosicionModal();
   }
 
   closeNumpad(): void {
