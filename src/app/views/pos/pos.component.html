@@ -75,6 +75,22 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Domicilio
         </div>
       </div>
+
+      <!-- Botón de Asignación de Cliente -->
+      <div class="cliente-selector mt-2 mx-3" (click)="openClienteModal()" style="cursor: pointer; display: flex; align-items: center; justify-content: space-between; background: var(--dark-2); padding: 0.7rem 1rem; border-radius: 6px; border: 1px solid var(--border);">
+        <div style="display: flex; align-items: center; gap: 0.5rem; color: var(--white);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <span *ngIf="!selectedCliente" style="font-size: 0.95rem;">Asignar Cliente (Opcional)</span>
+          <span *ngIf="selectedCliente" style="color: var(--gold); font-weight: bold; font-size: 0.95rem;">{{ selectedCliente.nombres }} <small style="color:var(--muted)">({{ selectedCliente.celular }})</small></span>
+        </div>
+        <button *ngIf="selectedCliente" (click)="removeCliente(); $event.stopPropagation()" style="background: none; border: none; color: var(--red); cursor: pointer;" title="Quitar cliente">✖</button>
+      </div>
+
+      <!-- Nuevo: Input para Dirección de Domicilio -->
+      <div class="delivery-address mt-3" *ngIf="orderType === 'domicilio' || orderType === 'delivery'" style="padding: 0 1.5rem 1rem 1.5rem;">
+        <input type="text" [(ngModel)]="direccionEntrega" placeholder="📍 Ingresa la dirección de entrega (Ej: Calle 123 #45-67)..." 
+               style="width: 100%; padding: 0.7rem; background: var(--dark-2); border: 1px solid var(--border); color: var(--white); border-radius: 6px; font-size: 0.9rem;" />
+      </div>
     </div>
 
     <div class="order-items" id="orderItems">
@@ -91,6 +107,10 @@
           <div class="oi-info">
             <div class="oi-name">{{ item.nombreProducto }}</div>
             <div class="oi-mods">{{ item.nombrePresentacion }}</div>
+            <!-- Nuevo: Mostrar nota del producto en el carrito -->
+            <div class="oi-notes" *ngIf="item.notas" style="font-size: 0.8rem; color: var(--gold); font-style: italic; margin-top: 2px;">
+              ✏️ {{ item.notas }}
+            </div>
             <div class="oi-price">{{ item.precio | currency:'USD':'symbol':'1.0-0' }}</div>
           </div>
           <div class="oi-qty-ctrl">
@@ -132,6 +152,14 @@
         <div class="im-price">Precio: <strong>{{ selectedItemModal?.precio | currency:'USD':'symbol':'1.0-0' }}</strong></div>
       </div>
     </div>
+
+    <!-- Nuevo: Input de notas para la cocina en el modal de producto -->
+    <div class="im-notes mt-3" style="padding: 0 1.5rem;">
+      <label for="itemNotas" style="font-size: 0.85rem; color: var(--muted); margin-bottom: 0.4rem; display: block;">Notas para cocina (Opcional)</label>
+      <input id="itemNotas" type="text" [(ngModel)]="modalNotas" placeholder="Ej. Sin cebolla, extra salsas..." 
+             style="width: 100%; padding: 0.8rem; background: var(--dark-2); border: 1px solid var(--border); color: var(--white); border-radius: 6px; font-size: 1rem;" autocomplete="off" />
+    </div>
+
     <div class="im-qty-row mt-4">
       <div class="im-qty-ctrl">
         <div class="im-qty-btn" (click)="changeModalQty(-1)">−</div>
@@ -166,6 +194,54 @@
       <div *ngIf="!mesasDisponibles || mesasDisponibles.length === 0" style="grid-column: 1 / -1; text-align: center; margin-top: 2rem; color: var(--muted);">
         No hay mesas disponibles cargadas...
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ CLIENTE MODAL ══ -->
+<div class="modal-overlay" [class.open]="showClienteModal" (click)="closeClienteModal()">
+  <div class="item-modal" (click)="$event.stopPropagation()" style="width: 500px; max-width: 95vw;">
+    <div class="nm-header">
+      <div class="nm-title">Seleccionar <em>Cliente</em></div>
+      <button class="modal-close" (click)="closeClienteModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    
+    <!-- Tabs de Navegación -->
+    <div style="display: flex; gap: 1rem; margin-top: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem;">
+      <div [style.color]="!creandoCliente ? 'var(--gold)' : 'var(--muted)'" [style.border-bottom]="!creandoCliente ? '2px solid var(--gold)' : 'none'" style="cursor: pointer; padding: 0.5rem; font-weight: 500;" (click)="creandoCliente = false">🔍 Buscar Cliente</div>
+      <div [style.color]="creandoCliente ? 'var(--gold)' : 'var(--muted)'" [style.border-bottom]="creandoCliente ? '2px solid var(--gold)' : 'none'" style="cursor: pointer; padding: 0.5rem; font-weight: 500;" (click)="creandoCliente = true">+ Nuevo Cliente</div>
+    </div>
+
+    <!-- Buscar Cliente -->
+    <div *ngIf="!creandoCliente" style="margin-top: 1.5rem;">
+      <input type="text" placeholder="Buscar por nombre o celular..." 
+             [value]="clienteSearchTerm" (input)="onClienteSearch($any($event.target).value)"
+             style="width: 100%; padding: 0.8rem; background: var(--dark-2); border: 1px solid var(--border); color: var(--white); border-radius: 6px; font-size: 1rem;" />
+      
+      <div style="margin-top: 1rem; max-height: 40vh; overflow-y: auto; padding-right: 5px;">
+        <div *ngFor="let cli of clientesFiltrados" (click)="selectCliente(cli)" 
+             style="padding: 1rem; border: 1px solid var(--border); border-radius: 6px; margin-bottom: 0.5rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: background 0.2s;" onmouseover="this.style.background='var(--dark-1)'" onmouseout="this.style.background='transparent'">
+          <div>
+            <div style="font-weight: bold; color: var(--white);">{{ cli.nombres }}</div>
+            <div style="font-size: 0.85rem; color: var(--muted);">📱 {{ cli.celular }}</div>
+          </div>
+          <div *ngIf="cli.direccion_predeterminada || cli.direccionPredeterminada" style="font-size: 0.8rem; color: var(--muted); text-align: right; max-width: 50%;">
+            📍 {{ cli.direccion_predeterminada || cli.direccionPredeterminada }}
+          </div>
+        </div>
+        <div *ngIf="clientesFiltrados.length === 0" style="text-align: center; color: var(--muted); padding: 2rem;">
+          No se encontraron clientes con esos datos.
+        </div>
+      </div>
+    </div>
+
+    <!-- Crear Cliente -->
+    <div *ngIf="creandoCliente" style="margin-top: 1.5rem;">
+      <div class="form-group mb-3"><label style="color: var(--muted); font-size: 0.85rem;">Celular *</label><input type="text" [(ngModel)]="nuevoCliente.celular" placeholder="Ej. 3001234567" style="width: 100%; padding: 0.8rem; background: var(--dark-2); border: 1px solid var(--border); color: var(--white); border-radius: 6px;" autocomplete="off" /></div>
+      <div class="form-group mb-3"><label style="color: var(--muted); font-size: 0.85rem;">Nombres *</label><input type="text" [(ngModel)]="nuevoCliente.nombres" placeholder="Ej. Juan Pérez" style="width: 100%; padding: 0.8rem; background: var(--dark-2); border: 1px solid var(--border); color: var(--white); border-radius: 6px;" autocomplete="off" /></div>
+      <div class="form-group mb-4"><label style="color: var(--muted); font-size: 0.85rem;">Dirección Predeterminada</label><input type="text" [(ngModel)]="nuevoCliente.direccionPredeterminada" placeholder="Ej. Calle 123 #45-67" style="width: 100%; padding: 0.8rem; background: var(--dark-2); border: 1px solid var(--border); color: var(--white); border-radius: 6px;" autocomplete="off" /></div>
+      
+      <button class="btn-charge" style="width: 100%; border-radius: 6px; padding: 1rem;" (click)="guardarNuevoCliente()">Guardar y Seleccionar Cliente</button>
     </div>
   </div>
 </div>

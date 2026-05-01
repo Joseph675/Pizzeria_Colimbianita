@@ -27,6 +27,17 @@ export class PosComponent implements OnInit {
   public showItemModal = false;
   public selectedItemModal: any = null;
   public modalQty = 1;
+  public modalNotas: string = ''; // Nuevo: Almacena la nota escrita en el modal
+  public direccionEntrega: string = ''; // Nuevo: Almacena la dirección del domicilio
+
+  // Cliente Modal state
+  public showClienteModal = false;
+  public clientesRegistrados: any[] = [];
+  public clientesFiltrados: any[] = [];
+  public clienteSearchTerm: string = '';
+  public selectedCliente: any = null;
+  public creandoCliente = false; // Alterna entre pestaña buscar/crear
+  public nuevoCliente = { celular: '', nombres: '', direccionPredeterminada: '' };
 
   public showMesaModal = false;
   public mesasDisponibles: any[] = [];
@@ -43,6 +54,20 @@ export class PosComponent implements OnInit {
   ngOnInit(): void {
     this.loadPresentaciones();
     this.loadMesas();
+    this.loadClientes();
+  }
+
+  loadClientes(): void {
+    this.http.get<any[]>('http://localhost:8080/api/clientes').subscribe({
+      next: (data) => {
+        // Traemos solo clientes activos
+        this.clientesRegistrados = (data || []).filter(c => c.estado === 1);
+        this.clientesFiltrados = [...this.clientesRegistrados];
+      },
+      error: (err) => {
+        console.error('Error al cargar clientes:', err);
+      }
+    });
   }
 
   loadMesas(): void {
@@ -123,6 +148,12 @@ export class PosComponent implements OnInit {
     if (type !== 'mesa') {
       this.selectedMesa = null; // Limpiamos la mesa si elige domicilio o llevar
     }
+    // Si pasamos a domicilio y hay cliente seleccionado, autocompletamos su dirección (si no hay una escrita ya)
+    if ((type === 'domicilio' || type === 'delivery') && this.selectedCliente) {
+      if (!this.direccionEntrega || this.direccionEntrega.trim() === '') {
+        this.direccionEntrega = this.selectedCliente.direccion_predeterminada || this.selectedCliente.direccionPredeterminada || '';
+      }
+    }
   }
 
   setPaymentMethod(method: string): void {
@@ -144,10 +175,67 @@ export class PosComponent implements OnInit {
     this.closeMesaModal();
   }
 
+  // ----- CLIENTE MODAL LOGIC -----
+  openClienteModal(): void {
+    this.showClienteModal = true;
+    this.creandoCliente = false;
+    this.clienteSearchTerm = '';
+    this.clientesFiltrados = [...this.clientesRegistrados];
+  }
+
+  closeClienteModal(): void {
+    this.showClienteModal = false;
+  }
+
+  onClienteSearch(term: string): void {
+    this.clienteSearchTerm = term;
+    const lowerTerm = term.toLowerCase().trim();
+    if (!lowerTerm) {
+      this.clientesFiltrados = [...this.clientesRegistrados];
+      return;
+    }
+    this.clientesFiltrados = this.clientesRegistrados.filter(c => 
+      (c.nombres && c.nombres.toLowerCase().includes(lowerTerm)) ||
+      (c.celular && c.celular.includes(lowerTerm))
+    );
+  }
+
+  selectCliente(cliente: any): void {
+    this.selectedCliente = cliente;
+    // Si el pedido actual es a domicilio y no hay dirección escrita, usamos la predeterminada del cliente
+    if ((this.orderType === 'domicilio' || this.orderType === 'delivery') && (!this.direccionEntrega || this.direccionEntrega.trim() === '')) {
+      this.direccionEntrega = cliente.direccion_predeterminada || cliente.direccionPredeterminada || '';
+    }
+    this.closeClienteModal();
+  }
+
+  removeCliente(): void {
+    this.selectedCliente = null;
+  }
+
+  guardarNuevoCliente(): void {
+    if (!this.nuevoCliente.celular || !this.nuevoCliente.nombres) {
+      alert('El celular y los nombres son obligatorios.');
+      return;
+    }
+    this.http.post('http://localhost:8080/api/clientes', this.nuevoCliente).subscribe({
+      next: (res: any) => {
+        this.loadClientes(); // Refrescamos lista maestra
+        this.selectCliente(res); // Seleccionamos directamente el que acabamos de crear
+        this.nuevoCliente = { celular: '', nombres: '', direccionPredeterminada: '' }; // Limpiamos formulario
+      },
+      error: (err) => {
+        console.error('Error al crear cliente desde POS:', err);
+        alert('Ocurrió un error al crear el cliente (¿el celular ya está registrado?).');
+      }
+    });
+  }
+
   // ----- ITEM MODAL LOGIC -----
   openItemModal(presentacion: any): void {
     this.selectedItemModal = presentacion;
     this.modalQty = 1;
+    this.modalNotas = ''; // Resetear las notas cada vez que abramos un producto
     this.showItemModal = true;
   }
 
@@ -170,7 +258,8 @@ export class PosComponent implements OnInit {
       nombreProducto: this.selectedItemModal.producto?.nombre,
       nombrePresentacion: this.selectedItemModal.nombrePresentacion || this.selectedItemModal.nombre_presentacion,
       precio: this.selectedItemModal.precio,
-      qty: this.modalQty
+      qty: this.modalQty,
+      notas: this.modalNotas.trim() !== '' ? this.modalNotas.trim() : null // Capturamos la nota si la hay
     };
 
     this.orderItems.push(item);
@@ -223,7 +312,8 @@ export class PosComponent implements OnInit {
     const detalles = this.orderItems.map(item => ({
       idPresentacion: item.idPresentacion,
       fraccion: item.qty,
-      precioCobrado: item.precio
+      precioCobrado: item.precio,
+      notas: item.notas || null // Se adjuntan las notas específicas del producto
     }));
 
     // 2. Construimos el objeto JSON (Cabecera + Detalles)
@@ -233,6 +323,8 @@ export class PosComponent implements OnInit {
       mesa: this.orderType === 'mesa' && this.selectedMesa 
               ? { idMesa: this.selectedMesa.idMesa || this.selectedMesa.id_mesa } 
               : null, // Lo mismo para la mesa, espera un objeto anidado 'mesa'
+      cliente: this.selectedCliente ? { idCliente: this.selectedCliente.idCliente || this.selectedCliente.id_cliente } : null, // Mapeo del cliente
+      direccionEntrega: (this.orderType === 'delivery' || this.orderType === 'domicilio') ? (this.direccionEntrega || 'Dirección por definir') : null, // Envia lo que escribimos
       total: this.orderTotal,
       estado: 'PENDIENTE',
       detalles: detalles
@@ -299,6 +391,8 @@ export class PosComponent implements OnInit {
     this.showSuccessModal = false;
     this.selectedMesa = null;
     this.orderType = 'mesa';
+    this.selectedCliente = null; // Limpiar cliente para el próximo pedido
+    this.direccionEntrega = ''; // Limpiamos la dirección en un pedido nuevo
     this.clearOrder();
   }
 

@@ -32,6 +32,10 @@
       <div class="pc-meta">
         <div class="meta-item"><span class="icon">📅</span> {{ (p.fecha_hora || p.fechaHora) | date:'medium' }}</div>
         <div class="meta-item"><span class="icon">🏷️</span> {{ p.tipo_pedido || p.tipoPedido }} <span *ngIf="p.mesa"> (Mesa {{ p.mesa?.numero_mesa || p.mesa?.numeroMesa }})</span></div>
+        <!-- NUEVO: Información del Cliente -->
+        <div class="meta-item" *ngIf="p.cliente"><span class="icon">👤</span> {{ p.cliente?.nombres || p.cliente?.nombre }} <small *ngIf="p.cliente?.celular">({{ p.cliente?.celular }})</small></div>
+        <!-- NUEVO: Dirección de Entrega -->
+        <div class="meta-item" *ngIf="p.direccion_entrega || p.direccionEntrega"><span class="icon">📍</span> {{ p.direccion_entrega || p.direccionEntrega }}</div>
       </div>
 
       <!-- Detalles del Carrito (Vista Previa Clickable) -->
@@ -41,6 +45,8 @@
           <div class="di-name">
             <strong>{{ det.presentacion?.producto?.nombre || 'Desconocido' }}</strong><br>
             <small>{{ det.presentacion?.nombre_presentacion || det.presentacion?.nombrePresentacion }}</small>
+            <!-- NUEVO: Notas del producto -->
+            <div *ngIf="det.notas" style="font-size: 0.75rem; color: #d97706; font-style: italic; margin-top: 2px;">✏️ {{ det.notas }}</div>
           </div>
           <div class="di-price">{{ (det.precio_cobrado || det.precioCobrado) | currency:'USD':'symbol':'1.0-0' }}</div>
         </div>
@@ -63,18 +69,48 @@
 
   <!-- MODAL DE DETALLES AMPLIADOS -->
   <div class="modal-overlay" [class.open]="pedidoSeleccionado" (click)="cerrarDetalles()">
-    <div class="pedido-modal" (click)="$event.stopPropagation()" *ngIf="pedidoSeleccionado">
+    <div class="pedido-modal" (click)="$event.stopPropagation()" *ngIf="pedidoSeleccionado" [style.top]="modalTop">
       <div class="pm-header">
         <h3>Detalle del Pedido #{{ pedidoSeleccionado.id_pedido || pedidoSeleccionado.idPedido }}</h3>
-        <button class="close-btn" (click)="cerrarDetalles()">✖</button>
+        <div style="display: flex; align-items: center; gap: 1rem;">
+          <!-- Nuevo: El selector de estado dentro del modal con todos sus estilos -->
+          <select 
+            class="pc-status-select" 
+            [ngClass]="(pedidoSeleccionado.estado || '').toLowerCase()" 
+            [(ngModel)]="pedidoSeleccionado.estado" 
+            (change)="cambiarEstado(pedidoSeleccionado, $any($event.target).value)">
+            <option value="PENDIENTE">Pendiente</option>
+            <option value="PREPARANDO">Preparando</option>
+            <option value="LISTO">Listo</option>
+            <option value="PAGADO">Pagado</option>
+            <option value="CANCELADO">Cancelado</option>
+          </select>
+          <button class="close-btn" (click)="cerrarDetalles()">✖</button>
+        </div>
       </div>
       
       <div class="pm-body">
+        <!-- NUEVO: Panel de Información del Cliente en el Modal -->
+        <div class="pm-customer-info" *ngIf="pedidoSeleccionado.cliente || pedidoSeleccionado.direccion_entrega || pedidoSeleccionado.direccionEntrega" style="background: rgba(0,0,0,0.03); padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; border: 1px solid rgba(0,0,0,0.05);">
+          <h5 style="margin-top: 0; margin-bottom: 0.5rem; font-size: 1rem; color: #444;">Detalles de Envío / Cliente</h5>
+          <div *ngIf="pedidoSeleccionado.cliente" style="font-size: 0.9rem; color: #666; margin-bottom: 0.3rem;">
+            <strong>👤 Cliente:</strong> {{ pedidoSeleccionado.cliente?.nombres || pedidoSeleccionado.cliente?.nombre }} 
+            <span *ngIf="pedidoSeleccionado.cliente?.celular"> - 📱 {{ pedidoSeleccionado.cliente?.celular }}</span>
+          </div>
+          <div *ngIf="pedidoSeleccionado.direccion_entrega || pedidoSeleccionado.direccionEntrega" style="font-size: 0.9rem; color: #666;">
+            <strong>📍 Dirección:</strong> {{ pedidoSeleccionado.direccion_entrega || pedidoSeleccionado.direccionEntrega }}
+          </div>
+        </div>
+
         <div class="pm-item" *ngFor="let det of pedidoSeleccionado.detalles">
           <div class="pm-qty">{{ det.fraccion }}x</div>
           <div class="pm-info">
             <div class="pm-prod">{{ det.presentacion?.producto?.nombre || 'Producto Desconocido' }}</div>
             <div class="pm-pres">{{ det.presentacion?.nombre_presentacion || det.presentacion?.nombrePresentacion }}</div>
+            <!-- NUEVO: Notas del producto en Modal -->
+            <div *ngIf="det.notas" style="font-size: 0.85rem; color: #d97706; font-style: italic; margin-top: 4px;">
+              ✏️ Nota: {{ det.notas }}
+            </div>
           </div>
           <div class="pm-price">
             {{ (det.precio_cobrado || det.precioCobrado) | currency:'USD':'symbol':'1.0-0' }}

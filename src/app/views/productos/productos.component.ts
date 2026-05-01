@@ -83,6 +83,7 @@ export class ProductosComponent implements OnInit {
   public showNuevoProductoModal: boolean = false;
   public showEditarProductoModal: boolean = false;
   public showEliminarProductoModal: boolean = false;
+  public modalTop: string = '50%';
 
   constructor(private http: HttpClient, private fromproductos: FormBuilder) { 
 
@@ -122,6 +123,16 @@ export class ProductosComponent implements OnInit {
   openNuevoProductoModal(): void {
     this.myForm.reset({ idCategoria: '', nombre: '', descripcion: '', imagenUrl: '' });
     this.showNuevoProductoModal = true;
+
+    setTimeout(() => {
+      const container = document.querySelector('.productos-wrap') as HTMLElement;
+      if (container) {
+        const rect = container.getBoundingClientRect();
+        const viewportCenterY = window.innerHeight / 2;
+        const positionY = viewportCenterY - rect.top;
+        this.modalTop = `${positionY}px`;
+      }
+    }, 0);
   }
 
   closeNuevoProductoModal(): void {
@@ -343,6 +354,16 @@ export class ProductosComponent implements OnInit {
     });
     console.log('Producto seleccionado para editar:', this.selectedProducto);
     this.showEditarProductoModal = true;
+
+    setTimeout(() => {
+      const container = document.querySelector('.productos-wrap') as HTMLElement;
+      if (container) {
+        const rect = container.getBoundingClientRect();
+        const viewportCenterY = window.innerHeight / 2;
+        const positionY = viewportCenterY - rect.top;
+        this.modalTop = `${positionY}px`;
+      }
+    }, 0);
   }
 
   closeEditarProductoModal(): void {
@@ -354,6 +375,16 @@ export class ProductosComponent implements OnInit {
     this.selectedProducto = { ...producto }; // Copia del producto para mostrar en el modal
     console.log('Producto seleccionado para eliminar:', this.selectedProducto);
     this.showEliminarProductoModal = true;
+
+    setTimeout(() => {
+      const container = document.querySelector('.productos-wrap') as HTMLElement;
+      if (container) {
+        const rect = container.getBoundingClientRect();
+        const viewportCenterY = window.innerHeight / 2;
+        const positionY = viewportCenterY - rect.top;
+        this.modalTop = `${positionY}px`;
+      }
+    }, 0);
   }
 
   closeEliminarProductoModal(): void {

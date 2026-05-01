@@ -1,3 +1,4 @@
+<div class="productos-wrap">
 
 <c-card-body>
   <c-row>
@@ -206,7 +207,7 @@
 
 <!-- Modal para nuevo producto -->
 <div class="modal-overlay" [class.open]="showNuevoProductoModal" (click)="closeNuevoProductoModal()">
-  <div class="nm-modal" (click)="$event.stopPropagation()">
+  <div class="nm-modal" (click)="$event.stopPropagation()" [style.top]="modalTop">
     <div class="nm-header">
       <div class="nm-title">Nuevo <em>Producto</em></div>
       <button class="modal-close" type="button" (click)="closeNuevoProductoModal()">
@@ -255,7 +256,7 @@
 
 <!-- Modal para editar producto -->
 <div class="modal-overlay" [class.open]="showEditarProductoModal" (click)="closeEditarProductoModal()">
-  <div class="nm-modal" (click)="$event.stopPropagation()">
+  <div class="nm-modal" (click)="$event.stopPropagation()" [style.top]="modalTop">
     <div class="nm-header">
       <div class="nm-title">Editar <em>Producto</em></div>
       <button class="modal-close" type="button" (click)="closeEditarProductoModal()">
@@ -304,7 +305,7 @@
 
 <!-- Modal para CONFIRMAR ELIMINACIÓN de producto -->
 <div class="modal-overlay" [class.open]="showEliminarProductoModal" (click)="closeEliminarProductoModal()">
-  <div class="nm-modal" (click)="$event.stopPropagation()">
+  <div class="nm-modal" (click)="$event.stopPropagation()" [style.top]="modalTop">
     <div class="nm-header">
       <div class="nm-title">Eliminar <em>Producto</em></div>
       <button class="modal-close" type="button" (click)="closeEliminarProductoModal()">
@@ -335,3 +336,5 @@
     <c-toast-body>{{ toast.message }}</c-toast-body>
   </c-toast>
 </c-toaster>
+
+</div>

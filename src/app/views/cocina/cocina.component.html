@@ -1,1 +1,210 @@
-<p>cocina works!</p>
+<div class="cocina-main-wrap">
+  <!-- HEADER -->
+  <div class="page-header">
+    <div class="ph-top">
+      <div class="ph-title">Pedidos <span>Activos</span></div>
+      <div class="ph-spacer"></div>
+      <button class="btn-action ghost" style="margin-right:.5rem;" (click)="cargarPedidos()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+        Actualizar
+      </button>
+      <button class="btn-action primary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Nuevo pedido
+      </button>
+    </div>
+    <div class="filter-row">
+      <div class="filt-btn" [class.active]="filtro === 'todos'" (click)="filtrar('todos')">Todos <span class="filt-num">{{pedidos.length}}</span></div>
+      <div class="filt-btn" [class.active]="filtro === 'nuevo'" (click)="filtrar('nuevo')"><div class="fdot" style="background:var(--blue);"></div>Nuevos <span class="filt-num">{{countByEstado('nuevo')}}</span></div>
+      <div class="filt-btn" [class.active]="filtro === 'en-preparacion'" (click)="filtrar('en-preparacion')"><div class="fdot" style="background:var(--orange);"></div>En preparación <span class="filt-num">{{countByEstado('en-preparacion')}}</span></div>
+      <div class="filt-btn" [class.active]="filtro === 'listo'" (click)="filtrar('listo')"><div class="fdot" style="background:var(--green);"></div>Listos <span class="filt-num">{{countByEstado('listo')}}</span></div>
+      <div class="filt-btn" [class.active]="filtro === 'entregado'" (click)="filtrar('entregado')"><div class="fdot" style="background:rgba(255,255,255,.25);"></div>Entregados <span class="filt-num">{{countByEstado('entregado')}}</span></div>
+      <div class="filt-btn" [class.active]="filtro === 'cancelado'" (click)="filtrar('cancelado')"><div class="fdot" style="background:var(--red);"></div>Cancelados <span class="filt-num">{{countByEstado('cancelado')}}</span></div>
+      <div class="filt-spacer"></div>
+      <div class="search-inline">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" placeholder="Buscar pedido…"/>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-bar">
+    <div class="stat-chip"><span class="sc-num gold">$624.300</span><span class="sc-lbl" style="margin-left:.5rem;">Ventas del turno</span></div>
+    <div class="stat-chip"><span class="sc-num blue" style="margin-right:.3rem;">{{countByEstado('nuevo')}}</span><span class="sc-lbl">Nuevos</span></div>
+    <div class="stat-chip"><span class="sc-num orange" style="margin-right:.3rem;">{{countByEstado('en-preparacion')}}</span><span class="sc-lbl">En cocina</span></div>
+    <div class="stat-chip"><span class="sc-num green" style="margin-right:.3rem;">{{countByEstado('listo')}}</span><span class="sc-lbl">Listos p/ entregar</span></div>
+    <div class="stat-chip"><span class="sc-num red" style="margin-right:.3rem;">{{countByEstado('urgente')}}</span><span class="sc-lbl">Con alerta</span></div>
+    <div class="stat-chip" style="margin-left:auto;"><span class="sc-lbl">Tiempo prom. prep.</span><span class="sc-num gold" style="margin-left:.5rem;">22 min</span></div>
+  </div>
+
+  <!-- CONTENT SPLIT -->
+  <div class="content-split">
+
+    <!-- LIST -->
+    <div class="list-panel">
+      <div class="pedido-row {{ p.estado }}" *ngFor="let p of pedidosFiltrados" [class.selected]="pedidoSeleccionado?.id === p.id" (click)="abrirDetalle(p)">
+        <div class="pr-accent"></div>
+        <div class="pr-num-col">
+          <div class="pr-num">{{ p.num }}</div>
+          <div class="pr-canal-icon">{{ getCanalIcon(p.canal) }}</div>
+        </div>
+        <div class="pr-info">
+          <div class="pr-top-row">
+            <div class="pr-client">{{ p.cliente }}</div>
+            <div class="pr-badge {{ p.estado }}">{{ getBadgeLabel(p.estado) }}</div>
+            <div class="canal-badge {{ p.canal }}">{{ p.canalLabel }}</div>
+          </div>
+          <div class="pr-sub">{{ p.csub }}</div>
+          <div class="pr-items-row">
+            <div class="item-chip" *ngFor="let item of p.items | slice:0:3"><span class="ic-e">{{ item.e }}</span> {{ item.n }}</div>
+            <div class="item-chip more" *ngIf="p.items.length > 3">+{{ p.items.length - 3 }} más</div>
+          </div>
+        </div>
+        <div class="pr-timer-col">
+          <div class="pr-timer" [style.color]="p.estado === 'cancelado' || p.estado === 'entregado' ? 'var(--muted)' : ''">{{ p.timer }}</div>
+          <div class="pr-timebar" *ngIf="p.estado !== 'cancelado' && p.estado !== 'entregado'">
+             <div class="pr-timebar-fill" [style.width]="getTimerFill(p.estado)"></div>
+          </div>
+          <div class="pr-timer-lbl" [style.color]="p.estado === 'nuevo' ? 'var(--blue)' : p.estado === 'urgente' ? 'var(--red)' : ''">{{ getTimerLabel(p.estado) }}</div>
+        </div>
+        <div class="pr-amount-col">
+          <div class="pr-amount" [style.color]="p.estado === 'urgente' ? 'var(--red)' : p.estado === 'cancelado' || p.estado === 'entregado' ? 'var(--muted)' : ''">{{ p.total }}</div>
+          <div class="pr-amount-sub">{{ p.items.length }} items</div>
+        </div>
+        <div class="pr-actions-col">
+          <div *ngIf="p.estado === 'nuevo'" class="pr-btn success" title="Aceptar y enviar a cocina" (click)="cambiarEstado(p, 'en-preparacion'); $event.stopPropagation()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div *ngIf="p.estado === 'en-preparacion' || p.estado === 'urgente'" class="pr-btn success" title="Marcar listo" (click)="cambiarEstado(p, 'listo'); $event.stopPropagation()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div *ngIf="p.estado === 'listo'" class="pr-btn primary-green" title="Marcar entregado" (click)="cambiarEstado(p, 'entregado'); $event.stopPropagation()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="pr-btn" title="Ver detalle" (click)="abrirDetalle(p); $event.stopPropagation()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
+          <div *ngIf="p.estado === 'entregado'" class="pr-btn" title="Reimprimir" (click)="$event.stopPropagation()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg></div>
+          <div *ngIf="p.estado !== 'cancelado' && p.estado !== 'entregado'" class="pr-btn danger" title="Cancelar" (click)="cambiarEstado(p, 'cancelado'); $event.stopPropagation()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DETAIL PANEL -->
+    <div class="detail-panel" [class.collapsed]="!pedidoSeleccionado">
+      <ng-container *ngIf="pedidoSeleccionado as dp">
+        <div class="dp-header">
+          <div class="dp-header-top">
+            <div class="dp-ped-num" [style.color]="dp.estado === 'nuevo' ? 'var(--blue)' : dp.estado === 'en-preparacion' ? 'var(--orange)' : dp.estado === 'listo' ? 'var(--green)' : dp.estado === 'cancelado' || dp.estado === 'urgente' ? 'var(--red)' : 'rgba(247,244,238,.35)'">Pedido {{ dp.num }}</div>
+            <div class="dp-close" (click)="cerrarDetalle()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </div>
+          </div>
+          <div class="dp-meta">
+            <div class="dp-badge {{ dp.estado }}">{{ getBadgeLabel(dp.estado) }}</div>
+            <div class="dp-zone">· {{ dp.zona }}</div>
+            <div class="dp-elapsed">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              <span>{{ dp.timer }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="dp-progress">
+          <div class="steps">
+            <div class="step" *ngFor="let lbl of dp.steps; let i = index" [class.done]="i < dp.stepActivo" [class.active]="i === dp.stepActivo">
+              <div class="step-dot" [ngClass]="{'done': i < dp.stepActivo, 'active': i === dp.stepActivo, 'pending': i > dp.stepActivo || dp.stepActivo < 0}">
+                {{ i < dp.stepActivo ? '✓' : (i === dp.stepActivo ? '●' : '○') }}
+              </div>
+              <div class="step-lbl">{{ lbl }}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="dp-body" style="flex:1; display:flex; flex-direction:column; overflow:hidden;">
+          <div class="dp-client">
+            <div class="dp-av" [style.background]="dp.avatarBg">{{ dp.avatar }}</div>
+            <div style="flex:1;">
+              <div class="dp-cname">{{ dp.cliente }}</div>
+              <div class="dp-csub">{{ dp.csub }}</div>
+            </div>
+            <div class="canal-badge {{ dp.canal }}" style="margin-left:auto;">{{ dp.canalLabel }}</div>
+          </div>
+          
+          <div class="dp-items-scroll">
+            <div class="dp-section-lbl">Items del pedido</div>
+            <div class="dp-item" *ngFor="let it of dp.items">
+              <div class="dp-i-emoji">{{ it.e }}</div>
+              <div style="flex:1;">
+                <div class="dp-i-name">{{ it.n }}</div>
+                <div class="dp-i-qty">{{ it.q }}</div>
+              </div>
+              <div class="dp-i-price">{{ it.p }}</div>
+              <div class="dp-i-status {{ it.s }}"></div>
+            </div>
+
+            <div class="dp-note-box" *ngIf="dp.nota">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              {{ dp.nota }}
+            </div>
+
+            <div class="dp-divider"></div>
+            <div class="dp-totals">
+              <div class="dp-tr">
+                <span class="lbl">Subtotal</span>
+                <span class="val">{{ dp.sub }}</span>
+              </div>
+              <div class="dp-tr">
+                <span class="lbl">Descuento</span>
+                <span class="val" style="color:var(--green);">{{ dp.desc }}</span>
+              </div>
+              <div class="dp-tr grand">
+                <span class="lbl">Total</span>
+                <span class="val">{{ dp.total }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="dp-actions">
+          <ng-container *ngIf="dp.estado === 'nuevo'">
+            <button class="dp-btn green" (click)="cambiarEstado(dp, 'en-preparacion')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><polyline points="20 6 9 17 4 12"/></svg> Aceptar y enviar a cocina
+            </button>
+            <div class="dp-btn-row">
+              <button class="dp-btn ghost">Editar pedido</button>
+              <button class="dp-btn danger-ghost" (click)="cambiarEstado(dp, 'cancelado')">Rechazar pedido</button>
+            </div>
+          </ng-container>
+
+          <ng-container *ngIf="dp.estado === 'en-preparacion' || dp.estado === 'urgente'">
+            <button class="dp-btn green" (click)="cambiarEstado(dp, 'listo')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><polyline points="20 6 9 17 4 12"/></svg> Marcar como listo
+            </button>
+            <div class="dp-btn-row">
+              <button class="dp-btn ghost">Editar pedido</button>
+              <button class="dp-btn danger-ghost" (click)="cambiarEstado(dp, 'cancelado')">Cancelar pedido</button>
+            </div>
+          </ng-container>
+
+          <ng-container *ngIf="dp.estado === 'listo'">
+            <button class="dp-btn primary" (click)="cambiarEstado(dp, 'entregado')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><polyline points="20 6 9 17 4 12"/></svg> Marcar como entregado
+            </button>
+            <div class="dp-btn-row">
+              <button class="dp-btn secondary">Cobrar pedido</button>
+              <button class="dp-btn ghost">Reimprimir</button>
+            </div>
+          </ng-container>
+
+          <ng-container *ngIf="dp.estado === 'entregado'">
+            <button class="dp-btn secondary">Cobrar / Ver factura</button>
+            <div class="dp-btn-row">
+              <button class="dp-btn ghost">Reimprimir comanda</button>
+            </div>
+          </ng-container>
+
+          <ng-container *ngIf="dp.estado === 'cancelado'">
+            <div class="dp-btn-row">
+              <button class="dp-btn ghost">Ver detalle</button>
+            </div>
+          </ng-container>
+        </div>
+      </ng-container>
+    </div>
+
+  </div>
+</div>

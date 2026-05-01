@@ -15,6 +15,7 @@ export class PedidosComponent implements OnInit, OnDestroy {
   public pedidos: any[] = [];
   public cargando: boolean = false;
   public pedidoSeleccionado: any = null;
+  public modalTop: string = '50%'; // Posición vertical dinámica
   private pollingSubscription?: Subscription;
   private ultimoIdPedido: number = 0;
   public mostrarNotificacion: boolean = false;
@@ -108,6 +109,18 @@ export class PedidosComponent implements OnInit, OnDestroy {
 
   abrirDetalles(pedido: any): void {
     this.pedidoSeleccionado = pedido;
+    
+    // Calculamos el centro visual de la pantalla para evitar que el framework bloquee el "fixed"
+    setTimeout(() => {
+      const container = document.querySelector('.pedidos-wrap') as HTMLElement;
+      if (container) {
+        const rect = container.getBoundingClientRect();
+        const viewportCenterY = window.innerHeight / 2;
+        // Calculamos la distancia desde el top del contenedor hasta el centro de tu pantalla visual
+        const positionY = viewportCenterY - rect.top;
+        this.modalTop = `${positionY}px`;
+      }
+    }, 0);
   }
 
   cerrarDetalles(): void {
