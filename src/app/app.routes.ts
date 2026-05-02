@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 import { DefaultLayoutComponent } from './layout';
-import { AuthGuard } from './auth.guard'; 
+import { AuthGuard } from './auth.guard';
 
 export const routes: Routes = [
   {
@@ -62,7 +62,7 @@ export const routes: Routes = [
       },
       {
         path: 'cocina',
-        loadChildren: () => import('./views/cocina/routes').then((m) => m.routes) ,
+        loadChildren: () => import('./views/cocina/routes').then((m) => m.routes),
         canActivate: [AuthGuard]
       },
       {
@@ -80,11 +80,16 @@ export const routes: Routes = [
         loadChildren: () => import('./views/Clientes/routes').then((m) => m.routes),
         canActivate: [AuthGuard]
       },
+      {
+        path: 'combos_promociones',
+        loadChildren: () => import('./views/combos_promociones/routes').then((m) => m.routes),
+        canActivate: [AuthGuard]
+      }
 
 
     ]
   },
-  
+
   {
     path: '404',
     loadComponent: () => import('./views/pages/page404/page404.component').then(m => m.Page404Component),

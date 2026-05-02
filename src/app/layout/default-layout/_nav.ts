@@ -54,7 +54,7 @@ export const navItems: CustomNavData[] = [
 
   {
     name: 'Combos y Promociones',
-    url: '/combos-promociones',
+    url: '/combos_promociones',
     materialIcon: 'redeem',  // Material icon name
   },
 
