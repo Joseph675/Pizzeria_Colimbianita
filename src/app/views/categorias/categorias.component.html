@@ -178,3 +178,19 @@
   </div>
 </div>
 <!-- Modal para nueva categoria -->
+
+<!-- Toast -->
+<c-toaster [placement]="'top-end'" class="p-3" position="fixed" style="z-index: 1070;">
+  <c-toast *ngIf="showToast" [autohide]="true" [fade]="true" [visible]="true" [color]="toastType === 'error' ? 'danger' : 'success'"
+    class="text-white border-0 shadow-lg" style="min-width: 280px; margin-bottom: 12px; border-radius: 8px;">
+    <div class="d-flex justify-content-between align-items-center w-100">
+      <c-toast-body class="fw-semibold d-flex align-items-center gap-2">
+        <span class="material-icons" style="font-size: 20px;">
+          {{ toastType === 'success' ? 'check_circle' : 'error_outline' }}
+        </span>
+        {{ toastMessage }}
+      </c-toast-body>
+      <button cButtonClose white class="me-2 m-auto" (click)="showToast = false"></button>
+    </div>
+  </c-toast>
+</c-toaster>

@@ -19,7 +19,10 @@ import {
   ModalToggleDirective,
   FormControlDirective,
   FormDirective,
-  FormLabelDirective
+  FormLabelDirective,
+  ToastBodyComponent,
+  ToastComponent,
+  ToasterComponent
 } from '@coreui/angular';
 import { FormsModule, ReactiveFormsModule, FormGroup, FormBuilder, Validators } from '@angular/forms';
 
@@ -27,7 +30,7 @@ import { FormsModule, ReactiveFormsModule, FormGroup, FormBuilder, Validators } 
   templateUrl: 'categorias.component.html',
   styleUrls: ['categorias.component.scss'],
   standalone: true,
-  imports: [NgIf, NgForOf, NgClass, CardBodyComponent, CardComponent, CardHeaderComponent, ColComponent, RowComponent, WidgetStatFComponent, TemplateIdDirective, ButtonDirective, ButtonCloseDirective, ModalBodyComponent, ModalComponent, ModalFooterComponent, ModalHeaderComponent, ModalTitleDirective, ModalToggleDirective, FormControlDirective, FormDirective, FormLabelDirective, FormsModule, ReactiveFormsModule]
+  imports: [NgIf, NgForOf, NgClass, CardBodyComponent, CardComponent, CardHeaderComponent, ColComponent, RowComponent, WidgetStatFComponent, TemplateIdDirective, ButtonDirective, ButtonCloseDirective, ModalBodyComponent, ModalComponent, ModalFooterComponent, ModalHeaderComponent, ModalTitleDirective, ModalToggleDirective, FormControlDirective, FormDirective, FormLabelDirective, FormsModule, ReactiveFormsModule, ToastBodyComponent, ToastComponent, ToasterComponent]
 })
 export class CategoriasComponent implements OnInit {
   myForm!: FormGroup;
@@ -62,7 +65,6 @@ export class CategoriasComponent implements OnInit {
   constructor(private http: HttpClient, private fromproductos: FormBuilder) {
     this.myForm = this.fromproductos.group({
       nombre: ['', Validators.required],
-      descripcion: ['', Validators.required]
     });
   }
 
@@ -210,7 +212,6 @@ export class CategoriasComponent implements OnInit {
 
       const payload = {
         nombre: formValues.nombre,
-        descripcion: formValues.descripcion
       };
 
       this.http.post('http://localhost:8080/api/categorias', payload).subscribe(

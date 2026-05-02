@@ -50,6 +50,12 @@ export class PosComponent implements OnInit {
   public showSuccessModal = false;
   public modalTop: string = '50%';
 
+  // Mitad y Mitad Modal state
+  public showMitadModal = false;
+  public mitadTamano: 'Mediana' | 'Familiar' = 'Mediana';
+  public mitadSabor1Id: string = '';
+  public mitadSabor2Id: string = '';
+
   constructor(private http: HttpClient) {}
 
   ngOnInit(): void {
@@ -282,9 +288,29 @@ export class PosComponent implements OnInit {
     this.closeItemModal();
   }
 
+  // Getter para filtrar las pizzas elegibles en el modal Mitad y Mitad
+  get pizzasParaMitad(): any[] {
+    if (!this.presentaciones) return [];
+    const tamano = this.mitadTamano ? this.mitadTamano.toLowerCase() : 'mediana';
+    
+    return this.presentaciones.filter(p => {
+      const catName = (p.producto?.categoria?.nombre || '').toLowerCase();
+      const presName = (p.nombrePresentacion || p.nombre_presentacion || '').toLowerCase();
+      // .includes permite emparejar "Pizza", "Pizzas", "Pizzas Tradicionales", etc.
+      return catName.includes('pizza') && presName.includes(tamano);
+    });
+  }
+
   // ----- ORDER PANEL LOGIC -----
   changeOrderQty(index: number, delta: number): void {
     const item = this.orderItems[index];
+    
+    // Bloqueo para evitar sumar unidades enteras a las mitades de pizza (qty fraccionado)
+    if (item.qty % 1 !== 0 && delta > 0) {
+      alert('No puedes aumentar la cantidad de una mitad individualmente. Elimínala y vuelve a agregar la pizza Mitad y Mitad.');
+      return;
+    }
+    
     item.qty += delta;
     if (item.qty < 1) {
       this.orderItems.splice(index, 1);
@@ -298,9 +324,66 @@ export class PosComponent implements OnInit {
   }
 
   calculateTotals(): void {
-    this.orderSubtotal = this.orderItems.reduce((sum, item) => sum + (item.precio * item.qty), 0);
+    this.orderSubtotal = this.orderItems.reduce((sum, item) => {
+      // Si el item es una fracción (ej. 0.5 de pizza), el precio ya representa su valor real cobrado.
+      const itemTotal = (item.qty % 1 !== 0) ? item.precio : (item.precio * item.qty);
+      return sum + itemTotal;
+    }, 0);
     // Descuentos o impuestos si aplican
     this.orderTotal = this.orderSubtotal; 
+  }
+
+  // ----- LÓGICA PIZZA MITAD Y MITAD -----
+  openMitadModal(): void {
+    this.showMitadModal = true;
+    this.mitadTamano = 'Mediana';
+    this.mitadSabor1Id = '';
+    this.mitadSabor2Id = '';
+    this.calcularPosicionModal();
+  }
+
+  closeMitadModal(): void {
+    this.showMitadModal = false;
+  }
+
+  agregarPizzaMitadYMitad(): void {
+    if (!this.mitadSabor1Id || !this.mitadSabor2Id) {
+      alert('Por favor selecciona ambos sabores.');
+      return;
+    }
+    if (this.mitadSabor1Id === this.mitadSabor2Id) {
+      alert('Selecciona sabores diferentes. Si deseas un solo sabor, agrégala normalmente desde el catálogo.');
+      return;
+    }
+
+    const s1 = this.presentaciones.find(p => (p.idPresentacion || p.id_presentacion).toString() === this.mitadSabor1Id);
+    const s2 = this.presentaciones.find(p => (p.idPresentacion || p.id_presentacion).toString() === this.mitadSabor2Id);
+
+    if (!s1 || !s2) return;
+
+    // Regla de Negocio: Se cobra el precio mayor
+    const precioMayor = Math.max(s1.precio, s2.precio);
+    const precioCobrado = precioMayor / 2; // Cobramos la mitad exacta del mayor valor a cada parte
+
+    const nom1 = `${s1.producto?.nombre} (${s1.nombrePresentacion || s1.nombre_presentacion})`;
+    const nom2 = `${s2.producto?.nombre} (${s2.nombrePresentacion || s2.nombre_presentacion})`;
+
+    const createMitadItem = (sabor: any, otraMitad: string, numMitad: string) => ({
+      idPresentacion: sabor.idPresentacion || sabor.id_presentacion,
+      emoji: '🍕',
+      nombreProducto: '½ ' + sabor.producto?.nombre,
+      nombrePresentacion: sabor.nombrePresentacion || sabor.nombre_presentacion,
+      precio: precioCobrado,
+      qty: 0.5, // Importante: Se envía como 0.5, lo cual luego se transfiere a 'fraccion' en enviarPedido
+      notas: `Mitad ${numMitad}. Combinada con ${otraMitad}`
+    });
+
+    // Agregamos ambos objetos (detalles) a la orden actual
+    this.orderItems.push(createMitadItem(s1, nom2, '1/2'));
+    this.orderItems.push(createMitadItem(s2, nom1, '2/2'));
+
+    this.calculateTotals();
+    this.closeMitadModal();
   }
 
   // ----- ENVIAR PEDIDO -----
