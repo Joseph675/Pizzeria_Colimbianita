@@ -22,14 +22,13 @@
       </select>
     </div>
 
-
-    <div class="col-md-3 d-flex justify-content-end">
+    <!-- Añadimos z-index y position relative para forzar el botón hacia el frente -->
+    <div class="col-md-3 d-flex justify-content-end" style="position: relative; z-index: 50;">
       <button cButton color="primary" shape="rounded-pill" (click)="openNuevoProductoModal()">+ Nuevo Producto</button>
     </div>
   </c-row>
-  <div class="col-md-3 d-flex justify-content-end mb-2"></div>
 
-  <c-row>
+  <c-row class="mt-4">
     <c-col xs="3" xs="3">
       <c-widget-stat-f [title]="'Total'" class="mb-3"
         style="height: 70px; display: flex; align-items: left; justify-content: center" [value]="totalProductos">
@@ -206,7 +205,7 @@
 <!-- ---------------------------- -->
 
 <!-- Modal para nuevo producto -->
-<div class="modal-overlay" [class.open]="showNuevoProductoModal" (click)="closeNuevoProductoModal()">
+<div class="modal-overlay" [class.open]="showNuevoProductoModal" [style.pointer-events]="showNuevoProductoModal ? 'auto' : 'none'" (click)="closeNuevoProductoModal()">
   <div class="nm-modal" (click)="$event.stopPropagation()" [style.top]="modalTop">
     <div class="nm-header">
       <div class="nm-title">Nuevo <em>Producto</em></div>
@@ -255,7 +254,7 @@
 <!-- ---------------------------- -->
 
 <!-- Modal para editar producto -->
-<div class="modal-overlay" [class.open]="showEditarProductoModal" (click)="closeEditarProductoModal()">
+<div class="modal-overlay" [class.open]="showEditarProductoModal" [style.pointer-events]="showEditarProductoModal ? 'auto' : 'none'" (click)="closeEditarProductoModal()">
   <div class="nm-modal" (click)="$event.stopPropagation()" [style.top]="modalTop">
     <div class="nm-header">
       <div class="nm-title">Editar <em>Producto</em></div>
@@ -304,7 +303,7 @@
 <!-- ---------------------------- -->
 
 <!-- Modal para CONFIRMAR ELIMINACIÓN de producto -->
-<div class="modal-overlay" [class.open]="showEliminarProductoModal" (click)="closeEliminarProductoModal()">
+<div class="modal-overlay" [class.open]="showEliminarProductoModal" [style.pointer-events]="showEliminarProductoModal ? 'auto' : 'none'" (click)="closeEliminarProductoModal()">
   <div class="nm-modal" (click)="$event.stopPropagation()" [style.top]="modalTop">
     <div class="nm-header">
       <div class="nm-title">Eliminar <em>Producto</em></div>
@@ -331,8 +330,8 @@
 
 <!-- Toast -->
 
-<c-toaster [placement]="'top-end'" class="p-3" position="fixed">
-  <c-toast *ngFor="let toast of toasts" [autohide]="true" [fade]="true" [visible]="true" [color]="toast.type" style="min-width: 220px; margin-bottom: 8px;">
+<c-toaster [placement]="'top-end'" class="p-3" position="fixed" style="pointer-events: none; z-index: 1070;">
+  <c-toast *ngFor="let toast of toasts" [autohide]="true" [fade]="true" [visible]="true" [color]="toast.type" style="min-width: 220px; margin-bottom: 8px; pointer-events: auto;">
     <c-toast-body>{{ toast.message }}</c-toast-body>
   </c-toast>
 </c-toaster>

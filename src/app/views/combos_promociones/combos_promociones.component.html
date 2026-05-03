@@ -1,1 +1,155 @@
-<p>combosy-promociones works!</p>
+<div class="combos-container">
+  <div class="grain"></div>
+  
+  <div class="main-wrap">
+    <!-- HEADER / BARRA SUPERIOR -->
+    <div class="combos-header">
+      <div class="mh-top">
+         <div class="mh-title">Combos y <span>Promociones</span></div>
+         <div class="mh-spacer"></div>
+         <button class="btn-primary" (click)="openModal()">
+           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+             <line x1="12" y1="5" x2="12" y2="19"/>
+             <line x1="5" y1="12" x2="19" y2="12"/>
+           </svg>
+           {{ currentTab === 'combos' ? 'Nuevo Combo' : 'Nueva Promoción' }}
+         </button>
+      </div>
+      
+      <div class="ph-controls">
+        <div class="tab-switcher">
+          <button class="tsw-btn" [class.active]="currentTab === 'combos'" (click)="switchTab('combos')">🛒 Combos</button>
+          <button class="tsw-btn" [class.active]="currentTab === 'promos'" (click)="switchTab('promos')">🎟️ Promociones</button>
+        </div>
+        
+        <div class="search-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" placeholder="Buscar..." [(ngModel)]="searchTerm" (input)="onSearch(searchTerm)"/>
+        </div>
+        
+        <div class="filt-btn" [class.active]="filtroActual === 'todos'" (click)="filtrar('todos')">Todos</div>
+        <div class="filt-btn" [class.active]="filtroActual === 'activo'" (click)="filtrar('activo')"><div class="fdot" style="background:var(--green);"></div>Activos</div>
+        <div class="filt-btn" [class.active]="filtroActual === 'inactivo'" (click)="filtrar('inactivo')"><div class="fdot" style="background:var(--muted);"></div>Inactivos</div>
+      </div>
+    </div>
+    
+    <div class="page-body">
+       <div class="cards-pane">
+         
+         <!-- SECCIÓN DE COMBOS -->
+         <div *ngIf="currentTab === 'combos'">
+           <div class="sec-label">Combos disponibles</div>
+           <div class="combos-grid">
+             <div class="combo-card" *ngFor="let combo of combosFiltrados" [class.selected]="selectedCard?.id === combo.id" [class.inactive]="combo.estado === 0" (click)="selectCard(combo)">
+               <div class="cc-banner" [style.background]="combo.bannerBg || 'rgba(255,255,255,.02)'">
+                 <div class="cc-banner-glow"></div>
+                 <div class="cc-banner-emojis">{{ combo.emoji || '🛒' }}</div>
+                 <div class="cc-badge-wrap">
+                   <span class="cc-badge badge-hot" *ngIf="combo.etiqueta">{{ combo.etiqueta }}</span>
+                 </div>
+                 <div class="cc-status-toggle" [class.on]="combo.estado === 1" [class.off]="combo.estado === 0" (click)="toggleEstado(combo); $event.stopPropagation();"></div>
+               </div>
+               <div class="cc-body">
+                 <div class="cc-name">{{ combo.nombre }}</div>
+                 <div class="cc-desc">{{ combo.descripcion }}</div>
+                 <div class="cc-items" *ngIf="combo.items">
+                    <span class="cc-item-tag" *ngFor="let item of combo.items">{{ item.cantidad }}x {{ item.nombre }}</span>
+                 </div>
+                 <div class="cc-footer">
+                   <div class="cc-price-wrap">
+                     <span class="cc-price">{{ combo.precio_combo | currency }}</span>
+                     <span class="cc-price-old" *ngIf="combo.precio_normal">{{ combo.precio_normal | currency }}</span>
+                   </div>
+                   <button class="cc-add-btn" (click)="agregarAlPedido(combo); $event.stopPropagation();">+</button>
+                 </div>
+               </div>
+             </div>
+           </div>
+         </div>
+         
+         <!-- SECCIÓN DE PROMOCIONES -->
+         <div *ngIf="currentTab === 'promos'">
+           <div class="sec-label">Promociones activas</div>
+           <div class="promos-grid">
+             <div class="promo-card" *ngFor="let promo of promosFiltradas" [class.selected]="selectedCard?.id === promo.id" [class.inactive]="promo.estado === 0" (click)="selectCard(promo)">
+               <div class="pc-header">
+                 <div class="pc-icon-wrap" [style.background]="promo.bannerBg || 'rgba(255,255,255,.05)'">{{ promo.emoji || '🎟️' }}</div>
+                 <div class="pc-header-info">
+                   <div class="pc-promo-name">{{ promo.nombre }}</div>
+                   <div class="pc-promo-desc">{{ promo.descripcion }}</div>
+                 </div>
+               </div>
+               <div class="pc-details">
+                 <div class="pc-detail-row">
+                   <span class="pc-detail-lbl">Tipo</span>
+                   <span class="pc-detail-val">{{ promo.tipo }}</span>
+                 </div>
+                 <div class="pc-detail-row">
+                   <span class="pc-detail-lbl">Descuento</span>
+                   <span class="pc-detail-val gold">{{ promo.descuento }}</span>
+                 </div>
+               </div>
+               <div class="pc-footer">
+                 <div class="pc-toggle-wrap">
+                   <div class="toggle" [class.on]="promo.estado === 1" [class.off]="promo.estado === 0" (click)="toggleEstado(promo); $event.stopPropagation();"></div>
+                   <span>{{ promo.estado === 1 ? 'Activa' : 'Inactiva' }}</span>
+                 </div>
+               </div>
+             </div>
+           </div>
+         </div>
+
+       </div>
+
+       <!-- PANEL LATERAL DE DETALLES -->
+       <div class="detail-panel" [class.open]="selectedCard != null">
+         <div class="dp-scroll" *ngIf="selectedCard">
+           <div class="dp-banner" [style.background]="selectedCard.bannerBg || 'rgba(255,255,255,.02)'">
+              <div class="dp-banner-glow"></div>
+              <div style="z-index:1;font-size:2.5rem;">{{ selectedCard.emoji || '🛒' }}</div>
+              <div class="dp-close" (click)="cerrarDetalle()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </div>
+           </div>
+           
+           <div class="dp-info">
+             <div class="dp-name">{{ selectedCard.nombre }}</div>
+             <div class="dp-desc">{{ selectedCard.descripcion }}</div>
+           </div>
+
+           <!-- Campos dinámicos dependiendo de si es Combo o Promoción -->
+           <ng-container *ngIf="currentTab === 'combos'">
+             <div class="dp-section">
+               <div class="dp-sec-title">Productos incluidos</div>
+               <div class="dp-combo-items">
+                 <div class="dp-ci" *ngFor="let item of selectedCard.items">
+                   <div class="dp-ci-name">{{ item.nombre }}</div>
+                   <div class="dp-ci-qty">×{{ item.cantidad }}</div>
+                 </div>
+               </div>
+             </div>
+             
+             <div class="dp-section">
+               <div class="dp-sec-title">Precio</div>
+               <div class="dp-row"><span class="lbl">Precio normal</span><span class="val strikethrough">{{ selectedCard.precio_normal | currency }}</span></div>
+               <div class="dp-row"><span class="lbl">Precio combo</span><span class="val gold">{{ selectedCard.precio_combo | currency }}</span></div>
+             </div>
+           </ng-container>
+
+           <ng-container *ngIf="currentTab === 'promos'">
+             <div class="dp-section">
+               <div class="dp-sec-title">Detalles</div>
+               <div class="dp-row"><span class="lbl">Tipo</span><span class="val">{{ selectedCard.tipo }}</span></div>
+               <div class="dp-row"><span class="lbl">Descuento</span><span class="val gold">{{ selectedCard.descuento }}</span></div>
+             </div>
+           </ng-container>
+         </div>
+
+         <div class="dp-actions" *ngIf="selectedCard">
+           <button class="dp-btn secondary" (click)="openModal(selectedCard)">Editar</button>
+           <button class="dp-btn ghost" style="color:rgba(232,52,42,.6); border-color:rgba(232,52,42,.15);" (click)="eliminarSeleccionado()">Eliminar</button>
+         </div>
+       </div>
+    </div>
+  </div>
+</div>

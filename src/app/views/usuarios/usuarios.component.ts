@@ -75,6 +75,10 @@ export class UsuariosComponent implements OnInit {
   public totalUsuarios = 0;
   public viewMode: 'table' | 'cards' = 'table';
 
+  public showNuevoUsuarioModal: boolean = false;
+  public showEditarUsuarioModal: boolean = false;
+  public showEliminarUsuarioModal: boolean = false;
+
   constructor(private http: HttpClient, private formBuilder: FormBuilder) {
 
     this.myForm = this.formBuilder.group({
@@ -165,6 +169,15 @@ export class UsuariosComponent implements OnInit {
     this.myForm.get('passwordHash')?.updateValueAndValidity();
   }
 
+  openNuevoUsuarioModal(): void {
+    this.prepararNuevoUsuarios();
+    this.showNuevoUsuarioModal = true;
+  }
+
+  closeNuevoUsuarioModal(): void {
+    this.showNuevoUsuarioModal = false;
+  }
+
   crearUsuarios(): void {
     console.log('Formulario válido:', this.myForm.value);
 
@@ -189,6 +202,7 @@ export class UsuariosComponent implements OnInit {
           this.addToast('Usuario registrado exitosamente!', 'success');
           this.myForm.reset();
           this.cargarUsuarios();
+          this.closeNuevoUsuarioModal();
         },
         (error) => {
           console.error('Error al crear usuario:', error.error);
@@ -224,6 +238,7 @@ export class UsuariosComponent implements OnInit {
           this.selectedUsuario = null;
           this.myForm.reset();
           this.cargarUsuarios();
+          this.closeEditarUsuarioModal();
         },
         (error) => {
           console.error('Error al actualizar usuario:', error.error);
@@ -269,10 +284,22 @@ export class UsuariosComponent implements OnInit {
       email: usuario.email || '',
       estado: usuario.estado !== undefined ? usuario.estado : 1
     });
+    this.showEditarUsuarioModal = true;
+  }
+
+  closeEditarUsuarioModal(): void {
+    this.showEditarUsuarioModal = false;
+    this.selectedUsuario = null;
   }
 
   openDeleteUsuarioModal(usuario: any): void {
     this.selectedUsuario = { ...usuario };
+    this.showEliminarUsuarioModal = true;
+  }
+
+  closeEliminarUsuarioModal(): void {
+    this.showEliminarUsuarioModal = false;
+    this.selectedUsuario = null;
   }
 
   confirmEliminar(usuarioId: number | undefined): void {
@@ -286,6 +313,7 @@ export class UsuariosComponent implements OnInit {
       (response) => {
         this.addToast('Usuario eliminado permanentemente', 'success');
         this.cargarUsuarios();
+        this.closeEliminarUsuarioModal();
       },
       (error) => {
         console.error('Error al eliminar usuario:', error.error);

@@ -15,14 +15,11 @@
     </div>
 
 
-    <div class="col-md-3 d-flex justify-content-end">
-      <button cButton color="primary" shape="rounded-pill" [cModalToggle]="nuevousuario.id"
-        (click)="prepararNuevoUsuarios()">+ Nuevo Usuario</button>
+    <div class="col-md-3 d-flex justify-content-end" style="position: relative; z-index: 50;">
+      <button cButton color="primary" shape="rounded-pill" (click)="openNuevoUsuarioModal()">+ Nuevo Usuario</button>
     </div>
 
   </c-row>
-  <div class="col-md-3 d-flex justify-content-end mb-2"></div>
-
 
 
 
@@ -74,10 +71,10 @@
                 <td>{{ usu.sucursal?.nombre }}</td>
                 <td>
                   <button class="btn btn-sm btn-outline-primary me-2" title="Editar"
-                    [cModalToggle]="editarusuario.id" (click)="openEditUsuarioModal(usu)">
+                    (click)="openEditUsuarioModal(usu)">
                     ✏️
                   </button>
-                  <button class="btn btn-sm btn-outline-danger" title="Eliminar" [cModalToggle]="eliminarusuario.id"
+                  <button class="btn btn-sm btn-outline-danger" title="Eliminar" 
                     (click)="openDeleteUsuarioModal(usu)">
                     🗑️
                   </button>
@@ -105,12 +102,12 @@
               </c-card-body>
               <c-card-footer class="d-flex justify-content-end gap-2">
 
-                <button cButton color="primary" variant="outline" [cModalToggle]="editarusuario.id"
+                <button cButton color="primary" variant="outline" 
                   (click)="openEditUsuarioModal(usu)" class="d-flex align-items-center justify-content-center">
                   <span class="material-icons">edit</span>
                 </button>
 
-                <button cButton color="danger" variant="outline" [cModalToggle]="eliminarusuario.id"
+                <button cButton color="danger" variant="outline" 
                   (click)="openDeleteUsuarioModal(usu)" class="d-flex align-items-center justify-content-center">
                   <span class="material-icons">delete</span>
                 </button>
@@ -131,161 +128,151 @@
 <!-- ---------------------------- -->
 
 <!-- Modal para nuevo usuario -->
-<c-modal #nuevousuario alignment="center" id="nuevousuario">
-  <c-modal-header>
-    <h5 cModalTitle>Nuevo Usuario</h5>
-    <button [cModalToggle]="nuevousuario.id" cButtonClose></button>
-  </c-modal-header>
-  <c-modal-body>
+<div class="modal-overlay" [class.open]="showNuevoUsuarioModal" [style.pointer-events]="showNuevoUsuarioModal ? 'auto' : 'none'" (click)="closeNuevoUsuarioModal()">
+  <div class="nm-modal" (click)="$event.stopPropagation()">
+    <div class="nm-header">
+      <div class="nm-title">Nuevo <em>Usuario</em></div>
+      <button class="modal-close" type="button" (click)="closeNuevoUsuarioModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    
+    <form [formGroup]="myForm" (ngSubmit)="crearUsuarios()">
+      <div class="nm-body">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Sucursal</label>
+            <select class="nm-select" formControlName="idSucursal">
+              <option *ngFor="let sucursal of sucursales" [value]="sucursal.idSucursal">
+                {{ sucursal.nombre }}
+              </option>
+            </select>
+          </div>
 
-    <form id="formNuevoUsuario" [formGroup]="myForm" (ngSubmit)="crearUsuarios()">
-
-      <div class="row">
-        <div class="col mb-2">
-          <label cLabel for="exampleFormControlInput1">Sucursal</label>
-          <select class="form-select"  formControlName="idSucursal">
-            <option *ngFor="let sucursal of sucursales" [value]="sucursal.idSucursal">
-              {{ sucursal.nombre }}
-            </option>
-          </select>
+          <div class="form-group">
+            <label>Rol</label>
+            <select class="nm-select" formControlName="idRol">
+              <option *ngFor="let rol of roles" [value]="rol.idRol">
+                {{ rol.nombre }}
+              </option>
+            </select>
+          </div>
         </div>
 
-        <div class="col mb-2">
-          <label cLabel for="exampleFormControlInput1">Rol</label>
-         <select class="form-select"  formControlName="idRol">
-            <option *ngFor="let rol of roles" [value]="rol.idRol">
-              {{ rol.nombre }}
-            </option>
-          </select>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Nombre</label>
+            <input class="nm-input" formControlName="nombres" type="text" placeholder="Ej. Juan Pérez" />
+          </div>
+
+          <div class="form-group">
+            <label>Email</label>
+            <input class="nm-input" formControlName="email" type="email" placeholder="correo@ejemplo.com" />
+          </div>
         </div>
 
+        <div class="form-group">
+          <label>Contraseña</label>
+          <input class="nm-input" formControlName="passwordHash" type="password" placeholder="Ingresa una contraseña" />
+        </div>
       </div>
-
-
-      <div class="col mb-2">
-        <label cLabel for="exampleFormControlInput1">Nombre</label>
-        <input cFormControl formControlName="nombres" type="text" />
+      
+      <div class="nm-footer">
+        <button type="button" class="dp-btn ghost" (click)="closeNuevoUsuarioModal()">Cancelar</button>
+        <button type="submit" class="dp-btn primary">Guardar Usuario</button>
       </div>
-
-      <div class="mb-3">
-        <label cLabel for="exampleFormControlTextarea1">Email</label>
-        <input cFormControl formControlName="email" type="email" />
-      </div>
-
-      <div class="mb-3">
-        <label cLabel for="exampleFormControlInput1">Password</label>
-        <input cFormControl formControlName="passwordHash" placeholder="Password" type="password" />
-      </div>
-
     </form>
-
-  </c-modal-body>
-  <c-modal-footer>
-    <button [cModalToggle]="nuevousuario.id" cButton color="danger">
-      Cancelar
-    </button>
-    <button cButton type="submit" form="formNuevoUsuario" color="primary">
-      Guardar Usuario
-    </button>
-  </c-modal-footer>
-</c-modal>
+  </div>
+</div>
 <!-- Modal para nuevo usuario -->
 
 <!-- ---------------------------- -->
 
 <!-- Modal para editar usuario -->
-<c-modal #editarusuario alignment="center" id="editarusuario">
-  <c-modal-header>
-    <h5 cModalTitle>Editar Usuario</h5>
-    <button [cModalToggle]="editarusuario.id" cButtonClose></button>
-  </c-modal-header>
-  <c-modal-body>
+<div class="modal-overlay" [class.open]="showEditarUsuarioModal" [style.pointer-events]="showEditarUsuarioModal ? 'auto' : 'none'" (click)="closeEditarUsuarioModal()">
+  <div class="nm-modal" (click)="$event.stopPropagation()">
+    <div class="nm-header">
+      <div class="nm-title">Editar <em>Usuario</em></div>
+      <button class="modal-close" type="button" (click)="closeEditarUsuarioModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    
+    <form [formGroup]="myForm" (ngSubmit)="actualizarUsuario()">
+      <div class="nm-body">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Sucursal</label>
+            <select class="nm-select" formControlName="idSucursal">
+              <option *ngFor="let sucursal of sucursales" [value]="sucursal.idSucursal">
+                {{ sucursal.nombre }}
+              </option>
+            </select>
+          </div>
 
-    <form id="formEditarUsuario" [formGroup]="myForm" (ngSubmit)="actualizarUsuario()">
-
-      <div class="row">
-        <div class="col mb-2">
-          <label cLabel for="exampleFormControlInput1">Sucursal</label>
-          <select class="form-select" formControlName="idSucursal">
-            <option *ngFor="let sucursal of sucursales" [value]="sucursal.idSucursal">
-              {{ sucursal.nombre }}
-            </option>
-          </select>
+          <div class="form-group">
+            <label>Rol</label>
+            <select class="nm-select" formControlName="idRol">
+              <option *ngFor="let rol of roles" [value]="rol.idRol">
+                {{ rol.nombre }}
+              </option>
+            </select>
+          </div>
         </div>
 
-        <div class="col mb-2">
-          <label cLabel for="exampleFormControlInput1">Rol</label>
-          <select class="form-select" formControlName="idRol">
-            <option *ngFor="let rol of roles" [value]="rol.idRol">
-              {{ rol.nombre }}
-            </option>
-          </select>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Nombre</label>
+            <input class="nm-input" formControlName="nombres" type="text" />
+          </div>
+
+          <div class="form-group">
+            <label>Email</label>
+            <input class="nm-input" formControlName="email" type="email" />
+          </div>
         </div>
       </div>
-
-      <div class="col mb-2">
-        <label cLabel for="exampleFormControlInput1">Nombre</label>
-        <input cFormControl formControlName="nombres" type="text" />
+      
+      <div class="nm-footer">
+        <button type="button" class="dp-btn ghost" (click)="closeEditarUsuarioModal()">Cancelar</button>
+        <button type="submit" class="dp-btn primary">Guardar Cambios</button>
       </div>
-
-      <div class="mb-3">
-        <label cLabel for="exampleFormControlTextarea1">Email</label>
-        <input cFormControl formControlName="email" type="email" />
-      </div>
-
-     
     </form>
-
-  </c-modal-body>
-  <c-modal-footer>
-    <button [cModalToggle]="editarusuario.id" cButton color="danger">
-      Cancelar
-    </button>
-    <button cButton type="submit" form="formEditarUsuario" color="primary">
-      Guardar Cambios
-    </button>
-  </c-modal-footer>
-</c-modal>
+  </div>
+</div>
 <!-- Modal para editar usuario -->
 
 <!-- ---------------------------- -->
 
 <!-- Modal para CONFIRMAR ELIMINACIÓN de usuario -->
-<c-modal #eliminarusuario alignment="center" id="eliminarusuario">
-  <c-modal-header>
-    <h5 cModalTitle>Eliminar Usuario</h5>
-    <button [cModalToggle]="eliminarusuario.id" cButtonClose></button>
-  </c-modal-header>
-  <c-modal-body>
-    <p style="text-align: center; font-size: 3rem;">
-      🗑️
-    </p>
-
-    <p class="mb-3" style="text-align: center;">
-      Esta acción no se puede deshacer.
-    </p>
-    <p class="mb-0" style="text-align: center;">
-      El usuario <strong>{{ selectedUsuario?.nombres }}</strong> será eliminado permanentemente.
-    </p>
-  </c-modal-body>
-  <c-modal-footer>
-    <button [cModalToggle]="eliminarusuario.id" cButton color="secondary">
-      Cancelar
-    </button>
-    <button cButton color="danger" style="color: white;" (click)="confirmEliminar(selectedUsuario?.idUsuario || selectedUsuario?.id_usuario)"
-      [cModalToggle]="eliminarusuario.id">
-      Eliminar Permanentemente
-    </button>
-  </c-modal-footer>
-</c-modal>
+<div class="modal-overlay" [class.open]="showEliminarUsuarioModal" [style.pointer-events]="showEliminarUsuarioModal ? 'auto' : 'none'" (click)="closeEliminarUsuarioModal()">
+  <div class="nm-modal" (click)="$event.stopPropagation()">
+    <div class="nm-header">
+      <div class="nm-title">Eliminar <em>Usuario</em></div>
+      <button class="modal-close" type="button" (click)="closeEliminarUsuarioModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="nm-body">
+      <p style="text-align: center; font-size: 3rem; margin-bottom: 0;">🗑️</p>
+      <p class="mb-3" style="text-align: center; color: var(--white);">Esta acción no se puede deshacer.</p>
+      <p class="mb-0" style="text-align: center; color: var(--muted);">
+        El usuario <strong style="color: var(--white);">{{ selectedUsuario?.nombres }}</strong> será eliminado permanentemente.
+      </p>
+    </div>
+    <div class="nm-footer">
+      <button type="button" class="dp-btn ghost" (click)="closeEliminarUsuarioModal()">Cancelar</button>
+      <button type="button" class="dp-btn primary" style="background: var(--red);" (click)="confirmEliminar(selectedUsuario?.idUsuario || selectedUsuario?.id_usuario)">Eliminar Permanentemente</button>
+    </div>
+  </div>
+</div>
 <!-- Modal para eliminar usuario -->
 
 
 <!-- Toast -->
 
-<c-toaster [placement]="'top-end'" class="p-3" position="fixed">
-  <c-toast *ngFor="let toast of toasts" [autohide]="true" [fade]="true" [visible]="true" [color]="toast.type"
-    style="min-width: 220px; margin-bottom: 8px;">
+<c-toaster [placement]="'top-end'" class="p-3" position="fixed" style="pointer-events: none; z-index: 1070;">
+  <c-toast *ngFor="let toast of toasts" [autohide]="true" [fade]="true" [visible]="true" [color]="toast.type" style="min-width: 220px; margin-bottom: 8px; pointer-events: auto;">
     <c-toast-body>{{ toast.message }}</c-toast-body>
   </c-toast>
 </c-toaster>
