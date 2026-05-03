@@ -5,9 +5,143 @@
   --border: rgba(255, 255, 255, 0.07);
   --muted: rgba(247, 244, 238, 0.42);
 
+  display: block;
+  background-color: #0A0A09; /* Fondo oscuro (el mismo usado en mesas e ingredientes) */
+  color: var(--white);
+  min-height: calc(100vh - 110px);
+  border-radius: 12px;
+  padding: 1.5rem;
+
   .legend {
     small {
       font-size: x-small;
+    }
+  }
+}
+
+/* ══ VISTA DE TARJETAS DE CLIENTES ══ */
+.cliente-card-body {
+  padding-left: 2rem !important; /* Aumenta el padding izquierdo */
+  padding-bottom: 1.5rem !important; /* Espacio extra antes de los botones */
+  line-height: 1.6; /* Aumenta el espacio vertical entre líneas */
+
+  h5 {
+    margin-bottom: 1rem;
+  }
+
+  .lbl-text {
+    color: #A0A0A0; /* Color gris claro solicitado */
+  }
+
+  .val-text {
+    color: #FFFFFF; /* Texto blanco resaltado */
+    font-weight: 600;
+  }
+}
+
+.badge-activo {
+  background-color: #103010; /* Fondo verde muy oscuro */
+  color: #4ADE80; /* Texto verde claro */
+  padding: 0.2rem 0.6rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  margin-left: 0.3rem;
+  font-weight: 600;
+}
+  
+.badge-inactivo {
+  background-color: rgba(232, 52, 42, 0.15); /* Fondo rojo sutil para inactivos */
+  color: var(--red);
+  padding: 0.2rem 0.6rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  margin-left: 0.3rem;
+  font-weight: 600;
+}
+
+.cliente-card-footer {
+  padding-top: 1.2rem !important; /* Aumenta el margen/separación de los botones */
+}
+
+/* ══ OVERRIDES PARA COREUI (ELIMINAR PÚRPURA Y APLICAR TEMA OSCURO) ══ */
+::ng-deep {
+  /* Tarjetas (Cards) de CoreUI */
+  .card {
+    background-color: rgba(13, 13, 13, 0.98) !important;
+    border: 1px solid var(--border) !important;
+    color: var(--white) !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+  }
+  .card-header {
+    background-color: rgba(255, 255, 255, 0.03) !important;
+    border-bottom: 1px solid var(--border) !important;
+    color: var(--gold) !important;
+  }
+  .card-footer {
+    background-color: rgba(255, 255, 255, 0.02) !important;
+    border-top: 1px solid var(--border) !important;
+  }
+
+  /* Botones (Reemplazar púrpura/azul por rojo/dorado) */
+  .btn-primary {
+    background-color: var(--red) !important;
+    border-color: var(--red) !important;
+    color: #fff !important;
+    box-shadow: 0 4px 14px rgba(232, 52, 42, 0.25) !important;
+    
+    &:hover, &:focus, &:active {
+      background-color: #c92a22 !important;
+      border-color: #c92a22 !important;
+      box-shadow: 0 6px 20px rgba(232, 52, 42, 0.35) !important;
+    }
+  }
+
+  /* Botones Outline Primary (Cambio de vista y Editar) */
+  .btn-outline-primary {
+    color: var(--white) !important;
+    border-color: #2D2D3A !important;
+    background-color: transparent !important;
+    
+    &:hover, &.active, &:focus, &:active {
+      background-color: #2D2D3A !important;
+      border-color: #2D2D3A !important;
+    }
+  }
+  
+  .btn-info, .btn-secondary {
+    background-color: rgba(255, 255, 255, 0.04) !important;
+    border-color: var(--border) !important;
+    color: var(--white) !important;
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.08) !important;
+    }
+  }
+
+  /* Tablas de CoreUI */
+  .table {
+    color: var(--white) !important;
+    border-color: var(--border) !important;
+  }
+  .table > :not(caption) > * > * {
+    background-color: transparent !important;
+    color: var(--white) !important;
+    border-bottom-color: var(--border) !important;
+  }
+  .table > thead > tr > th {
+    color: var(--gold) !important;
+    background-color: rgba(255, 255, 255, 0.03) !important;
+  }
+
+  /* Input de Búsqueda (CoreUI form-control) */
+  .form-control {
+    background-color: rgba(255, 255, 255, 0.04) !important;
+    border: 1px solid var(--border) !important;
+    color: var(--white) !important;
+    
+    &:focus {
+      border-color: var(--gold) !important;
+      box-shadow: none !important;
+      background-color: rgba(255, 255, 255, 0.06) !important;
     }
   }
 }

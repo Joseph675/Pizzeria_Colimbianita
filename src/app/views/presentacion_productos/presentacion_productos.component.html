@@ -116,8 +116,8 @@
               <tbody>
                 <tr *ngFor="let pre of presentacionesFiltrados" [ngClass]="{'opacity-50 text-muted': pre.estado === 0}">
                   <td>{{ pre.producto?.nombre }}</td>
-                  <td>{{ pre.nombrePresentacion || pre.nombre_presentacion }}</td>
-                  <td>{{ pre.precio | currency }}</td>
+                  <td class="val-text">{{ pre.nombrePresentacion || pre.nombre_presentacion }}</td>
+                  <td class="val-text">{{ pre.precio | currency }}</td>
                   <td>
                     <button class="btn btn-sm btn-outline-primary me-2" title="Editar"
                       (click)="openEditPresentacionModal(pre)">
@@ -156,11 +156,12 @@
                   <small class="text-muted"><span class="badge bg-primary">{{ pre.producto?.nombre }}</span></small>
                   <h5 cCardTitle class="mt-2">{{ pre.nombrePresentacion || pre.nombre_presentacion }}</h5>
 
-                  <p cCardText>
-                    Precio: <strong>{{ pre.precio | currency }}</strong>
+                  <p cCardText class="mt-3 mb-1">
+                    <span class="lbl-text">Precio:</span> 
+                    <span class="val-text price-val">{{ pre.precio | currency }}</span>
                   </p>
                 </c-card-body>
-                <c-card-footer class="d-flex justify-content-end gap-2">
+                <c-card-footer class="d-flex justify-content-end gap-2 presentacion-card-footer">
 
                   <button cButton color="primary" variant="outline"
                     (click)="openEditPresentacionModal(pre)" class="d-flex align-items-center justify-content-center">

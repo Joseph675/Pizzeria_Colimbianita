@@ -1,9 +1,155 @@
 :host {
+  --red: #E8342A;
+  --gold: #F5C842;
+  --white: #F7F4EE;
+  --border: rgba(255, 255, 255, 0.07);
+  --muted: rgba(247, 244, 238, 0.42);
+
+  display: block;
+  background-color: #0A0A09; /* Fondo oscuro general */
+  color: var(--white);
+  min-height: calc(100vh - 110px);
+  border-radius: 12px;
+  padding: 1.5rem;
+
   .legend {
     small {
       font-size: x-small;
     }
   }
+}
+
+/* ══ OVERRIDES PARA COREUI (ELIMINAR PÚRPURA Y APLICAR TEMA OSCURO) ══ */
+::ng-deep {
+  /* Tarjetas (Cards) y Widgets de CoreUI */
+  .card {
+    background-color: rgba(13, 13, 13, 0.98) !important;
+    border: 1px solid var(--border) !important;
+    color: var(--white) !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+  }
+  .card-body {
+    padding: 1.5rem !important; /* Aumenta el aire interno de las tarjetas */
+  }
+  .card-header {
+    background-color: rgba(255, 255, 255, 0.03) !important;
+    border-bottom: 1px solid var(--border) !important;
+    color: var(--gold) !important;
+  }
+  .card-footer {
+    background-color: rgba(255, 255, 255, 0.02) !important;
+    border-top: 1px solid var(--border) !important;
+  }
+
+  /* Arreglo para textos dentro de widgets de CoreUI (Stats) */
+  .text-high-emphasis { color: var(--white) !important; }
+  .text-medium-emphasis { color: var(--muted) !important; }
+
+  /* Botones (Reemplazar púrpura/azul por rojo/dorado) */
+  .btn-primary {
+    background-color: var(--red) !important;
+    border-color: var(--red) !important;
+    color: #fff !important;
+    box-shadow: 0 4px 14px rgba(232, 52, 42, 0.25) !important;
+    
+    &:hover, &:focus, &:active {
+      background-color: #c92a22 !important;
+      border-color: #c92a22 !important;
+      box-shadow: 0 6px 20px rgba(232, 52, 42, 0.35) !important;
+    }
+  }
+
+  /* Botones Outline Primary (Cambio de vista y Editar) */
+  .btn-outline-primary {
+    color: var(--muted) !important;
+    border-color: #2D2D3A !important;
+    background-color: rgba(255, 255, 255, 0.02) !important; /* Fondo gris oscuro neutro */
+    
+    &:hover, &.active, &:focus, &:active {
+      background-color: #2D2D3A !important;
+      border-color: #2D2D3A !important;
+      color: var(--gold) !important; /* Texto dorado al estar activo */
+    }
+  }
+  
+  .btn-info, .btn-secondary {
+    background-color: rgba(255, 255, 255, 0.04) !important;
+    border-color: var(--border) !important;
+    color: var(--white) !important;
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.08) !important;
+    }
+  }
+
+  /* Tablas de CoreUI */
+  .table {
+    color: var(--white) !important;
+    border-color: var(--border) !important;
+  }
+  .table > :not(caption) > * > * {
+    background-color: transparent !important;
+    color: var(--white) !important;
+    border-bottom-color: var(--border) !important;
+    padding-top: 1.1rem !important; /* Da más aire superior a la fila */
+    padding-bottom: 1.1rem !important; /* Da más aire inferior a la fila */
+    vertical-align: middle !important; /* Centra los datos con los botones */
+  }
+  .table > thead > tr > th {
+    color: #A0A0A0 !important; /* Gris claro sutil en lugar de dorado */
+    font-weight: 500 !important;
+    background-color: rgba(255, 255, 255, 0.03) !important;
+  }
+
+  /* Input de Búsqueda y Selects (CoreUI form-control y form-select) */
+  .form-control, .form-select {
+    background-color: rgba(255, 255, 255, 0.04) !important;
+    border: 1px solid var(--border) !important;
+    color: var(--white) !important;
+    
+    &:focus {
+      border-color: var(--gold) !important;
+      box-shadow: none !important;
+      background-color: rgba(255, 255, 255, 0.06) !important;
+    }
+    
+    option {
+      background-color: #1a1a1a;
+      color: var(--white);
+    }
+  }
+  
+  /* Badges (Reemplaza el azul predeterminado) */
+  .bg-primary { 
+    background-color: var(--red) !important; 
+    color: var(--white) !important; /* Garantiza buen contraste */
+    padding: 0.35rem 0.65rem !important; /* Diseño de píldora más holgado */
+    border-radius: 12px !important;
+  }
+
+  /* Toggle Switch (Eliminar púrpura de CoreUI) */
+  .form-check-input:checked {
+    background-color: var(--red) !important;
+    border-color: var(--red) !important;
+  }
+}
+
+/* ══ VISTA DE TARJETAS DE PRESENTACIONES ══ */
+.lbl-text {
+  color: #A0A0A0; /* Color gris claro para las etiquetas */
+  font-size: 0.95rem;
+}
+
+.val-text {
+  color: #FFFFFF; /* Texto blanco resaltado */
+  font-weight: bold; /* Negrita */
+  
+  &.price-val {
+    font-size: 1.15rem; /* Tamaño de fuente ligeramente mayor para el precio */
+  }
+}
+
+.presentacion-card-footer {
+  padding-top: 1.2rem !important; /* Separa los iconos de acción de los datos */
 }
 
  .ph { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:1.8rem; gap:1rem; flex-wrap:wrap; }
@@ -29,7 +175,7 @@
   bottom: 0;
   height: 100%;
   min-height: 100vh;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.75);
   backdrop-filter: blur(3px);
   z-index: 9999;
   opacity: 0;
@@ -45,8 +191,9 @@
 .nm-modal {
   position: absolute;
   left: 50%;
-  background-color: #1e1e1e; /* Ajusta según el fondo oscuro de tu diseño */
-  color: #fff;
+  background-color: rgba(13, 13, 13, 0.98);
+  color: var(--white);
+  border: 1px solid var(--border);
   border-radius: 12px;
   width: 90%;
   max-width: 500px;
@@ -65,7 +212,7 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 24px;
-  border-bottom: 1px solid #333;
+  border-bottom: 1px solid var(--border);
   padding-bottom: 10px;
 
   .nm-title {
@@ -73,7 +220,7 @@
     font-weight: 600;
     
     em {
-      color: #0d6efd; /* Color primario, ajústalo según tu tema */
+      color: var(--gold);
       font-style: normal;
     }
   }
@@ -81,14 +228,14 @@
   .modal-close {
     background: transparent;
     border: none;
-    color: #aaa;
+    color: var(--muted);
     width: 32px;
     height: 32px;
     cursor: pointer;
     transition: color 0.2s;
 
     &:hover {
-      color: #fff;
+      color: var(--red);
     }
 
     svg {
@@ -108,22 +255,23 @@
       display: block;
       margin-bottom: 6px;
       font-size: 0.9rem;
-      color: #ccc;
+      color: var(--muted);
     }
 
     .nm-input {
       width: 100%;
       padding: 10px 12px;
       border-radius: 6px;
-      border: 1px solid #444;
-      background-color: #2b2b2b;
-      color: #fff;
+      border: 1px solid var(--border);
+      background-color: rgba(255, 255, 255, 0.04);
+      color: var(--white);
       font-size: 1rem;
       transition: border-color 0.2s;
 
       &:focus {
         outline: none;
-        border-color: #0d6efd;
+        border-color: var(--gold);
+        background: rgba(255, 255, 255, 0.06);
       }
     }
   }
@@ -143,22 +291,23 @@
     transition: all 0.2s;
 
     &.ghost {
-      background: transparent;
-      color: #ccc;
-      border: 1px solid #555;
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--muted);
+      border: 1px solid var(--border);
 
       &:hover {
-        background: #333;
-        color: #fff;
+        background: rgba(255, 255, 255, 0.08);
+        color: var(--white);
       }
     }
 
     &.primary {
-      background: #0d6efd; /* Color primario */
+      background: var(--red);
       color: #fff;
+      box-shadow: 0 4px 14px rgba(232, 52, 42, 0.25);
 
       &:hover {
-        background: #0b5ed7;
+        box-shadow: 0 6px 20px rgba(232, 52, 42, 0.35);
       }
     }
   }

@@ -72,7 +72,7 @@
                 <td>{{ cli.nombres }}</td>
                 <td>{{ cli.direccionPredeterminada }}</td>
                 <td>
-                  <span class="badge" [ngClass]="cli.estado === 1 ? 'bg-success' : 'bg-danger'">
+                  <span [ngClass]="cli.estado === 1 ? 'badge-activo' : 'badge-inactivo'">
                     {{ cli.estado === 1 ? 'Activo' : 'Inactivo' }}
                   </span>
                 </td>
@@ -100,15 +100,18 @@
           <div class="col-12 col-md-6 col-lg-4 mb-4" *ngFor="let cli of clientesFiltrados">
 
             <c-card>
-              <c-card-body>
+              <c-card-body class="cliente-card-body">
                 <h5 cCardTitle>{{ cli.nombres }}</h5>
                 <p cCardText>
-                  Celular: <strong>{{ cli.celular }}</strong><br>
-                  Dirección: <strong>{{ cli.direccionPredeterminada || 'N/A' }}</strong><br>
-                  Estado: <strong [ngClass]="cli.estado === 1 ? 'text-success' : 'text-danger'">{{ cli.estado === 1 ? 'Activo' : 'Inactivo' }}</strong>
+                  <span class="lbl-text">Celular:</span> <span class="val-text">{{ cli.celular }}</span><br>
+                  <span class="lbl-text">Dirección:</span> <span class="val-text">{{ cli.direccionPredeterminada || 'N/A' }}</span><br>
+                  <span class="lbl-text">Estado:</span> 
+                  <span [ngClass]="cli.estado === 1 ? 'badge-activo' : 'badge-inactivo'">
+                    {{ cli.estado === 1 ? 'Activo' : 'Inactivo' }}
+                  </span>
                 </p>
               </c-card-body>
-              <c-card-footer class="d-flex justify-content-end gap-2">
+              <c-card-footer class="d-flex justify-content-end gap-2 cliente-card-footer">
 
                 <button cButton color="primary" variant="outline"
                   (click)="openEditClienteModal(cli)" class="d-flex align-items-center justify-content-center">

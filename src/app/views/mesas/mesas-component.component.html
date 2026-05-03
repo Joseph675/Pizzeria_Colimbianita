@@ -52,6 +52,14 @@
       <div class="mesas-grid">
         <!-- ITERADOR DE MESAS -->
         <div *ngFor="let mesa of mesasFiltradas" class="mesa-card" [ngClass]="(mesa.estado || 'libre').toLowerCase()">
+          <div class="mc-actions-overlay">
+            <button class="mc-btn edit" title="Editar mesa" (click)="openEditarMesaModal(mesa); $event.stopPropagation();">
+              ✏️
+            </button>
+            <button class="mc-btn delete" title="Eliminar mesa" (click)="openEliminarMesaModal(mesa); $event.stopPropagation();">
+              🗑️
+            </button>
+          </div>
           <div class="mc-top">
             <div>
               <div class="mc-num">{{ mesa.numeroMesa < 10 ? '0' + mesa.numeroMesa : mesa.numeroMesa }}</div>
@@ -150,6 +158,65 @@
               <div style="height:14px;"></div>
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ EDITAR MESA MODAL ══ -->
+    <div class="modal-overlay" [class.open]="showEditarMesaModal" (click)="closeEditarMesaModal()">
+      <div class="nm-modal" (click)="$event.stopPropagation()">
+        <div class="nm-header">
+          <div class="nm-title">Editar <em>Mesa</em></div>
+          <button class="modal-close" (click)="closeEditarMesaModal()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+        <div class="nm-body">
+          <div class="form-group">
+            <label>Número de mesa</label>
+            <input type="number" class="nm-input" placeholder="Ej. 15" [(ngModel)]="nuevaMesaNumero" name="editarNumeroMesa">
+          </div>
+          <div class="form-group">
+            <label>Capacidad (Personas)</label>
+            <div class="im-qty-ctrl" style="margin-top: 0.2rem; justify-content: space-between; width: 140px;">
+              <div class="im-qty-btn" (click)="changeCapacidad(-1)">−</div>
+              <div class="im-qty-num">{{ nuevaMesaCapacidad }}</div>
+              <div class="im-qty-btn" (click)="changeCapacidad(1)">+</div>
+            </div>
+          </div>
+        </div>
+        <div class="nm-footer">
+          <button class="dp-btn ghost" (click)="closeEditarMesaModal()">Cancelar</button>
+          <button class="dp-btn primary" (click)="actualizarMesa()">Guardar Cambios</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ ELIMINAR MESA MODAL ══ -->
+    <div class="modal-overlay" [class.open]="showEliminarMesaModal" (click)="closeEliminarMesaModal()">
+      <div class="nm-modal" (click)="$event.stopPropagation()">
+        <div class="nm-header">
+          <div class="nm-title">Eliminar <em>Mesa</em></div>
+          <button class="modal-close" (click)="closeEliminarMesaModal()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+        <div class="nm-body" style="text-align:center; gap:1rem;">
+          <p style="text-align: center; font-size: 3rem; margin-bottom: 0;">🗑️</p>
+          <p class="mb-3" style="color: var(--white);">Esta acción eliminará la mesa seleccionada.</p>
+          <p class="mb-0" style="color: var(--muted);">
+          La mesa <strong style="color: var(--white);">{{ selectedMesa ? (selectedMesa.numeroMesa < 10 ? '0' + selectedMesa.numeroMesa : selectedMesa.numeroMesa) : '' }}</strong> será eliminada.
+          </p>
+        </div>
+        <div class="nm-footer">
+          <button class="dp-btn ghost" (click)="closeEliminarMesaModal()">Cancelar</button>
+          <button class="dp-btn primary" style="background: var(--red);" (click)="confirmEliminarMesa(selectedMesa?.id_mesa || selectedMesa?.idMesa)">Eliminar Mesa</button>
         </div>
       </div>
     </div>

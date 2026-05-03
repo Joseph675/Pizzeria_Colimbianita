@@ -7,6 +7,7 @@ import { HttpClient } from '@angular/common/http';
 export interface Mesa {
   sucursal: { idSucursal: number }; // Solo necesitamos el ID para crear la mesa
   id_mesa?: number; // Generado por el backend
+  idMesa?: number;
   numeroMesa: number;
   capacidad: number;
   estado?: string;
@@ -25,6 +26,9 @@ export class MesasComponent implements OnInit {
   
   // Estado del Modal "Nueva Mesa"
   showNuevaMesaModal: boolean = false;
+  public showEditarMesaModal: boolean = false;
+  public showEliminarMesaModal: boolean = false;
+  public selectedMesa: Mesa | null = null;
   
   // Modelos del formulario
   nuevaMesaNumero: number | null = null;
@@ -125,6 +129,79 @@ export class MesasComponent implements OnInit {
       error: (err) => {
         console.error('Error al crear la mesa', err);
         alert('Ocurrió un error al crear la mesa. Verifica la consola.');
+      }
+    });
+  }
+
+  openEditarMesaModal(mesa: Mesa): void {
+    this.selectedMesa = { ...mesa };
+    this.nuevaMesaNumero = mesa.numeroMesa;
+    this.nuevaMesaCapacidad = mesa.capacidad;
+    this.showEditarMesaModal = true;
+  }
+
+  closeEditarMesaModal(): void {
+    this.showEditarMesaModal = false;
+    this.selectedMesa = null;
+  }
+
+  actualizarMesa(): void {
+    if (!this.selectedMesa || !this.nuevaMesaNumero || this.nuevaMesaNumero <= 0) {
+      alert('Por favor ingresa un número de mesa válido antes de actualizar.');
+      return;
+    }
+
+    const mesaId = this.selectedMesa.id_mesa || this.selectedMesa.idMesa;
+    if (!mesaId) {
+      alert('No se encontró el identificador de la mesa.');
+      return;
+    }
+
+    const updatedMesa: Mesa = {
+      sucursal: { idSucursal: this.selectedMesa.sucursal?.idSucursal || 1 },
+      numeroMesa: this.nuevaMesaNumero,
+      capacidad: this.nuevaMesaCapacidad,
+      estado: this.selectedMesa.estado || 'LIBRE'
+    };
+
+    this.http.put(`http://localhost:8080/api/mesas/${mesaId}`, updatedMesa).subscribe({
+      next: () => {
+        alert('Mesa actualizada con éxito');
+        this.closeEditarMesaModal();
+        this.obtenerMesas();
+      },
+      error: (err) => {
+        console.error('Error al actualizar la mesa', err);
+        alert('Ocurrió un error al actualizar la mesa. Verifica la consola.');
+      }
+    });
+  }
+
+  openEliminarMesaModal(mesa: Mesa): void {
+    this.selectedMesa = { ...mesa };
+    this.showEliminarMesaModal = true;
+  }
+
+  closeEliminarMesaModal(): void {
+    this.showEliminarMesaModal = false;
+    this.selectedMesa = null;
+  }
+
+  confirmEliminarMesa(mesaId: number | undefined): void {
+    if (!mesaId) {
+      alert('No se encontró el identificador de la mesa a eliminar.');
+      return;
+    }
+
+    this.http.delete(`http://localhost:8080/api/mesas/${mesaId}`).subscribe({
+      next: () => {
+        alert('Mesa eliminada correctamente');
+        this.closeEliminarMesaModal();
+        this.obtenerMesas();
+      },
+      error: (err) => {
+        console.error('Error al eliminar la mesa', err);
+        alert('Ocurrió un error al eliminar la mesa. Verifica la consola.');
       }
     });
   }
