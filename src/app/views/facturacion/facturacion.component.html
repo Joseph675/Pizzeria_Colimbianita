@@ -1,1 +1,345 @@
-<p>facturacion works!</p>
+<div class="facturacion-wrap">
+  <div class="page-header">
+    <h2 class="page-title">Gestión de <em>Caja y Facturación</em></h2>
+    
+    <!-- Pestañas de Navegación -->
+    <div class="tab-nav">
+      <button class="tab-btn" [class.active]="vistaActual === 'FACTURAS'" (click)="cambiarVista('FACTURAS')">
+        🧾 Facturas y Ventas
+      </button>
+      <button class="tab-btn" [class.active]="vistaActual === 'CIERRES'" (click)="cambiarVista('CIERRES')">
+        🔐 Turnos de Caja
+      </button>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       VISTA: FACTURAS Y VENTAS (DASHBOARD)
+       ========================================== -->
+  <div *ngIf="vistaActual === 'FACTURAS'">
+    
+    <!-- BARRA DE FILTROS -->
+    <div class="filtros-bar">
+      <div class="filtro-item">
+        <label>📅 Fecha</label>
+        <input type="date" [(ngModel)]="filtroFecha" (change)="cargarFacturas()">
+      </div>
+      <div class="filtro-item">
+        <label>💳 Método de Pago</label>
+        <select [(ngModel)]="filtroMetodo" (change)="aplicarFiltroFacturasLocal()">
+          <option value="TODOS">Todos los métodos</option>
+          <option value="EFECTIVO">Efectivo</option>
+          <option value="NEQUI">Nequi</option>
+          <option value="DAVIPLATA">Daviplata</option>
+          <option value="TARJETA">Tarjeta</option>
+        </select>
+      </div>
+      <div class="filtro-item" style="flex-grow: 1;">
+        <label>🔍 Buscar Cliente o Factura</label>
+        <input type="text" [(ngModel)]="filtroCliente" (input)="aplicarFiltroFacturasLocal()" placeholder="Ej. Juan Pérez o #1024...">
+      </div>
+      <button class="btn-limpiar" (click)="limpiarFiltrosFacturas()" *ngIf="filtroFecha !== fechaHoy || filtroMetodo !== 'TODOS' || filtroCliente !== ''">
+        ✖ Limpiar
+      </button>
+    </div>
+
+    <!-- WIDGETS DE ESTADÍSTICAS (DASHBOARD) -->
+    <div class="stats-grid">
+      <div class="stat-card grand-total">
+        <div class="sc-icon">💰</div>
+        <div class="sc-info">
+          <div class="sc-label">Total Ventas (Filtro)</div>
+          <div class="sc-val">{{ totalVentas | currency:'USD':'symbol':'1.0-0' }}</div>
+        </div>
+      </div>
+      <div class="stat-card efectivo">
+        <div class="sc-icon">💵</div>
+        <div class="sc-info">
+          <div class="sc-label">Efectivo</div>
+          <div class="sc-val">{{ totalEfectivo | currency:'USD':'symbol':'1.0-0' }}</div>
+        </div>
+      </div>
+      <div class="stat-card transferencias">
+        <div class="sc-icon">📱</div>
+        <div class="sc-info">
+          <div class="sc-label">Nequi / Daviplata</div>
+          <div class="sc-val">{{ totalTransferencias | currency:'USD':'symbol':'1.0-0' }}</div>
+        </div>
+      </div>
+      <div class="stat-card tarjetas">
+        <div class="sc-icon">💳</div>
+        <div class="sc-info">
+          <div class="sc-label">Tarjetas</div>
+          <div class="sc-val">{{ totalTarjetas | currency:'USD':'symbol':'1.0-0' }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TABLA DE FACTURAS -->
+    <div class="table-container mt-4">
+      <table class="custom-table">
+        <thead>
+          <tr>
+            <th>Nº Factura</th>
+            <th>Pedido Ref.</th>
+            <th>Cliente</th>
+            <th>Fecha y Hora</th>
+            <th>Método Pago</th>
+            <th>Subtotal</th>
+            <th>Total</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let f of facturasFiltradas">
+            <td class="text-gold fw-bold">#{{ f.id_factura || f.idFactura }}</td>
+            <td>Ped. #{{ f.id_pedido || f.idPedido }}</td>
+            <td>{{ f.pedido?.cliente?.nombres || f.pedido?.cliente?.nombre || 'Consumidor Final' }}</td>
+            <td>{{ (f.fecha_emision || f.fechaEmision) | date:'short' }}</td>
+            <td><span class="badge" [ngClass]="(f.metodo_pago || f.metodoPago | lowercase)">{{ f.metodo_pago || f.metodoPago }}</span></td>
+            <td>{{ f.subtotal | currency:'USD':'symbol':'1.0-0' }}</td>
+            <td class="fw-bold">{{ f.total | currency:'USD':'symbol':'1.0-0' }}</td>
+            <td>
+              <button class="btn-action ghost" title="Ver Detalles" (click)="abrirDetalleFactura(f)">👁️</button>
+              <button class="btn-action danger" title="Anular" (click)="abrirModalAnularFactura(f)">🗑️</button>
+            </td>
+          </tr>
+          <tr *ngIf="facturasFiltradas.length === 0">
+            <td colspan="8" class="text-center text-muted py-4">No se encontraron facturas para estos filtros.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       VISTA: TURNOS DE CAJA
+       ========================================== -->
+  <div *ngIf="vistaActual === 'CIERRES'">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <p class="text-muted m-0">Historial de aperturas y cierres de caja de la sucursal.</p>
+      <button class="btn-primary-custom" (click)="abrirModalApertura()">+ Abrir Nuevo Turno</button>
+    </div>
+
+    <div class="table-container">
+      <table class="custom-table">
+        <thead>
+          <tr>
+            <th>ID Turno</th>
+            <th>Apertura</th>
+            <th>Cierre</th>
+            <th>Base Inicial</th>
+            <th>Efectivo Declarado</th>
+            <th>Diferencia</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let c of cierres">
+            <td class="text-gold fw-bold">#{{ c.id_cierre || c.idCierre }}</td>
+            <td>{{ (c.fecha_apertura || c.fechaApertura) | date:'medium' }}</td>
+            <td>{{ (c.fecha_cierre || c.fechaCierre) ? ((c.fecha_cierre || c.fechaCierre) | date:'medium') : '---' }}</td>
+            <td>{{ (c.base_inicial || c.baseInicial) | currency:'USD':'symbol':'1.0-0' }}</td>
+            <td>{{ (c.efectivo_declarado || c.efectivoDeclarado || 0) | currency:'USD':'symbol':'1.0-0' }}</td>
+            <td [ngClass]="{'text-danger': c.diferencia < 0, 'text-success': c.diferencia > 0}">
+              {{ c.diferencia | currency:'USD':'symbol':'1.0-0' }}
+            </td>
+            <td>
+              <span class="badge" [ngClass]="c.estado === 'ABIERTA' ? 'abierta' : 'cerrada'">{{ c.estado }}</span>
+            </td>
+            <td>
+              <button *ngIf="c.estado === 'ABIERTA'" class="btn-action primary" title="Cerrar Turno" (click)="abrirModalCierre(c)">🔒 Cerrar</button>
+              <button *ngIf="c.estado !== 'ABIERTA'" class="btn-action ghost" title="Ver Detalles" (click)="abrirDetalleCierre(c)">👁️</button>
+            </td>
+          </tr>
+          <tr *ngIf="cierres.length === 0">
+            <td colspan="8" class="text-center text-muted py-4">No hay turnos registrados.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- MODAL: DETALLES DE FACTURA -->
+  <div class="modal-overlay" [class.open]="modalDetalleFactura" (click)="cerrarDetalleFactura()">
+    <div class="nm-modal" (click)="$event.stopPropagation()" style="max-width: 600px;">
+      <div class="nm-header">
+        <div class="nm-title">Detalle Factura <em>#{{ facturaSeleccionada?.id_factura || facturaSeleccionada?.idFactura }}</em></div>
+        <button class="modal-close" (click)="cerrarDetalleFactura()">✖</button>
+      </div>
+      <div class="nm-body">
+        <!-- Cabecera Informativa -->
+        <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; font-size: 0.9rem;">
+          <div><strong>Referencia Pedido:</strong> #{{ facturaSeleccionada?.pedido?.idPedido || facturaSeleccionada?.pedido?.id_pedido || facturaSeleccionada?.id_pedido }}</div>
+          <div><strong>Fecha Emisión:</strong> {{ (facturaSeleccionada?.fecha_emision || facturaSeleccionada?.fechaEmision) | date:'short' }}</div>
+          <div><strong>Cliente:</strong> {{ facturaSeleccionada?.pedido?.cliente?.nombres || facturaSeleccionada?.pedido?.cliente?.nombre || 'Consumidor Final' }}</div>
+          <div><strong>Método Pago:</strong> <span class="badge" [ngClass]="(facturaSeleccionada?.metodo_pago || facturaSeleccionada?.metodoPago | lowercase)">{{ facturaSeleccionada?.metodo_pago || facturaSeleccionada?.metodoPago }}</span></div>
+        </div>
+
+        <!-- Tabla de Detalles -->
+        <h5 style="color: #a0a0a0; font-size: 0.9rem; text-transform: uppercase; margin-bottom: 0.5rem;">Productos Vendidos</h5>
+        <div class="table-container" style="max-height: 250px; overflow-y: auto;">
+          <table class="custom-table" style="font-size: 0.85rem;">
+            <thead>
+              <tr>
+                <th>Cant.</th>
+                <th>Descripción</th>
+                <th>P. Unit</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let det of facturaSeleccionada?.pedido?.detalles">
+                <td class="text-gold fw-bold">{{ det.fraccion }}</td>
+                <td>
+                  {{ det.presentacion?.producto?.nombre || 'Producto' }}
+                  <br><small class="text-muted">{{ det.presentacion?.nombre_presentacion || det.presentacion?.nombrePresentacion }}</small>
+                </td>
+                <td>{{ (det.precio_cobrado || det.precioCobrado) | currency:'USD':'symbol':'1.0-0' }}</td>
+                <td class="fw-bold">{{ ((det.precio_cobrado || det.precioCobrado) * (det.fraccion || 1)) | currency:'USD':'symbol':'1.0-0' }}</td>
+              </tr>
+              <tr *ngIf="!facturaSeleccionada?.pedido?.detalles || facturaSeleccionada?.pedido?.detalles.length === 0">
+                <td colspan="4" class="text-center text-muted py-3">No hay detalles disponibles para este pedido.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="nm-footer mt-2" style="justify-content: space-between; align-items: center; border-top: none; padding-top: 1rem;">
+        <h3 class="m-0 text-gold" style="font-size: 1.6rem;">Total: {{ facturaSeleccionada?.total | currency:'USD':'symbol':'1.0-0' }}</h3>
+        <button class="dp-btn ghost" (click)="cerrarDetalleFactura()">Cerrar Previsualización</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: CONFIRMAR ANULAR FACTURA -->
+  <div class="modal-overlay" [class.open]="modalAnularFactura" (click)="cerrarModalAnularFactura()">
+    <div class="nm-modal" (click)="$event.stopPropagation()">
+      <div class="nm-header">
+        <div class="nm-title">Anular <em>Factura</em></div>
+        <button class="modal-close" (click)="cerrarModalAnularFactura()">✖</button>
+      </div>
+      <div class="nm-body text-center py-3">
+        <p style="font-size: 3rem; margin-bottom: 0.5rem;">⚠️</p>
+        <p class="text-white mb-2">¿Estás completamente seguro de anular la factura <strong>#{{ facturaAAnular?.id_factura || facturaAAnular?.idFactura }}</strong>?</p>
+        <p class="text-muted" style="font-size: 0.9rem;">Esta acción eliminará el registro del ingreso y podría afectar los reportes financieros del turno de caja.</p>
+      </div>
+      <div class="nm-footer mt-2">
+        <button class="dp-btn ghost" (click)="cerrarModalAnularFactura()">Cancelar</button>
+        <button class="dp-btn danger-btn" (click)="confirmarAnularFactura()">Sí, Anular Factura</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: DETALLES DE CIERRE -->
+  <div class="modal-overlay" [class.open]="modalDetalleCierre" (click)="cerrarDetalleCierre()">
+    <div class="nm-modal" (click)="$event.stopPropagation()">
+      <div class="nm-header">
+        <div class="nm-title">Resumen Turno <em>#{{ turnoSeleccionado?.id_cierre || turnoSeleccionado?.idCierre }}</em></div>
+        <button class="modal-close" (click)="cerrarDetalleCierre()">✖</button>
+      </div>
+      <div class="nm-body">
+        <div class="alert-info mb-3 text-center">
+          Estado del Turno: <strong>{{ turnoSeleccionado?.estado }}</strong>
+        </div>
+        
+        <ul style="list-style: none; padding: 0; margin: 0; color: #e0e0e0; font-size: 0.95rem; line-height: 2;">
+          <li class="d-flex justify-content-between border-bottom pb-2 mb-2" style="border-color: #333 !important;"><span>Apertura:</span> <span>{{ (turnoSeleccionado?.fecha_apertura || turnoSeleccionado?.fechaApertura) | date:'short' }}</span></li>
+          <li class="d-flex justify-content-between border-bottom pb-2 mb-2" style="border-color: #333 !important;"><span>Cierre:</span> <span>{{ (turnoSeleccionado?.fecha_cierre || turnoSeleccionado?.fechaCierre) ? ((turnoSeleccionado?.fecha_cierre || turnoSeleccionado?.fechaCierre) | date:'short') : '---' }}</span></li>
+          <li class="d-flex justify-content-between border-bottom pb-2 mb-2" style="border-color: #333 !important;"><span>Base Inicial:</span> <span>{{ (turnoSeleccionado?.base_inicial || turnoSeleccionado?.baseInicial) | currency:'USD':'symbol':'1.0-0' }}</span></li>
+          <li class="d-flex justify-content-between border-bottom pb-2 mb-2" style="border-color: #333 !important;"><span>Efectivo Declarado:</span> <span class="text-gold">{{ (turnoSeleccionado?.efectivo_declarado || turnoSeleccionado?.efectivoDeclarado) | currency:'USD':'symbol':'1.0-0' }}</span></li>
+          <li class="d-flex justify-content-between">
+            <span>Diferencia (Sobrante/Faltante):</span> 
+            <strong [ngClass]="{'text-danger': turnoSeleccionado?.diferencia < 0, 'text-success': turnoSeleccionado?.diferencia > 0}">
+              {{ turnoSeleccionado?.diferencia | currency:'USD':'symbol':'1.0-0' }}
+            </strong>
+          </li>
+        </ul>
+        <div class="mt-3 p-3" style="background: #151515; border-radius: 8px; border: 1px solid #333;" *ngIf="turnoSeleccionado?.observaciones">
+          <strong class="text-muted d-block mb-1" style="font-size: 0.8rem;">OBSERVACIONES:</strong>
+          <span style="font-size: 0.9rem; color: #ccc;">{{ turnoSeleccionado?.observaciones }}</span>
+        </div>
+      </div>
+      <div class="nm-footer mt-4">
+        <button class="dp-btn ghost" (click)="cerrarDetalleCierre()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: ABRIR TURNO -->
+  <div class="modal-overlay" [class.open]="modalApertura" (click)="modalApertura = false">
+    <div class="nm-modal" (click)="$event.stopPropagation()">
+      <div class="nm-header">
+        <div class="nm-title">Abrir <em>Turno de Caja</em></div>
+        <button class="modal-close" (click)="modalApertura = false">✖</button>
+      </div>
+      <div class="nm-body">
+        <p class="text-muted mb-3">Ingresa la cantidad de dinero en sencillo con la que inicias el turno para dar vueltos.</p>
+        <div class="form-group">
+          <label>Base Inicial (Efectivo)</label>
+          <input type="number" class="nm-input" [(ngModel)]="nuevaBaseInicial" placeholder="Ej. 50000">
+        </div>
+      </div>
+      <div class="nm-footer mt-4">
+        <button class="dp-btn ghost" (click)="modalApertura = false">Cancelar</button>
+        <button class="dp-btn primary" (click)="procesarApertura()">Abrir Caja</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: CERRAR TURNO -->
+  <div class="modal-overlay" [class.open]="modalCierre" (click)="modalCierre = false">
+    <div class="nm-modal" (click)="$event.stopPropagation()">
+      <div class="nm-header">
+        <div class="nm-title">Cerrar <em>Turno #{{ turnoSeleccionado?.id_cierre || turnoSeleccionado?.idCierre }}</em></div>
+        <button class="modal-close" (click)="modalCierre = false">✖</button>
+      </div>
+      <div class="nm-body">
+        <p class="text-muted mb-3" style="font-size: 0.85rem;">Realiza el arqueo contando la cantidad de billetes y monedas que tienes físicamente en la caja.</p>
+        
+        <!-- GRILLA DE DENOMINACIONES -->
+        <div class="denominaciones-grid mb-3">
+          <div class="denominacion-item" *ngFor="let den of denominaciones">
+            <span class="den-valor">{{ den.valor | currency:'USD':'symbol':'1.0-0' }}</span>
+            <span class="den-x">x</span>
+            <input type="number" class="nm-input" min="0" [(ngModel)]="den.cantidad" (input)="calcularEfectivo()" placeholder="0">
+            <span class="den-total">= {{ (den.valor * (den.cantidad || 0)) | currency:'USD':'symbol':'1.0-0' }}</span>
+          </div>
+        </div>
+
+        <!-- RESUMEN EN TIEMPO REAL -->
+        <div class="totales-cierre-box">
+          <div class="t-row"><span>Total Esperado (Base + Ventas):</span> <span>{{ efectivoEsperado | currency:'USD':'symbol':'1.0-0' }}</span></div>
+          <div class="t-row"><span>Total Contado (Declarado):</span> <span class="text-gold fw-bold">{{ efectivoDeclarado | currency:'USD':'symbol':'1.0-0' }}</span></div>
+          <div class="t-row t-diff" [ngClass]="{'faltante': diferenciaCalculada < 0, 'sobrante': diferenciaCalculada > 0, 'cuadre': diferenciaCalculada === 0}">
+            <span>Diferencia:</span>
+            <span>
+              <span *ngIf="diferenciaCalculada < 0">Faltan </span>
+              <span *ngIf="diferenciaCalculada > 0">Sobran </span>
+              {{ diferenciaCalculada | currency:'USD':'symbol':'1.0-0' }}
+            </span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Observaciones (Opcional)</label>
+          <textarea class="nm-input" [(ngModel)]="observacionesCierre" rows="2" placeholder="Ej. Faltaron 500 pesos de un vuelto..."></textarea>
+        </div>
+      </div>
+      <div class="nm-footer mt-4">
+        <button class="dp-btn ghost" (click)="modalCierre = false">Cancelar</button>
+        <button class="dp-btn danger-btn" (click)="procesarCierre()">Confirmar Cierre</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICACIÓN -->
+  <div class="toast-notificacion" [class.show]="notificacion.mostrar">
+    <div class="toast-icon">{{ notificacion.esError ? '⚠️' : '✅' }}</div>
+    <div class="toast-content">
+      <h4>{{ notificacion.titulo }}</h4>
+      <p>{{ notificacion.mensaje }}</p>
+    </div>
+  </div>
+</div>

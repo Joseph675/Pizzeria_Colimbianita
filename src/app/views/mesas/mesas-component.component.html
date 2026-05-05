@@ -53,6 +53,9 @@
         <!-- ITERADOR DE MESAS -->
         <div *ngFor="let mesa of mesasFiltradas" class="mesa-card" [ngClass]="(mesa.estado || 'libre').toLowerCase()">
           <div class="mc-actions-overlay">
+            <button *ngIf="(mesa.estado || '').toLowerCase() !== 'libre'" class="mc-btn" title="Ver Pedido y Cobrar" (click)="irAPedidos(mesa); $event.stopPropagation();" style="background: rgba(46, 204, 113, 0.15); color: #2ecc71;">
+              💰
+            </button>
             <button class="mc-btn edit" title="Editar mesa" (click)="openEditarMesaModal(mesa); $event.stopPropagation();">
               ✏️
             </button>

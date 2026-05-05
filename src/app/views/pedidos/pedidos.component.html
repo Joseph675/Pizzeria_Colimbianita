@@ -32,7 +32,7 @@
         <option value="DOMICILIO">Domicilio</option>
       </select>
     </div>
-    <button class="btn-limpiar" (click)="limpiarFiltros()" *ngIf="filtroFecha || filtroEstado !== 'TODOS' || filtroTipo !== 'TODOS'">
+    <button class="btn-limpiar" (click)="limpiarFiltros()" *ngIf="filtroFecha !== fechaHoy || filtroEstado !== 'TODOS' || filtroTipo !== 'TODOS'">
       ✖ Limpiar
     </button>
   </div>
@@ -154,9 +154,113 @@
       </div>
       
       <div class="pm-footer">
-        <span class="pm-total-lbl">Total Cobrado</span>
-        <span class="pm-total-val">{{ pedidoSeleccionado.total | currency:'USD':'symbol':'1.0-0' }}</span>
+        <div style="display: flex; flex-direction: column;">
+          <span class="pm-total-lbl">Total del Pedido</span>
+          <span class="pm-total-val">{{ pedidoSeleccionado.total | currency:'USD':'symbol':'1.0-0' }}</span>
+        </div>
+        <button class="btn-cobrar" *ngIf="pedidoSeleccionado.estado !== 'PAGADO'" (click)="abrirModalCobrar()">
+          💰 Cobrar Pedido
+        </button>
       </div>
+    </div>
+  </div>
+
+  <!-- MODAL PARA PROCESAR EL PAGO -->
+  <div class="modal-overlay" [class.open]="showCobrarModal" (click)="cerrarModalCobrar()" style="z-index: 10000;">
+    <div class="pedido-modal" (click)="$event.stopPropagation()" style="width: 400px; max-width: 90vw;" [style.top]="modalTop">
+      <div class="pm-header">
+        <h3>Cobrar #{{ pedidoSeleccionado?.id_pedido || pedidoSeleccionado?.idPedido }}</h3>
+        <button class="close-btn" (click)="cerrarModalCobrar()">✖</button>
+      </div>
+      <div class="pm-body">
+        <div style="text-align: center; margin-bottom: 1.5rem;">
+          <div style="font-size: 0.9rem; color: #a0a0a0; text-transform: uppercase; letter-spacing: 0.1em;">Total a Pagar</div>
+          <div style="font-size: 2.5rem; font-weight: 800; color: #f6b93b;">{{ pedidoSeleccionado?.total | currency:'USD':'symbol':'1.0-0' }}</div>
+        </div>
+
+        <div class="form-group mb-3">
+          <label style="color: #a0a0a0; font-size: 0.85rem; margin-bottom: 0.5rem; display: block;">Método de Pago</label>
+          <select [(ngModel)]="metodoPago" style="width: 100%; padding: 0.8rem; background: #121212; border: 1px solid #333; color: #fff; border-radius: 6px; font-size: 1rem;">
+            <option value="EFECTIVO">💵 Efectivo</option>
+            <option value="NEQUI">📱 Nequi</option>
+            <option value="DAVIPLATA">📱 Daviplata</option>
+            <option value="TARJETA">💳 Tarjeta</option>
+          </select>
+        </div>
+
+        <div class="form-group mb-3" *ngIf="metodoPago === 'EFECTIVO'">
+          <label style="color: #a0a0a0; font-size: 0.85rem; margin-bottom: 0.5rem; display: block;">Efectivo Recibido (Con cuánto pagan)</label>
+          <input type="number" [(ngModel)]="montoRecibido" style="width: 100%; padding: 0.8rem; background: #121212; border: 1px solid #333; color: #fff; border-radius: 6px; font-size: 1.2rem; font-weight: bold; text-align: center;" />
+        </div>
+
+        <div class="alert-info" *ngIf="metodoPago === 'EFECTIVO'" style="background: rgba(46, 204, 113, 0.1); border: 1px solid #2ecc71; color: #2ecc71; padding: 1rem; border-radius: 8px; text-align: center; margin-top: 1rem;">
+          <div style="font-size: 0.85rem; text-transform: uppercase;">Cambio a devolver</div>
+          <div style="font-size: 1.8rem; font-weight: bold;">{{ calcularCambio | currency:'USD':'symbol':'1.0-0' }}</div>
+        </div>
+      </div>
+      <div class="pm-footer" style="justify-content: flex-end; gap: 1rem;">
+        <button class="btn-cancelar" (click)="cerrarModalCobrar()" style="padding: 0.8rem 1.5rem; background: transparent; border: 1px solid #333; color: #a0a0a0; border-radius: 8px; cursor: pointer; font-weight: bold;">Cancelar</button>
+        <button class="btn-cobrar" (click)="procesarPago()">Facturar e Imprimir</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TICKET DE IMPRESIÓN (Oculto visualmente, se activa con window.print) -->
+  <div id="ticket-impresion" class="ticket-80mm" *ngIf="pedidoSeleccionado">
+    <div class="ticket-header">
+      <h2>PIZZERÍA COLOMBIANITA</h2>
+      <p>NIT: 123456789-0</p>
+      <p>Calle Falsa 123, Bogotá</p>
+      <p>Tel: 300 123 4567</p>
+    </div>
+    
+    <div class="ticket-info">
+      <p><strong>Factura/Pedido:</strong> #{{ pedidoSeleccionado.id_pedido || pedidoSeleccionado.idPedido }}</p>
+      <p><strong>Fecha:</strong> {{ (pedidoSeleccionado.fecha_hora || pedidoSeleccionado.fechaHora) | date:'dd/MM/yyyy HH:mm' }}</p>
+      <p><strong>Tipo:</strong> {{ pedidoSeleccionado.tipo_pedido || pedidoSeleccionado.tipoPedido }} <span *ngIf="pedidoSeleccionado.mesa">(Mesa {{ pedidoSeleccionado.mesa.numeroMesa || pedidoSeleccionado.mesa.numero_mesa }})</span></p>
+      <p *ngIf="pedidoSeleccionado.cliente"><strong>Cliente:</strong> {{ pedidoSeleccionado.cliente.nombres || pedidoSeleccionado.cliente.nombre }}</p>
+      <p><strong>Método de Pago:</strong> {{ metodoPago }}</p>
+    </div>
+
+    <table class="ticket-items">
+      <thead>
+        <tr>
+          <th class="qty">Cant</th>
+          <th class="desc">Descripción</th>
+          <th class="amt">Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let det of pedidoSeleccionado.detalles">
+          <td class="qty">{{ det.fraccion }}</td>
+          <td class="desc">{{ det.presentacion?.producto?.nombre }} <br><small>{{ det.presentacion?.nombre_presentacion || det.presentacion?.nombrePresentacion }}</small></td>
+          <td class="amt">{{ (det.precio_cobrado || det.precioCobrado) | currency:'USD':'symbol':'1.0-0' }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="ticket-totals">
+      <div class="t-row">
+        <span>Subtotal:</span>
+        <span>{{ pedidoSeleccionado.total | currency:'USD':'symbol':'1.0-0' }}</span>
+      </div>
+      <div class="t-row grand-total">
+        <span>TOTAL:</span>
+        <span>{{ pedidoSeleccionado.total | currency:'USD':'symbol':'1.0-0' }}</span>
+      </div>
+      <div class="t-row" *ngIf="metodoPago === 'EFECTIVO'">
+        <span>Recibido:</span>
+        <span>{{ montoRecibido | currency:'USD':'symbol':'1.0-0' }}</span>
+      </div>
+      <div class="t-row" *ngIf="metodoPago === 'EFECTIVO'">
+        <span>Cambio:</span>
+        <span>{{ calcularCambio | currency:'USD':'symbol':'1.0-0' }}</span>
+      </div>
+    </div>
+    
+    <div class="ticket-footer">
+      <p>¡Gracias por su compra!</p>
+      <p>Vuelva pronto a Pizzería Colombianita</p>
     </div>
   </div>
 
