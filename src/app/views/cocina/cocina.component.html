@@ -87,73 +87,74 @@
     <div class="detail-panel" [class.collapsed]="!pedidoSeleccionado">
       <ng-container *ngIf="pedidoSeleccionado as dp">
         <div class="dp-header">
-          <div class="dp-header-top">
-            <div class="dp-ped-num" [style.color]="dp.estado === 'nuevo' ? 'var(--blue)' : dp.estado === 'en-preparacion' ? 'var(--orange)' : dp.estado === 'listo' ? 'var(--green)' : dp.estado === 'cancelado' || dp.estado === 'urgente' ? 'var(--red)' : 'rgba(247,244,238,.35)'">Pedido {{ dp.num }}</div>
-            <div class="dp-close" (click)="cerrarDetalle()">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          <div class="dp-header-top" style="margin-bottom: 0.3rem;">
+            <div class="dp-ped-num" [style.color]="dp.estado === 'nuevo' ? 'var(--blue)' : dp.estado === 'en-preparacion' ? 'var(--orange)' : dp.estado === 'listo' ? 'var(--green)' : dp.estado === 'cancelado' || dp.estado === 'urgente' ? 'var(--red)' : 'rgba(247,244,238,.35)'" style="font-size: 1.4rem; font-weight: bold;">Pedido {{ dp.num }}</div>
+            <div class="dp-close" (click)="cerrarDetalle()" style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width: 18px; height: 18px;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             </div>
           </div>
-          <div class="dp-meta">
-            <div class="dp-badge {{ dp.estado }}">{{ getBadgeLabel(dp.estado) }}</div>
-            <div class="dp-zone">· {{ dp.zona }}</div>
-            <div class="dp-elapsed">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <div class="dp-meta" style="font-size: 0.85rem; display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.8rem;">
+            <div class="dp-badge {{ dp.estado }}" style="padding: 0.2rem 0.5rem; font-size: 0.8rem;">{{ getBadgeLabel(dp.estado) }}</div>
+            <div class="dp-zone" style="font-size: 0.85rem;">· {{ dp.zona }}</div>
+            <div class="dp-elapsed" style="display: flex; align-items: center; gap: 0.2rem; font-size: 0.85rem;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
               <span>{{ dp.timer }}</span>
             </div>
           </div>
         </div>
 
-        <div class="dp-progress">
-          <div class="steps">
+        <div class="dp-progress" style="margin-bottom: 1rem;">
+          <div class="steps" style="font-size: 0.85rem;">
             <div class="step" *ngFor="let lbl of dp.steps; let i = index" [class.done]="i < dp.stepActivo" [class.active]="i === dp.stepActivo">
-              <div class="step-dot" [ngClass]="{'done': i < dp.stepActivo, 'active': i === dp.stepActivo, 'pending': i > dp.stepActivo || dp.stepActivo < 0}">
+              <div class="step-dot" [ngClass]="{'done': i < dp.stepActivo, 'active': i === dp.stepActivo, 'pending': i > dp.stepActivo || dp.stepActivo < 0}" style="width: 18px; height: 18px; font-size: 0.75rem; display: flex; align-items: center; justify-content: center; margin-bottom: 0.2rem;">
                 {{ i < dp.stepActivo ? '✓' : (i === dp.stepActivo ? '●' : '○') }}
               </div>
-              <div class="step-lbl">{{ lbl }}</div>
+              <div class="step-lbl" style="font-size: 0.8rem;">{{ lbl }}</div>
             </div>
           </div>
         </div>
 
         <div class="dp-body" style="flex:1; display:flex; flex-direction:column; overflow:hidden;">
-          <div class="dp-client">
-            <div class="dp-av" [style.background]="dp.avatarBg">{{ dp.avatar }}</div>
+          <div class="dp-client" style="display: flex; align-items: center; gap: 0.6rem; padding: 0.6rem 0; border-bottom: 1px solid var(--dark-2); margin-bottom: 0.8rem;">
+            <div class="dp-av" [style.background]="dp.avatarBg" style="width: 36px; height: 36px; font-size: 1rem; display: flex; align-items: center; justify-content: center; border-radius: 50%;">{{ dp.avatar }}</div>
             <div style="flex:1;">
-              <div class="dp-cname">{{ dp.cliente }}</div>
-              <div class="dp-csub">{{ dp.csub }}</div>
+              <div class="dp-cname" style="font-size: 1rem; font-weight: bold; margin-bottom: 0.1rem;">{{ dp.cliente }}</div>
+              <div class="dp-csub" style="font-size: 0.85rem; color: var(--muted);">{{ dp.csub }}</div>
             </div>
-            <div class="canal-badge {{ dp.canal }}" style="margin-left:auto;">{{ dp.canalLabel }}</div>
+            <div class="canal-badge {{ dp.canal }}" style="margin-left:auto; font-size: 0.85rem; padding: 0.3rem 0.6rem; border-radius: 4px;">{{ dp.canalLabel }}</div>
           </div>
           
-          <div class="dp-items-scroll">
-            <div class="dp-section-lbl">Items del pedido</div>
-            <div class="dp-item" *ngFor="let it of dp.items">
-              <div class="dp-i-emoji">{{ it.e }}</div>
+          <div class="dp-items-scroll" style="flex:1; overflow-y:auto; padding-right: 0.5rem;">
+            <div class="dp-section-lbl" style="font-size: 0.95rem; margin-bottom: 0.6rem; color: var(--gold);">Items del pedido</div>
+            
+            <div class="dp-item" *ngFor="let it of dp.items" style="padding: 0.8rem 0; border-bottom: 1px solid var(--dark-2); display: flex; align-items: center; gap: 0.6rem;">
+              <div class="dp-i-emoji" style="font-size: 1.3rem; background: var(--dark-1); padding: 0.4rem; border-radius: 8px;">{{ it.e }}</div>
               <div style="flex:1;">
-                <div class="dp-i-name">{{ it.n }}</div>
-                <div class="dp-i-qty">{{ it.q }}</div>
+                <div class="dp-i-name" style="font-size: 1rem; font-weight: 600; color: var(--white); margin-bottom: 0.1rem;">{{ it.n }}</div>
+                <div class="dp-i-qty" style="font-size: 0.85rem; color: var(--muted);">Cantidad: <span style="font-weight: bold; color: var(--white);">{{ it.q }}</span></div>
               </div>
-              <div class="dp-i-price">{{ it.p }}</div>
+              <div class="dp-i-price" style="font-size: 1.1rem; font-weight: bold; color: var(--gold);">{{ it.p }}</div>
               <div class="dp-i-status {{ it.s }}"></div>
             </div>
 
-            <div class="dp-note-box" *ngIf="dp.nota">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-              {{ dp.nota }}
+            <div class="dp-note-box" *ngIf="dp.nota" style="margin-top: 1rem; padding: 0.8rem; background: rgba(255,193,7,0.1); border-left: 4px solid var(--gold); border-radius: 6px; font-size: 0.9rem; color: var(--white);">
+              <svg viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" style="width: 16px; height: 16px; margin-right: 0.3rem; vertical-align: text-bottom;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              <span style="font-style: italic;">{{ dp.nota }}</span>
             </div>
 
-            <div class="dp-divider"></div>
-            <div class="dp-totals">
-              <div class="dp-tr">
-                <span class="lbl">Subtotal</span>
-                <span class="val">{{ dp.sub }}</span>
+            <div class="dp-divider" style="margin: 1.2rem 0 0.8rem 0; border-top: 2px dashed var(--dark-2);"></div>
+            <div class="dp-totals" style="font-size: 0.95rem; padding-bottom: 0.8rem;">
+              <div class="dp-tr" style="display: flex; justify-content: space-between; margin-bottom: 0.6rem;">
+                <span class="lbl" style="color: var(--muted);">Subtotal</span>
+                <span class="val" style="font-weight: 500;">{{ dp.sub }}</span>
               </div>
-              <div class="dp-tr">
-                <span class="lbl">Descuento</span>
-                <span class="val" style="color:var(--green);">{{ dp.desc }}</span>
+              <div class="dp-tr" style="display: flex; justify-content: space-between; margin-bottom: 0.6rem;">
+                <span class="lbl" style="color: var(--muted);">Descuento</span>
+                <span class="val" style="color:var(--green); font-weight: 500;">{{ dp.desc }}</span>
               </div>
-              <div class="dp-tr grand">
-                <span class="lbl">Total</span>
-                <span class="val">{{ dp.total }}</span>
+              <div class="dp-tr grand" style="display: flex; justify-content: space-between; margin-top: 0.8rem; font-size: 1.3rem; font-weight: bold; border-top: 1px solid var(--border); padding-top: 0.8rem;">
+                <span class="lbl" style="color: var(--white);">Total</span>
+                <span class="val" style="color: var(--gold);">{{ dp.total }}</span>
               </div>
             </div>
           </div>
@@ -161,45 +162,43 @@
 
         <div class="dp-actions">
           <ng-container *ngIf="dp.estado === 'nuevo'">
-            <button class="dp-btn green" (click)="cambiarEstado(dp, 'en-preparacion')">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><polyline points="20 6 9 17 4 12"/></svg> Aceptar y enviar a cocina
+            <button class="dp-btn green" (click)="cambiarEstado(dp, 'en-preparacion')" style="padding: 0.8rem; font-size: 0.9rem; border-radius: 6px;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px; margin-right: 4px;"><polyline points="20 6 9 17 4 12"/></svg> Aceptar y enviar a cocina
             </button>
             <div class="dp-btn-row">
-              <button class="dp-btn ghost">Editar pedido</button>
-              <button class="dp-btn danger-ghost" (click)="cambiarEstado(dp, 'cancelado')">Rechazar pedido</button>
+              <button class="dp-btn ghost" style="padding: 0.6rem; font-size: 0.85rem;">Editar pedido</button>
+              <button class="dp-btn danger-ghost" (click)="cambiarEstado(dp, 'cancelado')" style="padding: 0.6rem; font-size: 0.85rem;">Rechazar pedido</button>
             </div>
           </ng-container>
 
           <ng-container *ngIf="dp.estado === 'en-preparacion' || dp.estado === 'urgente'">
-            <button class="dp-btn green" (click)="cambiarEstado(dp, 'listo')">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><polyline points="20 6 9 17 4 12"/></svg> Marcar como listo
+            <button class="dp-btn green" (click)="cambiarEstado(dp, 'listo')" style="padding: 0.8rem; font-size: 0.9rem; border-radius: 6px;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px; margin-right: 4px;"><polyline points="20 6 9 17 4 12"/></svg> Marcar como listo
             </button>
             <div class="dp-btn-row">
-              <button class="dp-btn ghost">Editar pedido</button>
-              <button class="dp-btn danger-ghost" (click)="cambiarEstado(dp, 'cancelado')">Cancelar pedido</button>
+              <button class="dp-btn ghost" style="padding: 0.6rem; font-size: 0.85rem;">Editar pedido</button>
+              <button class="dp-btn danger-ghost" (click)="cambiarEstado(dp, 'cancelado')" style="padding: 0.6rem; font-size: 0.85rem;">Cancelar pedido</button>
             </div>
           </ng-container>
 
           <ng-container *ngIf="dp.estado === 'listo'">
-            <button class="dp-btn primary" (click)="cambiarEstado(dp, 'entregado')">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><polyline points="20 6 9 17 4 12"/></svg> Marcar como entregado
+            <button class="dp-btn primary" (click)="cambiarEstado(dp, 'entregado')" style="padding: 0.8rem; font-size: 0.9rem; border-radius: 6px;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px; margin-right: 4px;"><polyline points="20 6 9 17 4 12"/></svg> Marcar como entregado
             </button>
             <div class="dp-btn-row">
-              <button class="dp-btn secondary">Cobrar pedido</button>
-              <button class="dp-btn ghost">Reimprimir</button>
+              <button class="dp-btn ghost" style="padding: 0.6rem; font-size: 0.85rem;">Reimprimir</button>
             </div>
           </ng-container>
 
           <ng-container *ngIf="dp.estado === 'entregado'">
-            <button class="dp-btn secondary">Cobrar / Ver factura</button>
             <div class="dp-btn-row">
-              <button class="dp-btn ghost">Reimprimir comanda</button>
+              <button class="dp-btn ghost" style="padding: 0.6rem; font-size: 0.85rem;">Reimprimir comanda</button>
             </div>
           </ng-container>
 
           <ng-container *ngIf="dp.estado === 'cancelado'">
             <div class="dp-btn-row">
-              <button class="dp-btn ghost">Ver detalle</button>
+              <button class="dp-btn ghost" style="padding: 0.6rem; font-size: 0.85rem;">Ver detalle</button>
             </div>
           </ng-container>
         </div>
