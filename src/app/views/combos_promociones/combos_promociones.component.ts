@@ -28,6 +28,10 @@ export class CombosyPromocionesComponent implements OnInit {
   public selectedCard: any = null;
   public showModal: boolean = false;
 
+  // Modelos para los formularios del Modal
+  public nuevoCombo: any = { nombre: '', descripcion: '', precio_normal: null, precio_combo: null, emoji: '', estado: 1, items: [] };
+  public nuevaPromo: any = { nombre: '', descripcion: '', tipo: '', descuento: '', emoji: '', estado: 1 };
+
   constructor(private http: HttpClient) {}
 
   ngOnInit(): void {
@@ -153,12 +157,57 @@ export class CombosyPromocionesComponent implements OnInit {
 
   openModal(item?: any): void {
     this.showModal = true;
-    // Aquí puedes cargar la data en tu ReactiveForm en caso de que vayas a editar 'item'
     if (item) {
       console.log('Modo edición para:', item);
+      this.selectedCard = item;
+      if (this.currentTab === 'combos') {
+        this.nuevoCombo = { ...item };
+      } else {
+        this.nuevaPromo = { ...item };
+      }
     } else {
       console.log('Modo creación');
+      this.selectedCard = null;
+      this.resetForms();
     }
+  }
+
+  closeModal(): void {
+    this.showModal = false;
+    this.resetForms();
+  }
+
+  resetForms(): void {
+    this.nuevoCombo = { nombre: '', descripcion: '', precio_normal: null, precio_combo: null, emoji: '', estado: 1, items: [] };
+    this.nuevaPromo = { nombre: '', descripcion: '', tipo: '', descuento: '', emoji: '', estado: 1 };
+  }
+
+  guardarCombo(): void {
+    if (!this.nuevoCombo.nombre || !this.nuevoCombo.precio_combo) {
+      alert('El nombre y el precio del combo son obligatorios.');
+      return;
+    }
+    
+    // Simulamos guardado agregándolo a la lista temporal
+    const comboGuardar = { ...this.nuevoCombo, id: this.selectedCard ? this.selectedCard.id : 'c' + Date.now() };
+    if (!this.selectedCard) this.combos.unshift(comboGuardar); // Agrega al inicio si es nuevo
+    
+    this.aplicarFiltros();
+    this.closeModal();
+  }
+
+  guardarPromo(): void {
+    if (!this.nuevaPromo.nombre || !this.nuevaPromo.descuento) {
+      alert('El nombre y el descuento de la promoción son obligatorios.');
+      return;
+    }
+
+    // Simulamos guardado agregándolo a la lista temporal
+    const promoGuardar = { ...this.nuevaPromo, id: this.selectedCard ? this.selectedCard.id : 'p' + Date.now() };
+    if (!this.selectedCard) this.promos.unshift(promoGuardar);
+
+    this.aplicarFiltros();
+    this.closeModal();
   }
 
   // ==========================================
@@ -190,4 +239,3 @@ export class CombosyPromocionesComponent implements OnInit {
     ];
   }
 }
-
