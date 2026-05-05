@@ -275,6 +275,12 @@
         border-color: var(--gold);
         background: rgba(255, 255, 255, 0.06);
       }
+
+      /* Forzar fondo oscuro en las opciones desplegables para evitar texto blanco sobre fondo blanco */
+      option {
+        background-color: #1a1a1a;
+        color: var(--white);
+      }
     }
   }
 }

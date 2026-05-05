@@ -33,6 +33,49 @@
   }
 }
 
+/* === BARRA DE FILTROS === */
+.filtros-bar {
+  display: flex;
+  gap: 1.5rem;
+  background: #1e1e1e;
+  padding: 1.2rem 1.5rem;
+  border-radius: 12px;
+  border: 1px solid #333;
+  margin-bottom: 2rem;
+  align-items: flex-end;
+  flex-wrap: wrap;
+
+  .filtro-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-width: 160px;
+
+    label { font-size: 0.85rem; color: #a0a0a0; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+
+    input, select {
+      padding: 0.7rem; border-radius: 8px; background: #121212; border: 1px solid #333;
+      color: #fff; font-size: 0.95rem; outline: none; cursor: pointer; transition: all 0.2s ease;
+
+      &:focus, &:hover { border-color: #f6b93b; }
+      
+      /* Quitar icono de calendario blanco estándar en navegadores webkit si incomoda */
+      &::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
+    }
+  }
+
+  .btn-limpiar {
+    padding: 0.7rem 1.2rem; border-radius: 8px; background: rgba(231, 76, 60, 0.15);
+    border: 1px solid #e74c3c; color: #e74c3c; font-weight: bold; cursor: pointer;
+    transition: all 0.2s ease; height: 42px; margin-left: auto;
+
+    &:hover {
+      background: #e74c3c;
+      color: #fff;
+    }
+  }
+}
+
 .pedidos-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));

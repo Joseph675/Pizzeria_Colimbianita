@@ -2,17 +2,48 @@
   <div class="page-header">
     <h2 class="page-title">Historial de <em>Pedidos</em></h2>
     <div class="stats">
-      <span>{{ pedidos.length }} pedidos registrados</span>
+      <span>Mostrando {{ pedidosFiltrados.length }} de {{ pedidos.length }} pedidos</span>
     </div>
+  </div>
+
+  <!-- BARRA DE FILTROS -->
+  <div class="filtros-bar">
+    <div class="filtro-item">
+      <label>📅 Fecha</label>
+      <input type="date" [(ngModel)]="filtroFecha" (change)="aplicarFiltros()">
+    </div>
+    <div class="filtro-item">
+      <label>📌 Estado</label>
+      <select [(ngModel)]="filtroEstado" (change)="aplicarFiltros()">
+        <option value="TODOS">Todos los estados</option>
+        <option value="PENDIENTE">Pendientes</option>
+        <option value="PREPARANDO">Preparando</option>
+        <option value="LISTO">Listos</option>
+        <option value="PAGADO">Pagados</option>
+        <option value="CANCELADO">Cancelados</option>
+      </select>
+    </div>
+    <div class="filtro-item">
+      <label>🏷️ Tipo</label>
+      <select [(ngModel)]="filtroTipo" (change)="aplicarFiltros()">
+        <option value="TODOS">Todos los tipos</option>
+        <option value="MESA">En Mesa</option>
+        <option value="LLEVAR">Para Llevar</option>
+        <option value="DOMICILIO">Domicilio</option>
+      </select>
+    </div>
+    <button class="btn-limpiar" (click)="limpiarFiltros()" *ngIf="filtroFecha || filtroEstado !== 'TODOS' || filtroTipo !== 'TODOS'">
+      ✖ Limpiar
+    </button>
   </div>
 
   <div class="cargando-state" *ngIf="cargando">
     <p>Cargando pedidos...</p>
   </div>
 
-  <div class="pedidos-grid" *ngIf="!cargando && pedidos.length > 0">
+  <div class="pedidos-grid" *ngIf="!cargando && pedidosFiltrados.length > 0">
     <!-- Tarjeta de Pedido -->
-    <div class="pedido-card" *ngFor="let p of pedidos">
+    <div class="pedido-card" *ngFor="let p of pedidosFiltrados">
       <div class="pc-header">
         <div class="pc-id">Pedido #{{ p.id_pedido || p.idPedido }}</div>
         <!-- Select interactivo para cambiar el estado -->
@@ -62,9 +93,9 @@
     </div>
   </div>
 
-  <div class="empty-state" *ngIf="!cargando && pedidos.length === 0">
+  <div class="empty-state" *ngIf="!cargando && pedidosFiltrados.length === 0">
     <div class="empty-icon">🧾</div>
-    <p>No hay pedidos registrados aún.</p>
+    <p>No hay pedidos que coincidan con los filtros.</p>
   </div>
 
   <!-- MODAL DE DETALLES AMPLIADOS -->

@@ -13,12 +13,18 @@ import { Subscription, interval } from 'rxjs';
 })
 export class PedidosComponent implements OnInit, OnDestroy {
   public pedidos: any[] = [];
+  public pedidosFiltrados: any[] = [];
   public cargando: boolean = false;
   public pedidoSeleccionado: any = null;
   public modalTop: string = '50%'; // Posición vertical dinámica
   private pollingSubscription?: Subscription;
   private ultimoIdPedido: number = 0;
   public mostrarNotificacion: boolean = false;
+
+  // Filtros
+  public filtroFecha: string = '';
+  public filtroEstado: string = 'TODOS';
+  public filtroTipo: string = 'TODOS';
 
   constructor(private http: HttpClient) {}
 
@@ -66,6 +72,10 @@ export class PedidosComponent implements OnInit, OnDestroy {
            const idB = b.idPedido || b.id_pedido || 0;
            return idB - idA; // Orden descendente
         });
+
+        // Aplicamos los filtros actuales a la nueva data
+        this.aplicarFiltros();
+
         if (!esPolling) {
           this.cargando = false;
         }
@@ -77,6 +87,42 @@ export class PedidosComponent implements OnInit, OnDestroy {
         }
       }
     });
+  }
+
+  aplicarFiltros(): void {
+    this.pedidosFiltrados = this.pedidos.filter(p => {
+      // Filtro por Estado
+      const estadoPedido = (p.estado || '').toUpperCase();
+      const coincideEstado = this.filtroEstado === 'TODOS' || estadoPedido === this.filtroEstado;
+
+      // Filtro por Tipo de Pedido (Mesa, Llevar, Domicilio)
+      const tipoPedido = (p.tipo_pedido || p.tipoPedido || '').toUpperCase();
+      const coincideTipo = this.filtroTipo === 'TODOS' || tipoPedido.includes(this.filtroTipo);
+
+      // Filtro por Fecha
+      let coincideFecha = true;
+      if (this.filtroFecha) {
+        const fechaObjeto = new Date(p.fecha_hora || p.fechaHora);
+        // Formateamos a YYYY-MM-DD usando la zona horaria local
+        const anio = fechaObjeto.getFullYear();
+        const mes = String(fechaObjeto.getMonth() + 1).padStart(2, '0');
+        const dia = String(fechaObjeto.getDate()).padStart(2, '0');
+        const strFechaPedido = `${anio}-${mes}-${dia}`;
+        
+        coincideFecha = strFechaPedido === this.filtroFecha;
+      }
+
+      return coincideEstado && coincideTipo && coincideFecha;
+    });
+  }
+
+  limpiarFiltros(): void {
+    const hoy = new Date();
+    // Opcional: Podrías hacer que limpiar ponga la fecha de hoy
+    this.filtroFecha = ''; 
+    this.filtroEstado = 'TODOS';
+    this.filtroTipo = 'TODOS';
+    this.aplicarFiltros();
   }
 
   lanzarNotificacion(): void {
