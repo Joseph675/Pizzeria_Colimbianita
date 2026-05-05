@@ -123,9 +123,36 @@ export class PosComponent implements OnInit {
     let filtered = [...this.presentaciones];
 
     if (this.activeCategory !== 'todo') {
-      // CORRECCIÓN: Filtrar por el nombre de la categoría del producto, no por el nombre del producto.
       const categoryToFilter = this.activeCategory.toLowerCase();
-      filtered = filtered.filter(p => p.producto?.categoria?.nombre?.toLowerCase() === categoryToFilter);
+      
+      // Mapeo flexible para lidiar con plurales y diferencias de nombres en la base de datos
+      let searchTerms = [categoryToFilter];
+      if (categoryToFilter.includes('pizza')) {
+        searchTerms = ['pizza', 'pizzas'];
+      } else if (categoryToFilter.includes('hamburguesa') || categoryToFilter.includes('burger')) {
+        searchTerms = ['hamburguesa', 'hamburguesas', 'burger', 'burgers'];
+      } else if (categoryToFilter.includes('dog') || categoryToFilter.includes('perro')) {
+        searchTerms = ['perro caliente', 'perros calientes', 'hot dog', 'hot dogs', 'perro', 'perros'];
+      } else if (categoryToFilter.includes('sandwich') || categoryToFilter.includes('sándwich')) {
+        searchTerms = ['sandwich', 'sandwiches', 'sándwich', 'sándwiches', 'sanduche', 'sanduches'];
+      } else if (categoryToFilter.includes('salchipapa')) {
+        searchTerms = ['salchipapa', 'salchipapas'];
+      } else if (categoryToFilter.includes('bebida') || categoryToFilter.includes('gaseosa')) {
+        searchTerms = ['bebida', 'bebidas', 'gaseosa', 'gaseosas', 'jugo', 'jugos', 'agua'];
+      } else if (categoryToFilter.includes('mazorcada')) {
+        searchTerms = ['mazorcada', 'mazorcadas'];
+      } else if (categoryToFilter.includes('panzerotti')) {
+        searchTerms = ['panzerotti', 'panzerottis'];
+      } else if (categoryToFilter.includes('lasagna') || categoryToFilter.includes('lasaña')) {
+        searchTerms = ['lasagna', 'lasagnas', 'lasaña', 'lasañas'];
+      }
+
+      filtered = filtered.filter(p => {
+        const catName = p.producto?.categoria?.nombre?.toLowerCase() || '';
+        const prodName = p.producto?.nombre?.toLowerCase() || '';
+        // Buscamos coincidencia tanto en el nombre de la categoría como en el del producto por seguridad
+        return searchTerms.some(term => catName.includes(term) || prodName.includes(term));
+      });
     }
 
     if (this.searchTerm.trim() !== '') {
