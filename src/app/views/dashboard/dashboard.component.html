@@ -1,151 +1,293 @@
-<c-card class="my-4">
-  <c-card-body>
+<div class="custom-dashboard">
+  <div class="grain"></div>
 
-    <c-row>
+  <!-- PAGE HEAD -->
+  <div class="page-head">
+    <div class="page-head-left">
+      <div class="page-greeting">Buenas tardes, <span>{{ usuarioNombre }}</span> 👋</div>
+      <div class="page-title">Vista <span>General</span></div>
+      <div class="page-date" id="pageDate">{{ fechaActual | date:'EEEE, d de MMMM de yyyy' }} · Turno abierto</div>
+    </div>
+    <div class="page-head-right">
+      <button class="btn-sm ghost" (click)="cargarDatosDashboard()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Hoy
+      </button>
+    </div>
+  </div>
 
-      <c-col sm="6" xl="3">
-        <c-widget-stat-a class="mb-4" color="primary" [title]="'Total de Usuarios'">
-          <ng-template cTemplateId="widgetValueTemplate" ngPreserveWhitespaces>
-            {{ users.length }}
-          </ng-template>
-          <ng-template cTemplateId="widgetChartTemplate">
-            <c-chart [data]="data" [options]="options" class="mt-3 mx-3" height="110" type="line" />
-          </ng-template>
-        </c-widget-stat-a>
-      </c-col>
+  <!-- CARGANDO ESTADO -->
+  <div *ngIf="cargando" style="text-align: center; padding: 3rem 0; color: var(--gold);">
+    <h2>Cargando datos del dashboard...</h2>
+  </div>
 
-      <c-col sm="6" xl="3">
-        <c-widget-stat-a class="mb-4" color="info" [title]="'Total de Inscripciones'">
-          <ng-template cTemplateId="widgetValueTemplate" ngPreserveWhitespaces>
-            {{ totalInscripciones }}
-          </ng-template>
-          <ng-template cTemplateId="widgetChartTemplate">
-            <c-chart [data]="inscripcionesChartData" [options]="inscripcionesChartOptions" class="mt-3 mx-3"
-              height="110" type="line" />
-          </ng-template>
-        </c-widget-stat-a>
-      </c-col>
+  <ng-container *ngIf="!cargando">
+    <!-- ═══ KPI CARDS ═══ -->
+    <div class="kpi-grid">
+      <!-- Ventas -->
+      <div class="kpi-card gold">
+        <div class="kpi-accent"></div>
+        <div class="kpi-top">
+          <div class="kpi-icon">💰</div>
+         
+        </div>
+        <div class="kpi-val">{{ (ventasDia?.ventaTotal || 0) | currency:'USD':'symbol':'1.0-0' }}</div>
+        <div class="kpi-lbl">Ventas del día</div>
+        <div class="kpi-sub">Ayer: {{ (ventasDia?.ventasAyer || 0) | currency:'USD':'symbol':'1.0-0' }}</div>
+      </div>
 
-      <c-col sm="6" xl="3">
-        <c-widget-stat-a class="mb-4" color="success" [title]="'Total de Asistencias'">
-          <ng-template cTemplateId="widgetValueTemplate" ngPreserveWhitespaces>
-            {{ totalAsistencias }}
-          </ng-template>
-          <ng-template cTemplateId="widgetChartTemplate">
-            <c-chart [data]="asistenciasChartData" [options]="asistenciasChartOptions" class="mt-3 mx-3" height="110"
-              type="line" />
-          </ng-template>
-        </c-widget-stat-a>
-      </c-col>
+      <!-- Pedidos -->
+      <div class="kpi-card green">
+        <div class="kpi-accent"></div>
+        <div class="kpi-top">
+          <div class="kpi-icon">📋</div>
+        </div>
+        <div class="kpi-val">{{ ventasDia?.totalFacturas || 0 }}</div>
+        <div class="kpi-lbl">Pedidos del turno</div>
+        <div class="kpi-sub">En curso: {{ pedidosActivos.length }} · Cobrados: {{ ventasDia?.totalFacturas || 0 }}</div>
+      </div>
 
-      <c-col sm="6" xl="3">
-        <c-widget-stat-a class="mb-4" color="warning" [title]="'Total de Sesiones'">
-          <ng-template cTemplateId="widgetValueTemplate" ngPreserveWhitespaces>
-            {{ totalSesiones }}
-          </ng-template>
-          <ng-template cTemplateId="widgetChartTemplate">
-            <c-chart [data]="sesionesChartData" [options]="sesionesChartOptions" class="mt-3 mx-3" height="110"
-              type="line" />
-          </ng-template>
-        </c-widget-stat-a>
-      </c-col>
+      <!-- Mesas -->
+      <div class="kpi-card blue">
+        <div class="kpi-accent"></div>
+        <div class="kpi-top">
+          <div class="kpi-icon">🪑</div>
+        </div>
+        <div class="kpi-val">{{ mesasOcupadas }}/{{ mesas.length || 0 }}</div>
+        <div class="kpi-lbl">Ocupación de mesas</div>
+        <div class="kpi-sub">Libres: {{ mesasLibres }}</div>
+      </div>
 
-    </c-row>
+      <!-- Ticket -->
+      <div class="kpi-card purple">
+        <div class="kpi-accent"></div>
+        <div class="kpi-top">
+          <div class="kpi-icon" style="background:rgba(155,89,182,.12);">🎟</div>
+        </div>
+        <div class="kpi-val">{{ (ventasDia?.ticketPromedio || 0) | currency:'USD':'symbol':'1.0-0' }}</div>
+        <div class="kpi-lbl">Ticket promedio</div>
+        <div class="kpi-sub">Ayer: {{ (ventasDia?.ticketAyer || 0) | currency:'USD':'symbol':'1.0-0' }}</div>
+      </div>
+    </div>
 
+    <!-- KPI 2a Fila -->
+    <div class="kpi-grid" style="margin-bottom:1.2rem;">
+      <!-- Domicilios -->
+      <div class="kpi-card red-card">
+        <div class="kpi-accent"></div>
+        <div class="kpi-top">
+          <div class="kpi-icon">🛵</div>
+        </div>
+        <div class="kpi-val">{{ (ventasDia?.ventaDomicilio || 0) | currency:'USD':'symbol':'1.0-0' }}</div>
+        <div class="kpi-lbl">Ventas por Domicilio</div>
+        <div class="kpi-sub">Total despachado en delivery</div>
+      </div>
 
-  </c-card-body>
+      <!-- Caja Efectivo -->
+      <div class="kpi-card green" style="border-color:rgba(46,204,113,.15);">
+        <div class="kpi-accent"></div>
+        <div class="kpi-top">
+          <div class="kpi-icon">🧾</div>
+        </div>
+        <div class="kpi-val">{{ ((cajaActiva?.baseInicial || 0) + (ventasDia?.ventaEfectivo || 0)) | currency:'USD':'symbol':'1.0-0' }}</div>
+        <div class="kpi-lbl">Efectivo en caja</div>
+        <div class="kpi-sub">Base inicial: {{ (cajaActiva?.baseInicial || 0) | currency:'USD':'symbol':'1.0-0' }}</div>
+      </div>
 
-</c-card>
+      <!-- Alertas -->
+      <div class="kpi-card" style="border-color:rgba(232,52,42,.15);">
+        <div class="kpi-accent" style="background:linear-gradient(180deg,rgba(232,52,42,.6),rgba(232,52,42,.1));"></div>
+        <div class="kpi-top">
+          <div class="kpi-icon" style="background:rgba(232,52,42,.1);">⚠️</div>
+        </div>
+        <div class="kpi-val" style="color:var(--red);">{{ alertasInventario.length || 0 }}</div>
+        <div class="kpi-lbl">Alertas de inventario</div>
+        <div class="kpi-sub">Verifica la disponibilidad de ingredientes</div>
+      </div>
+    </div>
 
+    <!-- ═══ MAIN GRID: VENTAS + MESAS + PEDIDOS ═══ -->
+    <div class="main-grid">
 
-<c-row>
-  <c-col xs>
-    <c-card class="mb-4">
-      <c-card-body>
-        <table
-          [hover]="true"
-          [responsive]="true"
-          [striped]="true"
-          align="middle"
-          cTable
-          class="mb-0 border"
-        >
-          <thead class="text-nowrap text-truncate">
-            <tr>
-              <th class="bg-body-tertiary text-center">
-                <mat-icon>restaurant</mat-icon>
-              </th>
-              <th class="bg-body-tertiary">Alumno</th>
-              <th class="bg-body-tertiary">Materia/Curso con más asistencias</th>
-              <th class="bg-body-tertiary text-center">Asistencia (%)</th>
-              <th class="bg-body-tertiary text-center">Estado</th>
-            </tr>
-          </thead>
-          <tbody>
-              <tr *ngFor="let alumno of alumnos; trackBy: trackByAlumno">
-                <!-- Avatar con iniciales -->
-                <td class="text-center">
-                  <c-avatar
-                    [ngStyle]="{ 'background-color': getColorForUser(alumno), 'color': 'white' }"
-                    textColor="white"
-                  >
-                    {{ getInitials(alumno.nombre) }}
-                  </c-avatar>
-                </td>
-                <!-- Nombre, facultad y carrera -->
-                <td>
-                  <div>{{ alumno.nombre }}</div>
-                  <div class="small text-body-secondary text-nowrap">
-                    <span>
-                      {{ getFacultadNombre(alumno) }} | {{ getCarreraNombre(alumno) }}
-                    </span>
-                  </div>
-                </td>
-                <!-- Materia/curso con más asistencias -->
-                <td>
-                  <div>
-                    {{
-                      getCursoConMasAsistencias(alumno) !== null
-                        ? getMateriaNombre(getCursoConMasAsistencias(alumno)!)
-                        : 'Sin materia'
-                    }}
-                  </div>
-                </td>
-                <!-- Porcentaje de asistencias en esa materia -->
-                <td class="text-center">
-                  <div class="d-flex justify-content-between">
-                    <div class="float-start">
-                      <strong>
-                        {{
-                          getCursoConMasAsistencias(alumno) !== null
-                            ? getAsistenciaPorcentaje(alumno, getCursoConMasAsistencias(alumno)!)
-                            : 0
-                        }}%
-                      </strong>
-                    </div>
-                  </div>
-                  <c-progress
-                    thin
-                    [value]="getCursoConMasAsistencias(alumno) !== null ? getAsistenciaPorcentaje(alumno, getCursoConMasAsistencias(alumno)!) : 0"
-                    color="info"
-                    aria-label="Asistencia"
-                  />
-                </td>
-                <!-- Mensaje según el porcentaje -->
-                <td class="text-center">
-                  <span>
-                    {{
-                      getCursoConMasAsistencias(alumno) !== null
-                        ? getAsistenciaMensaje(getAsistenciaPorcentaje(alumno, getCursoConMasAsistencias(alumno)!))
-                        : 'Sin asistencias'
-                    }}
-                  </span>
-                </td>
-              </tr>
-          </tbody>
-        </table>
-      </c-card-body>
-    </c-card>
-  </c-col>
-</c-row>
+      <!-- VENTAS DEL DÍA -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">Ventas <span>del Día</span></div>
+        </div>
+        <div class="chart-wrap">
+          <!-- Mock Gráfico Decorativo -->
+          <div class="chart-area">
+            <svg class="chart-svg" viewBox="0 0 400 130" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="gVentas" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#F5C842" stop-opacity=".25"/>
+                  <stop offset="100%" stop-color="#F5C842" stop-opacity="0"/>
+                </linearGradient>
+              </defs>
+              <path d="M0 110 C30 95 55 80 80 72 C105 64 120 85 160 68 C200 50 220 40 260 35 C290 30 320 55 360 38 C380 30 400 20 400 20 L400 130 L0 130 Z" fill="url(#gVentas)"/>
+              <path d="M0 110 C30 95 55 80 80 72 C105 64 120 85 160 68 C200 50 220 40 260 35 C290 30 320 55 360 38 C380 30 400 20 400 20" fill="none" stroke="#F5C842" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </div>
+        </div>
 
+        <!-- Desglose por canal -->
+        <div style="padding:.1rem 1rem .9rem;">
+          <div style="font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted2);margin-bottom:.6rem;">Por canal</div>
+          <div style="display:flex;flex-direction:column;gap:.4rem;">
+            <div style="display:flex;align-items:center;gap:.6rem;">
+              <span style="font-size:.68rem;color:var(--muted);min-width:70px;">🍽 Mesa</span>
+              <div style="flex:1;height:5px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden;">
+                <div style="height:100%;width:58%;background:linear-gradient(90deg,var(--green),rgba(46,204,113,.5));border-radius:3px;"></div>
+              </div>
+              <span style="font-size:.7rem;color:var(--green);min-width:72px;text-align:right;font-family:'Bebas Neue',sans-serif;letter-spacing:.04em;">{{ (ventasDia?.ventaMesa || 0) | currency:'USD':'symbol':'1.0-0' }}</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:.6rem;">
+              <span style="font-size:.68rem;color:var(--muted);min-width:70px;">🛵 Delivery</span>
+              <div style="flex:1;height:5px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden;">
+                <div style="height:100%;width:28%;background:linear-gradient(90deg,var(--blue),rgba(52,152,219,.5));border-radius:3px;"></div>
+              </div>
+              <span style="font-size:.7rem;color:var(--blue);min-width:72px;text-align:right;font-family:'Bebas Neue',sans-serif;letter-spacing:.04em;">{{ (ventasDia?.ventaDomicilio || 0) | currency:'USD':'symbol':'1.0-0' }}</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:.6rem;">
+              <span style="font-size:.68rem;color:var(--muted);min-width:70px;">🏪 Mostrador</span>
+              <div style="flex:1;height:5px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden;">
+                <div style="height:100%;width:14%;background:linear-gradient(90deg,var(--gold),rgba(245,200,66,.5));border-radius:3px;"></div>
+              </div>
+              <span style="font-size:.7rem;color:var(--gold);min-width:72px;text-align:right;font-family:'Bebas Neue',sans-serif;letter-spacing:.04em;">{{ (ventasDia?.ventaMostrador || 0) | currency:'USD':'symbol':'1.0-0' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MESAS EN TIEMPO REAL -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">Mesas <span>en Vivo</span></div>
+          <div class="panel-count">{{ mesas.length }} mesas</div>
+        </div>
+        <div class="mesas-mini-grid">
+          <div class="mesa-mini" *ngFor="let m of mesas" [ngClass]="(m.estado || 'libre') | lowercase">
+            <div class="mm-num">{{ m.numeroMesa || '?' }}</div>
+            <div class="mm-pers">👥 {{ m.capacidad || 0 }}</div>
+            <div class="mm-time">{{ m.minutosOcupada !== null ? m.minutosOcupada + ' min' : '—' }}</div>
+          </div>
+          <div *ngIf="mesas.length === 0" style="grid-column: 1/-1; text-align: center; color: var(--muted2); font-size: 0.8rem; padding: 2rem 0;">No hay mesas registradas.</div>
+        </div>
+        
+        <div class="mesas-legend">
+          <div class="ml-item"><div class="ml-dot" style="background:var(--green);"></div>Ocupada</div>
+          <div class="ml-item"><div class="ml-dot" style="background:rgba(255,255,255,.15);"></div>Libre</div>
+        </div>
+
+        <!-- Caja rápida del turno -->
+        <div style="border-top:1px solid var(--border);padding:.1rem 0 0;">
+          <div style="font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted2);padding:.65rem 1rem .45rem;">Caja del turno</div>
+          <div class="caja-grid">
+            <div class="caja-item">
+              <div class="caja-lbl">💵 Efectivo</div>
+              <div class="caja-val green">{{ (ventasDia?.ventaEfectivo || 0) | currency:'USD':'symbol':'1.0-0' }}</div>
+            </div>
+            <div class="caja-item">
+              <div class="caja-lbl">💳 Tarjetas</div>
+              <div class="caja-val blue">{{ (ventasDia?.ventaTarjeta || 0) | currency:'USD':'symbol':'1.0-0' }}</div>
+            </div>
+            <div class="caja-item">
+              <div class="caja-lbl">📱 Nequi/Daviplata</div>
+              <div class="caja-val orange">{{ (ventasDia?.ventaTransferencia || 0) | currency:'USD':'symbol':'1.0-0' }}</div>
+            </div>
+            <div class="caja-total-row">
+              <span class="caja-total-lbl">Total ventas turno</span>
+              <span class="caja-total-val">{{ (ventasDia?.ventaTotal || 0) | currency:'USD':'symbol':'1.0-0' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PEDIDOS LIVE -->
+      <div style="display:flex;flex-direction:column;gap:.85rem;">
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">Pedidos <span>Activos</span></div>
+            <div class="panel-count" style="background:rgba(232,52,42,.15);border-color:rgba(232,52,42,.25);color:var(--red);">{{ pedidosActivos.length }}</div>
+          </div>
+          
+          <div class="ped-row" *ngFor="let ped of pedidosActivos">
+            <span class="ped-num" style="color:var(--gold);">#{{ ped.idPedido }}</span>
+            <div class="ped-info">
+              <div class="ped-client">{{ ped.tipoPedido || 'Mesa' }} · {{ ped.nombreCliente || 'Cliente Local' }}</div>
+              <div class="ped-sub">{{ ped.cantidadItems || 0 }} items · {{ ped.minutosTranscurridos || 0 }} min</div>
+            </div>
+            <div class="ped-badge preparando">{{ ped.estadoDisplay || ped.estado }}</div>
+            <div class="ped-monto" style="margin-left:.5rem;">{{ ped.monto | currency:'USD':'symbol':'1.0-0' }}</div>
+          </div>
+          <div *ngIf="pedidosActivos.length === 0" style="text-align: center; color: var(--muted2); font-size: 0.8rem; padding: 2rem 0;">No hay pedidos activos.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ BOTTOM GRID: TOP PRODS + INVENTARIO + CLIENTES ═══ -->
+    <div class="main-grid-full">
+<!-- CLIENTES VIP -->
+      <div class="panel" style="grid-column: 1 / -1;">
+        <div class="panel-header">
+          <div class="panel-title">Clientes <span>Top</span></div>
+        </div>
+        <div class="client-row" *ngFor="let cli of clientesRanking; let i = index">
+          <div class="c-av" [ngStyle]="{'background': i === 0 ? 'linear-gradient(135deg,#6b1a1a,#c02a2a)' : 'linear-gradient(135deg,#1a6b3a,#27ae60)'}">
+            {{ getInitials(cli.nombres) }}
+          </div>
+          <div style="flex:1;">
+            <div class="c-name">{{ cli.nombres }} <span *ngIf="cli.segmento === 'VIP'" style="font-size:.58rem;color:var(--gold);">⭐ VIP</span></div>
+            <div class="c-sub">{{ cli.totalVisitas || 1 }} visitas · Última: {{ cli.ultimaVisita | date:'shortDate' }}</div>
+          </div>
+          <div class="c-gasto">{{ cli.gastoTotal | currency:'USD':'symbol':'1.0-0' }}</div>
+        </div>
+        <div *ngIf="clientesRanking.length === 0" style="text-align: center; color: var(--muted2); font-size: 0.8rem; padding: 2rem 0;">No hay información de clientes.</div>
+      </div>
+      <!-- TOP PRODUCTOS -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">Top <span>Productos</span></div>
+          <div class="panel-count">Hoy</div>
+        </div>
+        <div class="top-prod-row" *ngFor="let prod of topProductos; let i = index">
+          <div class="tp-rank">{{ i + 1 }}</div>
+          <div class="tp-emoji">🍕</div>
+          <div class="tp-info">
+            <div class="tp-name">{{ prod.nombre }}</div>
+            <div class="tp-cat">{{ prod.categoria || 'Menú General' }}</div>
+          </div>
+          <div class="tp-bar-wrap">
+            <div class="tp-bar"><div class="tp-fill" [style.width.%]="prod.porcentaje || 100"></div></div>
+          </div>
+          <div class="tp-cnt">{{ prod.cantidad }} und</div>
+        </div>
+        <div *ngIf="topProductos.length === 0" style="text-align: center; color: var(--muted2); font-size: 0.8rem; padding: 2rem 0;">Sin ventas hoy.</div>
+      </div>
+
+      <!-- INVENTARIO CRÍTICO -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">Inventario <span>Crítico</span></div>
+          <div class="panel-count" style="background:rgba(232,52,42,.12);border-color:rgba(232,52,42,.25);color:var(--red);" *ngIf="alertasInventario.length > 0">{{ alertasInventario.length }} alertas</div>
+        </div>
+        
+        <div class="inv-row" *ngFor="let alerta of alertasInventario">
+          <div class="inv-name">{{ alerta.ingrediente }}</div>
+          <div class="inv-unit">{{ alerta.unidadMedida || 'und' }}</div>
+          <div class="inv-bar-wrap">
+            <div class="inv-bar">
+              <div class="inv-fill" [style.width.%]="getPorcentajeStock(alerta.cantidadActual, alerta.cantidadMinima)" [ngStyle]="{'background': getPorcentajeStock(alerta.cantidadActual, alerta.cantidadMinima) < 30 ? 'var(--red)' : 'var(--orange)'}"></div>
+            </div>
+            <div class="inv-qty" [ngStyle]="{'color': getPorcentajeStock(alerta.cantidadActual, alerta.cantidadMinima) < 30 ? 'var(--red)' : 'var(--orange)'}">{{ alerta.cantidadActual }}</div>
+          </div>
+          <div class="inv-alert" [ngClass]="getPorcentajeStock(alerta.cantidadActual, alerta.cantidadMinima) < 30 ? 'crit' : 'warn'">{{ alerta.nivelAlerta }}</div>
+        </div>
+        
+        <div *ngIf="alertasInventario.length === 0" style="text-align: center; color: var(--green); font-size: 0.85rem; padding: 2rem 0;">✅ Todo en orden. No hay alertas de stock.</div>
+      </div>
+
+      
+    </div>
+  </ng-container>
+</div>

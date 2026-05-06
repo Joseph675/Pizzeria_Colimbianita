@@ -108,10 +108,15 @@ export class PedidosComponent implements OnInit, OnDestroy {
         // Lógica de auto-apertura si venimos de la vista de Mesas
         if (this.autoOpenMesaId && !esPolling) {
           // Buscamos el pedido activo (que no esté pagado o cancelado) para esta mesa
-          const pedidoMesa = this.pedidos.find(p => 
-            (p.estado !== 'PAGADO' && p.estado !== 'CANCELADO') && 
-            (p.mesa?.idMesa === this.autoOpenMesaId || p.mesa?.id_mesa === this.autoOpenMesaId)
-          );
+          const pedidoMesa = this.pedidos.find(p => {
+            const estado = (p.estado || '').toUpperCase();
+            // Capturamos el ID o el Número de la mesa sin importar la estructura del JSON
+            const idMesaPedido = p.mesa?.idMesa || p.mesa?.id_mesa || p.idMesa || p.id_mesa;
+            const numMesaPedido = p.mesa?.numeroMesa || p.mesa?.numero_mesa || p.numeroMesa || p.numero_mesa;
+            
+            return (estado !== 'PAGADO' && estado !== 'CANCELADO') && 
+                   (Number(idMesaPedido) === this.autoOpenMesaId || Number(numMesaPedido) === this.autoOpenMesaId);
+          });
 
           if (pedidoMesa) {
             this.abrirDetalles(pedidoMesa);
@@ -301,7 +306,7 @@ export class PedidosComponent implements OnInit, OnDestroy {
             }
 
             this.showCobrarModal = false;
-            setTimeout(() => window.print(), 500);
+            setTimeout(() => this.imprimirTicket(), 500);
           },
           error: (err) => {
             console.error('Error al registrar la factura:', err);
@@ -314,5 +319,70 @@ export class PedidosComponent implements OnInit, OnDestroy {
         alert('Error al verificar la caja. Asegúrate de tener conexión al servidor.');
       }
     });
+  }
+
+  imprimirTicket(): void {
+    // 1. Obtenemos el código HTML del ticket
+    const ticketElement = document.getElementById('ticket-impresion');
+    if (!ticketElement) {
+      console.error('No se encontró el ticket para imprimir.');
+      return;
+    }
+    const ticketHtml = ticketElement.innerHTML;
+
+    // 2. Abrimos una ventana temporal o emergente
+    const printWindow = window.open('', '_blank', 'height=600,width=400');
+    if (!printWindow) {
+      alert('Por favor, permite las ventanas emergentes (pop-ups) para imprimir el ticket.');
+      return;
+    }
+
+    // 3. Escribimos un documento nuevo con medidas exactas de 80mm y estilos limpios
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Imprimir Ticket</title>
+          <style>
+            /* --- Configuración para Impresora de 80mm --- */
+            @page {
+              margin: 0; 
+              size: 80mm auto; /* Ancho exacto de la impresora térmica */
+            }
+
+            body {
+              font-family: 'Courier New', Courier, monospace;
+              width: 72mm; /* Margen de seguridad para que no corte el texto */
+              margin: 0 auto;
+              padding: 4mm 0;
+              color: #000;
+              background: #fff;
+              font-size: 12px;
+              line-height: 1.2;
+            }
+
+            h2 { margin: 0 0 5px 0; font-size: 16px; text-align: center; }
+            p { margin: 2px 0; }
+            
+            .ticket-header { text-align: center; border-bottom: 1px dashed #000; padding-bottom: 5px; margin-bottom: 10px; }
+            .ticket-info { border-bottom: 1px dashed #000; padding-bottom: 5px; margin-bottom: 10px; }
+            .ticket-items { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+            .ticket-items th { border-bottom: 1px solid #000; text-align: left; padding: 4px 0; font-size: 11px; }
+            .ticket-items td { padding: 4px 0; vertical-align: top; }
+            .qty { width: 15%; text-align: center; }
+            .desc { width: 55%; }
+            .amt { width: 30%; text-align: right; }
+            .ticket-totals { border-top: 1px dashed #000; padding-top: 5px; margin-bottom: 10px; }
+            .t-row { display: flex; justify-content: space-between; margin-bottom: 3px; }
+            .grand-total { font-weight: bold; font-size: 14px; border-top: 1px solid #000; padding-top: 5px; margin-top: 5px; }
+            .ticket-footer { text-align: center; border-top: 1px dashed #000; padding-top: 5px; margin-top: 10px; font-size: 11px; }
+          </style>
+        </head>
+        <body onload="window.print(); window.close();">
+          ${ticketHtml}
+        </body>
+      </html>
+    `);
+    
+    printWindow.document.close();
   }
 }

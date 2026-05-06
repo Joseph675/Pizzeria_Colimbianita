@@ -63,6 +63,10 @@ export class FacturacionComponent implements OnInit {
   public facturaSeleccionada: any = null;
   public modalAnularFactura: boolean = false;
   public facturaAAnular: any = null;
+  public facturaAReimprimir: any = null;
+  public cierreAImprimir: any = null;
+  public productosVendidosCierre: any[] = [];
+  public totalVentasCierre: number = 0;
 
   public notificacion = { mostrar: false, titulo: '', mensaje: '', esError: false };
 
@@ -187,6 +191,72 @@ export class FacturacionComponent implements OnInit {
   cerrarDetalleFactura(): void {
     this.modalDetalleFactura = false;
     this.facturaSeleccionada = null;
+  }
+
+  reimprimirFactura(factura: any): void {
+    this.facturaAReimprimir = factura;
+    
+    // Damos un pequeño retraso para que Angular renderice el contenedor HTML en el DOM
+    setTimeout(() => {
+      const ticketElement = document.getElementById('ticket-impresion-factura');
+      if (!ticketElement) {
+        console.error('No se encontró el ticket para imprimir.');
+        return;
+      }
+      const ticketHtml = ticketElement.innerHTML;
+
+      const printWindow = window.open('', '_blank', 'height=600,width=400');
+      if (!printWindow) {
+        alert('Por favor, permite las ventanas emergentes (pop-ups) para reimprimir el ticket.');
+        return;
+      }
+
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>Reimprimir Ticket</title>
+            <style>
+              /* --- Configuración para Impresora de 80mm --- */
+              @page {
+                margin: 0; 
+                size: 80mm auto; /* Ancho exacto de la impresora térmica */
+              }
+
+              body {
+                font-family: 'Courier New', Courier, monospace;
+                width: 72mm; /* Margen de seguridad */
+                margin: 0 auto;
+                padding: 4mm 0;
+                color: #000;
+                background: #fff;
+                font-size: 12px;
+                line-height: 1.2;
+              }
+
+              h2 { margin: 0 0 5px 0; font-size: 16px; text-align: center; }
+              p { margin: 2px 0; }
+              
+              .ticket-header { text-align: center; border-bottom: 1px dashed #000; padding-bottom: 5px; margin-bottom: 10px; }
+              .ticket-info { border-bottom: 1px dashed #000; padding-bottom: 5px; margin-bottom: 10px; }
+              .ticket-items { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+              .ticket-items th { border-bottom: 1px solid #000; text-align: left; padding: 4px 0; font-size: 11px; }
+              .ticket-items td { padding: 4px 0; vertical-align: top; }
+              .qty { width: 15%; text-align: center; }
+              .desc { width: 55%; }
+              .amt { width: 30%; text-align: right; }
+              .ticket-totals { border-top: 1px dashed #000; padding-top: 5px; margin-bottom: 10px; }
+              .t-row { display: flex; justify-content: space-between; margin-bottom: 3px; }
+              .grand-total { font-weight: bold; font-size: 14px; border-top: 1px solid #000; padding-top: 5px; margin-top: 5px; }
+              .ticket-footer { text-align: center; border-top: 1px dashed #000; padding-top: 5px; margin-top: 10px; font-size: 11px; }
+            </style>
+          </head>
+          <body onload="window.print(); window.close();">
+            ${ticketHtml}
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
+    }, 100);
   }
 
   // === LÓGICA DE CIERRES DE CAJA (TURNOS) ===
@@ -318,6 +388,90 @@ export class FacturacionComponent implements OnInit {
 
   cerrarDetalleCierre(): void {
     this.modalDetalleCierre = false;
+  }
+
+  imprimirCierre(turno: any): void {
+    this.cierreAImprimir = turno;
+    const idTurno = turno.id_cierre || turno.idCierre;
+
+    // 1. Agrupar los productos vendidos en este turno buscando en las facturas
+    const facturasDelTurno = this.facturas.filter(f => {
+      const fCierreId = f.cierreCaja?.idCierre || f.cierreCaja?.id_cierre || f.id_cierre || f.idCierre;
+      return fCierreId === idTurno;
+    });
+
+    // Sumamos el total general de todas las facturas de este turno
+    this.totalVentasCierre = facturasDelTurno.reduce((sum, f) => sum + Number(f.total || 0), 0);
+
+    const aggregation = new Map<string, any>();
+    
+    facturasDelTurno.forEach(f => {
+      if (f.pedido?.detalles) {
+        f.pedido.detalles.forEach((det: any) => {
+          const nombreProd = det.presentacion?.producto?.nombre || 'Producto';
+          const nombrePres = det.presentacion?.nombre_presentacion || det.presentacion?.nombrePresentacion || '';
+          const nombreCompleto = `${nombreProd} ${nombrePres}`.trim();
+          
+          const cantidad = Number(det.fraccion || 1);
+          const subtotalLinea = Number(det.precio_cobrado || det.precioCobrado || 0) * cantidad;
+
+          if (aggregation.has(nombreCompleto)) {
+            const ex = aggregation.get(nombreCompleto);
+            ex.cantidad += cantidad;
+            ex.total += subtotalLinea;
+          } else {
+            aggregation.set(nombreCompleto, { nombre: nombreCompleto, cantidad, total: subtotalLinea });
+          }
+        });
+      }
+    });
+
+    this.productosVendidosCierre = Array.from(aggregation.values());
+
+    // 2. Damos un pequeño retraso para que Angular dibuje el ticket oculto y lo mandamos a imprimir
+    setTimeout(() => {
+      const ticketElement = document.getElementById('ticket-impresion-cierre');
+      if (!ticketElement) {
+        console.error('No se encontró el ticket de cierre para imprimir.');
+        return;
+      }
+      const ticketHtml = ticketElement.innerHTML;
+
+      const printWindow = window.open('', '_blank', 'height=600,width=400');
+      if (!printWindow) {
+        alert('Permite las ventanas emergentes (pop-ups) para imprimir el reporte.');
+        return;
+      }
+
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>Reporte de Turno</title>
+            <style>
+              @page { margin: 0; size: 80mm auto; }
+              body { font-family: 'Courier New', Courier, monospace; width: 72mm; margin: 0 auto; padding: 4mm 0; color: #000; background: #fff; font-size: 12px; line-height: 1.2; }
+              h2 { margin: 0 0 5px 0; font-size: 16px; text-align: center; }
+              p { margin: 2px 0; }
+              .ticket-header { text-align: center; border-bottom: 1px dashed #000; padding-bottom: 5px; margin-bottom: 10px; }
+              .ticket-info { border-bottom: 1px dashed #000; padding-bottom: 5px; margin-bottom: 10px; }
+              .ticket-items { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+              .ticket-items th { border-bottom: 1px solid #000; text-align: left; padding: 4px 0; font-size: 11px; }
+              .ticket-items td { padding: 4px 0; vertical-align: top; }
+              .qty { width: 15%; text-align: center; }
+              .desc { width: 55%; }
+              .amt { width: 30%; text-align: right; }
+              .ticket-totals { border-top: 1px dashed #000; padding-top: 5px; margin-bottom: 10px; }
+              .t-row { display: flex; justify-content: space-between; margin-bottom: 3px; }
+              .ticket-footer { text-align: center; border-top: 1px dashed #000; padding-top: 5px; margin-top: 10px; font-size: 11px; }
+            </style>
+          </head>
+          <body onload="window.print(); window.close();">
+            ${ticketHtml}
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
+    }, 100);
   }
 
   // === UTILIDADES ===

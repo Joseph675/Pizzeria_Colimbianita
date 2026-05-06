@@ -100,6 +100,7 @@
             <td>{{ f.subtotal | currency:'USD':'symbol':'1.0-0' }}</td>
             <td class="fw-bold">{{ f.total | currency:'USD':'symbol':'1.0-0' }}</td>
             <td>
+              <button class="btn-action primary" title="Reimprimir Ticket" (click)="reimprimirFactura(f)">🖨️</button>
               <button class="btn-action ghost" title="Ver Detalles" (click)="abrirDetalleFactura(f)">👁️</button>
               <button class="btn-action danger" title="Anular" (click)="abrirModalAnularFactura(f)">🗑️</button>
             </td>
@@ -149,6 +150,7 @@
               <span class="badge" [ngClass]="c.estado === 'ABIERTA' ? 'abierta' : 'cerrada'">{{ c.estado }}</span>
             </td>
             <td>
+              <button class="btn-action primary" title="Imprimir Reporte" (click)="imprimirCierre(c)">🖨️</button>
               <button *ngIf="c.estado === 'ABIERTA'" class="btn-action primary" title="Cerrar Turno" (click)="abrirModalCierre(c)">🔒 Cerrar</button>
               <button *ngIf="c.estado !== 'ABIERTA'" class="btn-action ghost" title="Ver Detalles" (click)="abrirDetalleCierre(c)">👁️</button>
             </td>
@@ -331,6 +333,119 @@
         <button class="dp-btn ghost" (click)="modalCierre = false">Cancelar</button>
         <button class="dp-btn danger-btn" (click)="procesarCierre()">Confirmar Cierre</button>
       </div>
+    </div>
+  </div>
+
+  <!-- TICKET PARA REIMPRESIÓN (Oculto visualmente, solo usado para extraer su HTML) -->
+  <div id="ticket-impresion-factura" *ngIf="facturaAReimprimir" style="display: none;">
+    <div class="ticket-header">
+      <h1>COLOMBIANITA</h1>
+      <p>PIZZAS-COMIDAS RAPIDAS</p>
+      <p>MARYURI GARCIA</p>
+      <p>NIT: 1121856659-9</p>
+      <p>MZ A CASA 7 LOCAL 102</p>
+      <p>FRENTE A LA PLAZOLETA DE LOS CENTAUROS</p>
+      <p>PORTALES DE GRATAMIRA</p>
+      <h2>3108666329</h2>
+      <p><strong>*** COPIA / REIMPRESIÓN ***</strong></p>
+    </div>
+    
+    <div class="ticket-info">
+      <p><strong>Factura:</strong> #{{ facturaAReimprimir.id_factura || facturaAReimprimir.idFactura }}</p>
+      <p><strong>Pedido Original:</strong> #{{ facturaAReimprimir.pedido?.id_pedido || facturaAReimprimir.pedido?.idPedido }}</p>
+      <p><strong>Fecha Emisión:</strong> {{ (facturaAReimprimir.fecha_emision || facturaAReimprimir.fechaEmision) | date:'dd/MM/yyyy HH:mm' }}</p>
+      <p *ngIf="facturaAReimprimir.pedido?.cliente"><strong>Cliente:</strong> {{ facturaAReimprimir.pedido?.cliente?.nombres || facturaAReimprimir.pedido?.cliente?.nombre }}</p>
+      <p><strong>Método de Pago:</strong> {{ facturaAReimprimir.metodo_pago || facturaAReimprimir.metodoPago }}</p>
+    </div>
+
+    <table class="ticket-items">
+      <thead>
+        <tr>
+          <th class="qty">Cant</th>
+          <th class="desc">Descripción</th>
+          <th class="amt">Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let det of facturaAReimprimir.pedido?.detalles">
+          <td class="qty">{{ det.fraccion }}</td>
+          <td class="desc">{{ det.presentacion?.producto?.nombre }} <br><small>{{ det.presentacion?.nombre_presentacion || det.presentacion?.nombrePresentacion }}</small></td>
+          <td class="amt">{{ (det.precio_cobrado || det.precioCobrado) | currency:'USD':'symbol':'1.0-0' }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="ticket-totals">
+      <div class="t-row grand-total">
+        <span>TOTAL:</span>
+        <span>{{ facturaAReimprimir.total | currency:'USD':'symbol':'1.0-0' }}</span>
+      </div>
+    </div>
+    
+    <div class="ticket-footer">
+      <p>¡Gracias por su compra!</p>
+    </div>
+  </div>
+
+  <!-- TICKET PARA REPORTE DE CIERRE (Oculto) -->
+  <div id="ticket-impresion-cierre" *ngIf="cierreAImprimir" style="display: none;">
+    <div class="ticket-header">
+      <h2>PIZZERÍA COLOMBIANITA</h2>
+      <p><strong>*** REPORTE DE TURNO ***</strong></p>
+      <p>Turno #{{ cierreAImprimir.id_cierre || cierreAImprimir.idCierre }}</p>
+    </div>
+    
+    <div class="ticket-info">
+      <p><strong>Estado:</strong> {{ cierreAImprimir.estado }}</p>
+      <p><strong>Apertura:</strong> {{ (cierreAImprimir.fecha_apertura || cierreAImprimir.fechaApertura) | date:'dd/MM/yyyy HH:mm' }}</p>
+      <p *ngIf="cierreAImprimir.fecha_cierre || cierreAImprimir.fechaCierre"><strong>Cierre:</strong> {{ (cierreAImprimir.fecha_cierre || cierreAImprimir.fechaCierre) | date:'dd/MM/yyyy HH:mm' }}</p>
+    </div>
+
+    <div class="ticket-info">
+      <p style="text-align: center; font-weight: bold; margin-bottom: 5px;">PRODUCTOS VENDIDOS</p>
+      <table class="ticket-items">
+        <thead>
+          <tr>
+            <th class="qty">Cant</th>
+            <th class="desc">Producto</th>
+            <th class="amt">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let prod of productosVendidosCierre">
+            <td class="qty">{{ prod.cantidad }}</td>
+            <td class="desc">{{ prod.nombre }}</td>
+            <td class="amt">{{ prod.total | currency:'USD':'symbol':'1.0-0' }}</td>
+          </tr>
+          <tr *ngIf="productosVendidosCierre.length === 0">
+            <td colspan="3" style="text-align: center; padding: 10px 0;">No hay ventas registradas en este turno.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="ticket-totals">
+      <p style="text-align: center; font-weight: bold; margin-bottom: 5px;">RESUMEN DE CAJA</p>
+      <div class="t-row">
+        <span>Base Inicial:</span>
+        <span>{{ (cierreAImprimir.base_inicial || cierreAImprimir.baseInicial) | currency:'USD':'symbol':'1.0-0' }}</span>
+      </div>
+      <div class="t-row">
+        <span>Total Ventas:</span>
+        <span>{{ totalVentasCierre | currency:'USD':'symbol':'1.0-0' }}</span>
+      </div>
+      <div class="t-row">
+        <span>Efec. Declarado:</span>
+        <span>{{ (cierreAImprimir.efectivo_declarado || cierreAImprimir.efectivoDeclarado || 0) | currency:'USD':'symbol':'1.0-0' }}</span>
+      </div>
+      <div class="t-row" *ngIf="cierreAImprimir.estado !== 'ABIERTA'">
+        <span>Diferencia:</span>
+        <span>{{ cierreAImprimir.diferencia | currency:'USD':'symbol':'1.0-0' }}</span>
+      </div>
+    </div>
+    
+    <div class="ticket-footer">
+      <p>Reporte generado por Pizzería Colombianita.</p>
     </div>
   </div>
 

@@ -32,6 +32,7 @@ import { IconDirective } from '@coreui/icons-angular';
 })
 export class DefaultHeaderComponent extends HeaderComponent {
   userName: string = '';
+  userRol: string = '';
 
   readonly #colorModeService = inject(ColorModeService);
   readonly colorMode = this.#colorModeService.colorMode;
@@ -55,7 +56,11 @@ export class DefaultHeaderComponent extends HeaderComponent {
     const user = this.authService.getUser(); // Recuperar el usuario desde localStorage
     console.log('Usuario recuperado:', user);
 
-    this.userName = user.nombre || 'Usuario'; // Asignar el nombre del usuario o un valor predeterminado
+    this.userName = user.nombres || 'Usuario'; // Asignar el nombre del usuario o un valor predeterminado
+    this.userRol = user.rol.nombre || 'Rol predeterminado'; // Asignar el rol del usuario o un valor predeterminado
+
+    console.log('Nombre del usuario:', this.userName);
+    console.log('Rol del usuario:', this.userRol);
   }
 
   sidebarId = input('sidebar1');
