@@ -8,10 +8,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
         Actualizar
       </button>
-      <button class="btn-action primary">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Nuevo pedido
-      </button>
+      
     </div>
     <div class="filter-row">
       <div class="filt-btn" [class.active]="filtro === 'todos'" (click)="filtrar('todos')">Todos <span class="filt-num">{{pedidos.length}}</span></div>
@@ -34,8 +31,7 @@
     <div class="stat-chip"><span class="sc-num blue" style="margin-right:.3rem;">{{countByEstado('nuevo')}}</span><span class="sc-lbl">Nuevos</span></div>
     <div class="stat-chip"><span class="sc-num orange" style="margin-right:.3rem;">{{countByEstado('en-preparacion')}}</span><span class="sc-lbl">En cocina</span></div>
     <div class="stat-chip"><span class="sc-num green" style="margin-right:.3rem;">{{countByEstado('listo')}}</span><span class="sc-lbl">Listos p/ entregar</span></div>
-    <div class="stat-chip"><span class="sc-num red" style="margin-right:.3rem;">{{countByEstado('urgente')}}</span><span class="sc-lbl">Con alerta</span></div>
-    <div class="stat-chip" style="margin-left:auto;"><span class="sc-lbl">Tiempo prom. prep.</span><span class="sc-num gold" style="margin-left:.5rem;">22 min</span></div>
+    <div class="stat-chip" style="margin-left:auto;"><span class="sc-num red" style="margin-right:.3rem;">{{countByEstado('urgente')}}</span><span class="sc-lbl">Con alerta</span></div>
   </div>
 
   <!-- CONTENT SPLIT -->
@@ -60,13 +56,6 @@
             <div class="item-chip" *ngFor="let item of p.items | slice:0:3"><span class="ic-e">{{ item.e }}</span> {{ item.n }}</div>
             <div class="item-chip more" *ngIf="p.items.length > 3">+{{ p.items.length - 3 }} más</div>
           </div>
-        </div>
-        <div class="pr-timer-col">
-          <div class="pr-timer" [style.color]="p.estado === 'cancelado' || p.estado === 'entregado' ? 'var(--muted)' : ''">{{ p.timer }}</div>
-          <div class="pr-timebar" *ngIf="p.estado !== 'cancelado' && p.estado !== 'entregado'">
-             <div class="pr-timebar-fill" [style.width]="getTimerFill(p.estado)"></div>
-          </div>
-          <div class="pr-timer-lbl" [style.color]="p.estado === 'nuevo' ? 'var(--blue)' : p.estado === 'urgente' ? 'var(--red)' : ''">{{ getTimerLabel(p.estado) }}</div>
         </div>
         <div class="pr-amount-col">
           <div class="pr-amount" [style.color]="p.estado === 'urgente' ? 'var(--red)' : p.estado === 'cancelado' || p.estado === 'entregado' ? 'var(--muted)' : ''">{{ p.total }}</div>
@@ -96,10 +85,6 @@
           <div class="dp-meta" style="font-size: 0.85rem; display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.8rem;">
             <div class="dp-badge {{ dp.estado }}" style="padding: 0.2rem 0.5rem; font-size: 0.8rem;">{{ getBadgeLabel(dp.estado) }}</div>
             <div class="dp-zone" style="font-size: 0.85rem;">· {{ dp.zona }}</div>
-            <div class="dp-elapsed" style="display: flex; align-items: center; gap: 0.2rem; font-size: 0.85rem;">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-              <span>{{ dp.timer }}</span>
-            </div>
           </div>
         </div>
 

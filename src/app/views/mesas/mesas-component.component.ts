@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
 
 // Interfaz basada en la tabla de la base de datos
 export interface Mesa {
@@ -35,7 +36,7 @@ export class MesasComponent implements OnInit {
   nuevaMesaCapacidad: number = 2;
   nuevaMesaSucursal: number = 1; // Puede ser dinámico según la sucursal actual
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient, private router: Router) { }
 
   ngOnInit(): void {
     this.obtenerMesas();
@@ -59,6 +60,14 @@ export class MesasComponent implements OnInit {
   // ----- FILTROS Y ESTADÍSTICAS -----
   filtrar(estado: string): void {
     this.filtroActual = estado;
+  }
+  
+  // ----- NAVEGACIÓN A PEDIDOS PARA COBRAR -----
+  irAPedidos(mesa: Mesa): void {
+    const mesaId = mesa.id_mesa || mesa.idMesa;
+    if (mesaId) {
+      this.router.navigate(['/pedidos'], { queryParams: { mesaId: mesaId } });
+    }
   }
 
   get mesasFiltradas(): Mesa[] {
