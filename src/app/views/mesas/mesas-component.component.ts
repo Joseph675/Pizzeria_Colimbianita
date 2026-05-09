@@ -44,7 +44,7 @@ export class MesasComponent implements OnInit {
 
   // ----- OBTENER MESAS (GET) -----
   obtenerMesas(): void {
-    this.http.get<Mesa[]>('http://localhost:8080/api/mesas').subscribe({
+    this.http.get<Mesa[]>('http://178.105.36.117:8080/api/mesas').subscribe({
       next: (data) => {
         // Ordenamos las mesas por su número para que se vean organizadas
         this.mesas = data.sort((a, b) => (a.numeroMesa || 0) - (b.numeroMesa || 0));
@@ -126,7 +126,7 @@ export class MesasComponent implements OnInit {
 
     console.log('Creando nueva mesa:', nuevaMesa);
 
-    this.http.post('http://localhost:8080/api/mesas', nuevaMesa).subscribe({
+    this.http.post('http://178.105.36.117:8080/api/mesas', nuevaMesa).subscribe({
       next: (res: any) => {
         console.log('Mesa creada correctamente', res);
         alert('Mesa creada con éxito');
@@ -173,7 +173,7 @@ export class MesasComponent implements OnInit {
       estado: this.selectedMesa.estado || 'LIBRE'
     };
 
-    this.http.put(`http://localhost:8080/api/mesas/${mesaId}`, updatedMesa).subscribe({
+    this.http.put(`http://178.105.36.117:8080/api/mesas/${mesaId}`, updatedMesa).subscribe({
       next: () => {
         alert('Mesa actualizada con éxito');
         this.closeEditarMesaModal();
@@ -202,7 +202,7 @@ export class MesasComponent implements OnInit {
       return;
     }
 
-    this.http.delete(`http://localhost:8080/api/mesas/${mesaId}`).subscribe({
+    this.http.delete(`http://178.105.36.117:8080/api/mesas/${mesaId}`).subscribe({
       next: () => {
         alert('Mesa eliminada correctamente');
         this.closeEliminarMesaModal();

@@ -50,7 +50,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   cargarDatosDashboard(silencioso = false): void {
     if (!silencioso) this.cargando = true;
     
-    const baseUrl = 'http://localhost:8080/api/dashboard';
+    const baseUrl = 'http://178.105.36.117:8080/api/dashboard';
     const idSucursal = 1; // Ajustar dinámicamente si tienes múltiples sucursales
 
     // Disparamos todas las peticiones a Spring Boot en paralelo

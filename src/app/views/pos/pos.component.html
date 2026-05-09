@@ -55,7 +55,8 @@
     <div class="order-header">
       <div class="oh-top">
         <div>
-          <div class="oh-title">Pedido <em>#NUEVO</em></div>
+          <div class="oh-title" *ngIf="!isEditMode()">Pedido <em>#NUEVO</em></div>
+          <div class="oh-title" *ngIf="isEditMode()">Editando Pedido <em>#{{ editOrderId }}</em></div>
           <div class="oh-num">{{ orderItems.length }} items</div>
         </div>
         <button class="icon-btn" title="Limpiar pedido" (click)="clearOrder()">
@@ -129,9 +130,10 @@
       </div>
 
 
-      <button class="btn-charge" (click)="enviarPedido()">
+      <button class="btn-charge" (click)="submitOrder()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-        Enviar a Cocina
+        <span *ngIf="!isEditMode()">Enviar a Cocina</span>
+        <span *ngIf="isEditMode()">Guardar Cambios</span>
         <span class="charge-amount">{{ orderTotal | currency:'USD':'symbol':'1.0-0' }}</span>
       </button>
     </div>
@@ -296,14 +298,20 @@
 <!-- ══ SUCCESS MODAL ══ -->
 <div class="modal-overlay" [class.open]="showSuccessModal">
   <div class="success-modal">
-    <div class="success-icon">🔥</div>
-    <div class="success-title">¡Pedido Enviado!</div>
-    <div class="success-sub">El pedido ha sido enviado a la cocina.</div>
+    <div class="success-icon" *ngIf="!isEditMode()">🔥</div>
+    <div class="success-icon" *ngIf="isEditMode()">💾</div>
+    <div class="success-title" *ngIf="!isEditMode()">¡Pedido Enviado!</div>
+    <div class="success-title" *ngIf="isEditMode()">¡Pedido Actualizado!</div>
+    <div class="success-sub" *ngIf="!isEditMode()">El pedido ha sido enviado a la cocina.</div>
+    <div class="success-sub" *ngIf="isEditMode()">Los cambios del pedido se guardaron correctamente.</div>
     <div class="success-change" style="font-size: 1rem; margin-bottom: 1.5rem;">
       <span style="color: var(--gold);">{{ orderType | uppercase }} {{ selectedMesa ? ' - MESA ' + (selectedMesa.numeroMesa || selectedMesa.numero_mesa) : '' }}</span>
     </div>
     <div class="success-actions">
-      <button class="btn-new-order" (click)="closeSuccess()" style="flex: 1;">+ Nuevo Pedido</button>
+      <button class="btn-new-order" (click)="closeSuccess()" style="flex: 1;">
+        <span *ngIf="!isEditMode()">+ Nuevo Pedido</span>
+        <span *ngIf="isEditMode()">⬅️ Volver a Pedidos</span>
+      </button>
     </div>
   </div>
 </div>

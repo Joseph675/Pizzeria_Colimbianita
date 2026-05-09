@@ -40,7 +40,7 @@ export class CombosyPromocionesComponent implements OnInit {
   // ==========================================
 
   cargarCombos(): void {
-    this.http.get<any[]>('http://localhost:8080/api/combos').subscribe({
+    this.http.get<any[]>('http://178.105.36.117:8080/api/combos').subscribe({
       next: (data) => {
         this.combos = data || [];
         // Si la base de datos está vacía, cargamos unos datos de prueba para visualizar el mockup
@@ -58,7 +58,7 @@ export class CombosyPromocionesComponent implements OnInit {
   }
 
   cargarPromos(): void {
-    this.http.get<any[]>('http://localhost:8080/api/promociones').subscribe({
+    this.http.get<any[]>('http://178.105.36.117:8080/api/promociones').subscribe({
       next: (data) => {
         this.promos = data || [];
         if (this.promos.length === 0) {
@@ -133,7 +133,7 @@ export class CombosyPromocionesComponent implements OnInit {
     item.estado = nuevoEstado;
     
     // Aquí enviarás el PUT a la base de datos para guardar el cambio
-    // let url = this.currentTab === 'combos' ? `http://localhost:8080/api/combos/${item.id}` : `http://localhost:8080/api/promociones/${item.id}`;
+    // let url = this.currentTab === 'combos' ? `http://178.105.36.117:8080/api/combos/${item.id}` : `http://178.105.36.117:8080/api/promociones/${item.id}`;
     // this.http.put(url, item).subscribe(...)
     
     this.aplicarFiltros();

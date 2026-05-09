@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { NgIf, NgForOf, NgClass, DatePipe, CurrencyPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subscription, interval } from 'rxjs';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
@@ -36,7 +36,7 @@ export class PedidosComponent implements OnInit, OnDestroy {
 
   public autoOpenMesaId: number | null = null;
 
-  constructor(private http: HttpClient, private authService: AuthService, private route: ActivatedRoute) {
+  constructor(private http: HttpClient, private authService: AuthService, private route: ActivatedRoute, private router: Router) {
     this.fechaHoy = this.obtenerFechaHoy();
     this.filtroFecha = this.fechaHoy;
   }
@@ -81,7 +81,7 @@ export class PedidosComponent implements OnInit, OnDestroy {
     
     // Se asume que el backend (Spring Boot) devuelve la lista de pedidos y, 
     // gracias a las relaciones, cada pedido incluye su lista de detalles
-    this.http.get<any[]>('http://localhost:8080/api/pedidos').subscribe({
+    this.http.get<any[]>('http://178.105.36.117:8080/api/pedidos').subscribe({
       next: (data) => {
         const pedidosRecibidos = data || [];
         
@@ -110,9 +110,9 @@ export class PedidosComponent implements OnInit, OnDestroy {
           // Buscamos el pedido activo (que no esté pagado o cancelado) para esta mesa
           const pedidoMesa = this.pedidos.find(p => {
             const estado = (p.estado || '').toUpperCase();
-            // Capturamos el ID o el Número de la mesa sin importar la estructura del JSON
-            const idMesaPedido = p.mesa?.idMesa || p.mesa?.id_mesa || p.idMesa || p.id_mesa;
-            const numMesaPedido = p.mesa?.numeroMesa || p.mesa?.numero_mesa || p.numeroMesa || p.numero_mesa;
+            // Capturamos el ID o el Número de la mesa de forma ultra robusta (soporta objetos o IDs sueltos)
+            const idMesaPedido = p.mesa?.idMesa || p.mesa?.id_mesa || p.idMesa || p.id_mesa || (typeof p.mesa === 'number' || typeof p.mesa === 'string' ? p.mesa : null);
+            const numMesaPedido = p.mesa?.numeroMesa || p.mesa?.numero_mesa || p.numeroMesa || p.numero_mesa || idMesaPedido;
             
             return (estado !== 'PAGADO' && estado !== 'CANCELADO') && 
                    (Number(idMesaPedido) === this.autoOpenMesaId || Number(numMesaPedido) === this.autoOpenMesaId);
@@ -230,7 +230,7 @@ export class PedidosComponent implements OnInit, OnDestroy {
     
     // Petición PUT para actualizar el pedido.
     // Nota: Asegúrate de que el backend soporte PUT en este endpoint (o ajústalo a tu API).
-    this.http.put(`http://localhost:8080/api/pedidos/${id}`, pedido).subscribe({
+    this.http.put(`http://178.105.36.117:8080/api/pedidos/${id}`, pedido).subscribe({
       next: () => {
         console.log(`Estado del pedido #${id} actualizado a ${nuevoEstado}`);
       },
@@ -269,7 +269,7 @@ export class PedidosComponent implements OnInit, OnDestroy {
     }
 
     // 1. Consultamos si hay un turno de caja abierto dinámicamente
-    this.http.get<any[]>('http://localhost:8080/api/cierres-caja').subscribe({
+    this.http.get<any[]>('http://178.105.36.117:8080/api/cierres-caja').subscribe({
       next: (cierres) => {
         const turnoAbierto = cierres.find(c => c.estado === 'ABIERTA');
         
@@ -291,15 +291,23 @@ export class PedidosComponent implements OnInit, OnDestroy {
         };
 
         // 3. Registramos la factura
-        this.http.post('http://localhost:8080/api/facturas', payloadFactura).subscribe({
+        this.http.post('http://178.105.36.117:8080/api/facturas', payloadFactura).subscribe({
           next: () => {
             this.cambiarEstado(this.pedidoSeleccionado, 'PAGADO');
             
             // Liberar la mesa automáticamente en la base de datos
             if (this.pedidoSeleccionado.mesa) {
-              const mesaActualizada = { ...this.pedidoSeleccionado.mesa, estado: 'LIBRE' };
-              const idMesa = mesaActualizada.idMesa || mesaActualizada.id_mesa;
-              this.http.put(`http://localhost:8080/api/mesas/${idMesa}`, mesaActualizada).subscribe({
+              let idMesa = this.pedidoSeleccionado.mesa?.idMesa || this.pedidoSeleccionado.mesa?.id_mesa || this.pedidoSeleccionado.idMesa || this.pedidoSeleccionado.id_mesa;
+              
+              if (!idMesa && (typeof this.pedidoSeleccionado.mesa === 'number' || typeof this.pedidoSeleccionado.mesa === 'string')) {
+                idMesa = this.pedidoSeleccionado.mesa;
+              }
+              
+              // Creamos un objeto base seguro por si la mesa venía como un número simple
+              const baseMesa = typeof this.pedidoSeleccionado.mesa === 'object' ? this.pedidoSeleccionado.mesa : { idMesa: idMesa, numeroMesa: idMesa, capacidad: 4, sucursal: { idSucursal: 1 } };
+              const mesaActualizada = { ...baseMesa, estado: 'LIBRE' };
+              
+              this.http.put(`http://178.105.36.117:8080/api/mesas/${idMesa}`, mesaActualizada).subscribe({
                 next: () => console.log(`Mesa #${idMesa} liberada exitosamente.`),
                 error: (err) => console.error(`Error al liberar la mesa #${idMesa}:`, err)
               });
@@ -319,6 +327,18 @@ export class PedidosComponent implements OnInit, OnDestroy {
         alert('Error al verificar la caja. Asegúrate de tener conexión al servidor.');
       }
     });
+  }
+
+  public editarPedido(pedido: any): void {
+    const idPedido = pedido.id_pedido || pedido.idPedido;
+    if (!idPedido) {
+      alert('No se pudo identificar el pedido para editar.');
+      return;
+    }
+    this.cerrarDetalles(); // Cerramos el modal actual
+
+    // Navegamos al componente POS en modo edición
+    this.router.navigate(['/pos'], { queryParams: { editOrderId: idPedido } });
   }
 
   imprimirTicket(): void {

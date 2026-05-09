@@ -62,7 +62,7 @@
       
       <div class="pc-meta">
         <div class="meta-item"><span class="icon">📅</span> {{ (p.fecha_hora || p.fechaHora) | date:'medium' }}</div>
-        <div class="meta-item"><span class="icon">🏷️</span> {{ p.tipo_pedido || p.tipoPedido }} <span *ngIf="p.mesa"> (Mesa {{ p.mesa?.numero_mesa || p.mesa?.numeroMesa }})</span></div>
+        <div class="meta-item"><span class="icon">🏷️</span> {{ p.tipo_pedido || p.tipoPedido }} <span *ngIf="p.mesa"> (Mesa {{ p.mesa?.numero_mesa || p.mesa?.numeroMesa || p.numero_mesa || p.numeroMesa || p.mesa?.idMesa || p.mesa?.id_mesa || p.idMesa || p.id_mesa || p.mesa }})</span></div>
         <!-- NUEVO: Información del Cliente -->
         <div class="meta-item" *ngIf="p.cliente"><span class="icon">👤</span> {{ p.cliente?.nombres || p.cliente?.nombre }} <small *ngIf="p.cliente?.celular">({{ p.cliente?.celular }})</small></div>
         <!-- NUEVO: Dirección de Entrega -->
@@ -158,9 +158,14 @@
           <span class="pm-total-lbl">Total del Pedido</span>
           <span class="pm-total-val">{{ pedidoSeleccionado.total | currency:'USD':'symbol':'1.0-0' }}</span>
         </div>
-        <button class="btn-cobrar" *ngIf="pedidoSeleccionado.estado !== 'PAGADO'" (click)="abrirModalCobrar()">
-          💰 Cobrar Pedido
-        </button>
+        <div style="display: flex; gap: 1rem; align-items: center;">
+          <button class="btn-editar" style="padding: 0.8rem 1.5rem; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.15); color: #fff; border-radius: 8px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 0.5rem;" *ngIf="pedidoSeleccionado.estado !== 'PAGADO' && pedidoSeleccionado.estado !== 'CANCELADO'" (click)="editarPedido(pedidoSeleccionado)">
+            <span>✏️</span> Editar
+          </button>
+          <button class="btn-cobrar" *ngIf="pedidoSeleccionado.estado !== 'PAGADO' && pedidoSeleccionado.estado !== 'CANCELADO'" (click)="abrirModalCobrar()">
+            💰 Cobrar
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -221,7 +226,7 @@
     <div class="ticket-info">
       <p><strong>Factura/Pedido:</strong> #{{ pedidoSeleccionado.id_pedido || pedidoSeleccionado.idPedido }}</p>
       <p><strong>Fecha:</strong> {{ (pedidoSeleccionado.fecha_hora || pedidoSeleccionado.fechaHora) | date:'dd/MM/yyyy HH:mm' }}</p>
-      <p><strong>Tipo:</strong> {{ pedidoSeleccionado.tipo_pedido || pedidoSeleccionado.tipoPedido }} <span *ngIf="pedidoSeleccionado.mesa">(Mesa {{ pedidoSeleccionado.mesa.numeroMesa || pedidoSeleccionado.mesa.numero_mesa }})</span></p>
+      <p><strong>Tipo:</strong> {{ pedidoSeleccionado.tipo_pedido || pedidoSeleccionado.tipoPedido }} <span *ngIf="pedidoSeleccionado.mesa">(Mesa {{ pedidoSeleccionado.mesa?.numeroMesa || pedidoSeleccionado.mesa?.numero_mesa || pedidoSeleccionado.numeroMesa || pedidoSeleccionado.numero_mesa || pedidoSeleccionado.mesa?.idMesa || pedidoSeleccionado.mesa?.id_mesa || pedidoSeleccionado.idMesa || pedidoSeleccionado.id_mesa || pedidoSeleccionado.mesa }})</span></p>
       <p *ngIf="pedidoSeleccionado.cliente"><strong>Cliente:</strong> {{ pedidoSeleccionado.cliente.nombres || pedidoSeleccionado.cliente.nombre }}</p>
       <p><strong>Método de Pago:</strong> {{ metodoPago }}</p>
     </div>

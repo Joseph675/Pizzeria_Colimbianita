@@ -1,7 +1,8 @@
-﻿﻿import { Component, OnInit, signal  } from '@angular/core';
+﻿﻿﻿﻿import { Component, OnInit, signal  } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { NgForOf, NgIf, NgClass, NgStyle, CurrencyPipe, UpperCasePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
   templateUrl: 'pos.component.html',
@@ -16,6 +17,9 @@ export class PosComponent implements OnInit {
   public searchTerm: string = '';
   public activeCategory: string = 'todo';
   
+  // Loading state
+  public isLoadingPresentaciones = false;
+
   // Order state
   public orderItems: any[] = [];
   public orderType: string = 'mesa';
@@ -41,6 +45,7 @@ export class PosComponent implements OnInit {
 
   public showMesaModal = false;
   public mesasDisponibles: any[] = [];
+  public todasLasMesas: any[] = []; // Lista maestra para buscar la info completa de cualquier mesa
   public selectedMesa: any = null;
 
   public showNumpadModal = false;
@@ -56,13 +61,49 @@ export class PosComponent implements OnInit {
   public mitadSabor1Id: string = '';
   public mitadSabor2Id: string = '';
 
-  constructor(private http: HttpClient) {}
+  // Estado de Edición
+  public isEditMode = signal(false);
+  public editOrderId: number | null = null;
+  public originalFechaHora: string | null = null;
+  public originalEstado: string | null = null;
+  public deletedDetalles: number[] = []; // Array para registrar los detalles eliminados
+
+  constructor(private http: HttpClient, private route: ActivatedRoute, private router: Router) {}
 
   ngOnInit(): void {
+    this.route.queryParams.subscribe(params => {
+      const orderId = params['editOrderId'];
+      if (orderId) {
+        this.isEditMode.set(true);
+        this.editOrderId = Number(orderId);
+        
+        // Limpiamos el estado actual antes de cargar el pedido a editar
+        this.clearOrder();
+        this.selectedCliente = null;
+        this.selectedMesa = null;
+        this.direccionEntrega = '';
+        this.originalFechaHora = null;
+        this.originalEstado = null;
+        this.deletedDetalles = [];
+        
+        this.loadOrderForEdit(this.editOrderId);
+
+        // Limpiamos el parámetro de la URL para evitar recargas en modo edición
+        this.router.navigate([], {
+          relativeTo: this.route,
+          queryParams: { editOrderId: null },
+          queryParamsHandling: 'merge',
+        });
+      }
+    });
+
     this.loadPresentaciones();
     this.loadMesas();
     this.loadClientes();
   }
+
+  // ----- LÓGICA DE EDICIÓN DE PEDIDO -----
+
 
   calcularPosicionModal(): void {
     setTimeout(() => {
@@ -76,8 +117,70 @@ export class PosComponent implements OnInit {
     }, 0);
   }
 
+  loadOrderForEdit(orderId: number): void {
+    this.http.get<any>(`http://178.105.36.117:8080/api/pedidos/${orderId}`).subscribe({
+      next: (pedido) => {
+        if (!pedido || !pedido.detalles) {
+          alert('No se pudo cargar el pedido para editar o no tiene detalles.');
+          this.router.navigate(['/pedidos']); // Volver si el pedido es inválido
+          return;
+        }
+
+        // Mapeamos los detalles del pedido al formato que usa el POS (orderItems)
+        this.orderItems = pedido.detalles.map((det: any) => ({
+          idDetalle: det.idDetalle || det.id_detalle, // <- Guardamos el ID del detalle
+          idPresentacion: det.presentacion.idPresentacion || det.presentacion.id_presentacion,
+          emoji: this.getEmoji(det.presentacion.producto?.nombre),
+          nombreProducto: det.presentacion.producto?.nombre,
+          nombrePresentacion: det.presentacion.nombrePresentacion || det.presentacion.nombre_presentacion,
+          precio: det.precioCobrado || det.precio_cobrado,
+          qty: det.fraccion,
+          notas: det.notas || null
+        }));
+
+        // Establecemos las otras propiedades del pedido
+        const tipoRaw = (pedido.tipoPedido || pedido.tipo_pedido || 'mesa').toLowerCase();
+        this.orderType = tipoRaw.includes('mesa') ? 'mesa' : tipoRaw;
+
+        // Extraemos de forma robusta el ID de la mesa
+        const mesaId = pedido.mesa?.idMesa || pedido.mesa?.id_mesa || pedido.idMesa || pedido.id_mesa || (typeof pedido.mesa === 'number' || typeof pedido.mesa === 'string' ? pedido.mesa : null);
+        const mesaNum = pedido.mesa?.numeroMesa || pedido.mesa?.numero_mesa || pedido.numeroMesa || pedido.numero_mesa || mesaId;
+
+        if (mesaId) {
+          this.selectedMesa = { idMesa: mesaId, numeroMesa: mesaNum };
+          
+          // Si ya cargamos la lista maestra de mesas, enriquecemos los datos inmediatamente
+          if (this.todasLasMesas && this.todasLasMesas.length > 0) {
+            const realMesa = this.todasLasMesas.find(m => (m.idMesa || m.id_mesa) == mesaId);
+            if (realMesa) {
+              this.selectedMesa = realMesa;
+            }
+          }
+        } else {
+          this.selectedMesa = null;
+        }
+
+        this.selectedCliente = pedido.cliente;
+        this.direccionEntrega = pedido.direccionEntrega || pedido.direccion_entrega || '';
+        this.originalFechaHora = pedido.fechaHora || pedido.fecha_hora; // <- Guardamos la fecha original
+        this.originalEstado = pedido.estado; // <- Guardamos el estado original
+        
+        this.calculateTotals();
+      },
+      error: (err) => {
+        console.error(`Error al cargar el pedido #${orderId} para editar:`, err);
+        alert('Error al cargar la información del pedido. Volviendo a la lista.');
+        this.router.navigate(['/pedidos']);
+      }
+    });
+  }
+
+  cancelEdit(): void {
+    this.router.navigate(['/pedidos']);
+  }
+
   loadClientes(): void {
-    this.http.get<any[]>('http://localhost:8080/api/clientes').subscribe({
+    this.http.get<any[]>('http://178.105.36.117:8080/api/clientes').subscribe({
       next: (data) => {
         // Traemos solo clientes activos
         this.clientesRegistrados = (data || []).filter(c => c.estado === 1);
@@ -90,12 +193,22 @@ export class PosComponent implements OnInit {
   }
 
   loadMesas(): void {
-    this.http.get<any[]>('http://localhost:8080/api/mesas').subscribe({
+    this.http.get<any[]>('http://178.105.36.117:8080/api/mesas').subscribe({
       next: (data) => {
+        this.todasLasMesas = data || []; // Guardamos TODAS las mesas sin importar su estado
         // Filtramos solo las mesas con estado 'LIBRE' y las ordenamos
-        this.mesasDisponibles = (data || [])
+        this.mesasDisponibles = this.todasLasMesas
           .filter((mesa: any) => mesa.estado && mesa.estado.toUpperCase() === 'LIBRE')
           .sort((a, b) => (a.numeroMesa || 0) - (b.numeroMesa || 0));
+          
+        // Si estamos editando, buscamos la info completa de la mesa actual para que no muestre "IDs random"
+        if (this.isEditMode() && this.selectedMesa) {
+          const currentId = this.selectedMesa.idMesa || this.selectedMesa.id_mesa;
+          const realMesa = this.todasLasMesas.find(m => (m.idMesa || m.id_mesa) == currentId);
+          if (realMesa) {
+            this.selectedMesa = realMesa;
+          }
+        }
         console.log('Mesas libres cargadas en POS:', this.mesasDisponibles);
       },
       error: (err) => {
@@ -105,18 +218,21 @@ export class PosComponent implements OnInit {
   }
 
   loadPresentaciones(): void {
+    this.isLoadingPresentaciones = true;
     this.http
-      .get<any[]>('http://localhost:8080/api/presentaciones')
-      .subscribe(
-        (data) => {
+      .get<any[]>('http://178.105.36.117:8080/api/presentaciones')
+      .subscribe({
+        next: (data) => {
           // Solo cargar presentaciones activas para la venta
           this.presentaciones = (data || []).filter(p => p.estado === 1);
           this.applyFilters();
+          this.isLoadingPresentaciones = false;
         },
-        (error) => {
+        error: (error) => {
           console.error('Error al cargar presentaciones:', error);
+          this.isLoadingPresentaciones = false;
         }
-      );
+      });
   }
 
   applyFilters(): void {
@@ -265,7 +381,7 @@ export class PosComponent implements OnInit {
       alert('El celular y los nombres son obligatorios.');
       return;
     }
-    this.http.post('http://localhost:8080/api/clientes', this.nuevoCliente).subscribe({
+    this.http.post('http://178.105.36.117:8080/api/clientes', this.nuevoCliente).subscribe({
       next: (res: any) => {
         this.loadClientes(); // Refrescamos lista maestra
         this.selectCliente(res); // Seleccionamos directamente el que acabamos de crear
@@ -340,12 +456,26 @@ export class PosComponent implements OnInit {
     
     item.qty += delta;
     if (item.qty < 1) {
+      // Si el item se elimina por completo y estamos en modo edición, guardamos su ID
+      if (this.isEditMode() && item.idDetalle) {
+        this.deletedDetalles.push(item.idDetalle);
+      }
+
       this.orderItems.splice(index, 1);
     }
     this.calculateTotals();
   }
 
   clearOrder(): void {
+    // Si se limpia todo el carrito en modo edición, marcamos todos los IDs existentes para eliminar
+    if (this.isEditMode()) {
+      this.orderItems.forEach(item => {
+        if (item.idDetalle) {
+          this.deletedDetalles.push(item.idDetalle);
+        }
+      });
+    }
+
     this.orderItems = [];
     this.calculateTotals();
   }
@@ -414,7 +544,7 @@ export class PosComponent implements OnInit {
   }
 
   // ----- ENVIAR PEDIDO -----
-  enviarPedido(): void {
+  submitOrder(): void {
     if (this.orderItems.length === 0) {
       alert('Por favor, agrega al menos un producto al pedido.');
       return;
@@ -426,50 +556,93 @@ export class PosComponent implements OnInit {
       return;
     }
 
-    console.log('Enviando pedido a cocina...', {
-      orderType: this.orderType,
-      selectedMesa: this.selectedMesa,
-      orderItems: this.orderItems,
-      orderTotal: this.orderTotal
-    });
-
     // 1. Mapeamos los items del carrito al formato DetallePedidoDTO
-    const detalles = this.orderItems.map(item => ({
-      idPresentacion: item.idPresentacion,
-      fraccion: item.qty,
-      precioCobrado: item.precio,
-      notas: item.notas || null // Se adjuntan las notas específicas del producto
-    }));
+    const detalles = this.orderItems.map(item => {
+      const detalle: any = {
+        idPresentacion: item.idPresentacion,
+        fraccion: item.qty,
+        precioCobrado: (item.qty % 1 !== 0) ? item.precio : (item.precio * item.qty), // Aseguramos el precio correcto
+        notas: item.notas || null // Se adjuntan las notas específicas del producto
+      };
+      if (this.isEditMode() && item.idDetalle) {
+        detalle.idDetalle = item.idDetalle; // <- Mandamos el ID para que Spring Boot sepa cuál actualizar
+        detalle.id_detalle = item.idDetalle; // Aseguramos formato alternativo
+      }
+      return detalle;
+    });
 
     // 2. Construimos el objeto JSON (Cabecera + Detalles)
     const payload = {
       sucursal: { idSucursal: 1 }, // El backend espera el objeto anidado 'sucursal'
       tipoPedido: this.orderType.toUpperCase(),
-      mesa: this.orderType === 'mesa' && this.selectedMesa 
-              ? { idMesa: this.selectedMesa.idMesa || this.selectedMesa.id_mesa } 
-              : null, // Lo mismo para la mesa, espera un objeto anidado 'mesa'
-      cliente: this.selectedCliente ? { idCliente: this.selectedCliente.idCliente || this.selectedCliente.id_cliente } : null, // Mapeo del cliente
+      // Solo enviamos los IDs para evitar que Spring Boot/Hibernate rechace el objeto por conflictos de entidades anidadas
+      mesa: this.orderType === 'mesa' && this.selectedMesa ? { 
+        idMesa: this.selectedMesa.idMesa || this.selectedMesa.id_mesa,
+        id_mesa: this.selectedMesa.idMesa || this.selectedMesa.id_mesa
+      } : null,
+      // Igual para el cliente, solo enviamos los IDs
+      cliente: this.selectedCliente ? { 
+        idCliente: this.selectedCliente.idCliente || this.selectedCliente.id_cliente,
+        id_cliente: this.selectedCliente.idCliente || this.selectedCliente.id_cliente
+      } : null,
       direccionEntrega: (this.orderType === 'delivery' || this.orderType === 'domicilio') ? (this.direccionEntrega || 'Dirección por definir') : null, // Envia lo que escribimos
       total: this.orderTotal,
       estado: 'PENDIENTE',
       detalles: detalles
     };
 
-    console.log('Enviando a Spring Boot:', payload);
-
-    this.http.post('http://localhost:8080/api/pedidos/crear', payload).subscribe({
-      next: (res) => {
-        this.showSuccessModal = true; // Abre el modal de éxito animado
-        this.loadMesas(); // Recargamos las mesas libres (la seleccionada desaparecerá porque pasó a OCUPADA)
-      },
-      error: (err) => {
-        console.error('Error al enviar el pedido:', err);
-        alert('Ocurrió un error al enviar el pedido a cocina.');
+    if (this.isEditMode() && this.editOrderId) {
+      // --- MODO EDICIÓN: Actualizamos el pedido existente con PUT ---
+      const updatePayload = { 
+        ...payload, 
+        idPedido: this.editOrderId, 
+        id_pedido: this.editOrderId, // Aseguramos formato alternativo
+        estado: this.originalEstado || 'PENDIENTE', // Mantenemos el estado actual en lugar de resetear a pendiente
+        fechaHora: this.originalFechaHora, // <- Reenviamos la fecha para que no se pierda
+        fecha_hora: this.originalFechaHora // Aseguramos formato alternativo
+      };
+      console.log('Actualizando pedido en Spring Boot:', updatePayload);
+      
+      // Ejecutamos las eliminaciones pendientes hacia el endpoint DELETE
+      if (this.deletedDetalles.length > 0) {
+        this.deletedDetalles.forEach(idDetalle => {
+          this.http.delete(`http://178.105.36.117:8080/api/detalles-pedido/${idDetalle}`).subscribe({
+            next: () => console.log(`Detalle ${idDetalle} eliminado correctamente de la base de datos.`),
+            error: (err) => console.error(`Error al eliminar detalle ${idDetalle}:`, err)
+          });
+        });
       }
-    });
+
+      this.http.put(`http://178.105.36.117:8080/api/pedidos/${this.editOrderId}`, updatePayload).subscribe({
+          next: (res) => {
+              this.showSuccessModal = true;
+              this.loadMesas(); // Recargamos mesas por si se liberó o cambió una
+          },
+          error: (err) => {
+              console.error('Error al actualizar el pedido:', err);
+              alert('Ocurrió un error al actualizar el pedido.');
+          }
+      });
+
+    } else {
+      // --- MODO CREACIÓN: Creamos un nuevo pedido con POST (Lógica existente) ---
+      console.log('Creando nuevo pedido en Spring Boot:', payload);
+      this.http.post('http://178.105.36.117:8080/api/pedidos/crear', payload).subscribe({
+        next: (res) => {
+          this.showSuccessModal = true; // Abre el modal de éxito animado
+          this.loadMesas(); // Recargamos las mesas libres (la seleccionada desaparecerá porque pasó a OCUPADA)
+        },
+        error: (err) => {
+          console.error('Error al crear el pedido:', err);
+          alert('Ocurrió un error al enviar el pedido a cocina.');
+        }
+      });
+    }
   }
 
   // ----- NUMPAD MODAL LOGIC -----
+  // (Sin cambios en esta sección)
+
   openNumpad(): void {
     if (this.orderItems.length === 0) return;
     this.numpadValue = '';
@@ -515,11 +688,20 @@ export class PosComponent implements OnInit {
   // ----- SUCCESS MODAL LOGIC -----
   closeSuccess(): void {
     this.showSuccessModal = false;
-    this.selectedMesa = null;
-    this.orderType = 'mesa';
-    this.selectedCliente = null; // Limpiar cliente para el próximo pedido
-    this.direccionEntrega = ''; // Limpiamos la dirección en un pedido nuevo
-    this.clearOrder();
-  }
 
+    if (this.isEditMode()) {
+      // Si estábamos editando, volvemos a la lista de pedidos
+      this.isEditMode.set(false);
+      this.editOrderId = null;
+      this.deletedDetalles = [];
+      this.router.navigate(['/pedidos']);
+    } else {
+      // Si estábamos creando, reseteamos el POS para un nuevo pedido
+      this.selectedMesa = null;
+      this.orderType = 'mesa';
+      this.selectedCliente = null;
+      this.direccionEntrega = '';
+      this.clearOrder();
+    }
+  }
 }
