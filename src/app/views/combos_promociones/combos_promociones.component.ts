@@ -2,11 +2,12 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { ToastBodyComponent, ToastComponent, ToasterComponent, ToastHeaderComponent, ButtonCloseDirective } from '@coreui/angular';
 
 @Component({
   selector: 'app-combos_promociones',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ToastBodyComponent, ToastComponent, ToasterComponent, ToastHeaderComponent, ButtonCloseDirective],
   templateUrl: './combos_promociones.component.html',
   styleUrl: './combos_promociones.component.scss'
 })
@@ -35,7 +36,22 @@ export class CombosyPromocionesComponent implements OnInit {
   public searchProdTerm: string = '';
   public productosSugeridos: any[] = [];
 
+  // Variables para Toasts de CoreUI
+  public position = 'top-end';
+  public toasts: { id: number; message: string; type: 'success' | 'danger' | 'warning' | 'info' }[] = [];
+  private nextToastId = 0;
+
   constructor(private http: HttpClient) {}
+
+  addToast(message: string, type: 'success' | 'danger' | 'warning' | 'info' = 'success', duration = 3500) {
+    const id = this.nextToastId++;
+    this.toasts.push({ id, message, type });
+    setTimeout(() => this.removeToast(id), duration);
+  }
+
+  removeToast(id: number) {
+    this.toasts = this.toasts.filter((t) => t.id !== id);
+  }
 
   ngOnInit(): void {
     this.cargarPresentaciones(); // Al terminar de cargar presentaciones, llamará automáticamente a cargarCombos()
@@ -208,14 +224,14 @@ export class CombosyPromocionesComponent implements OnInit {
     if (this.selectedCard && this.selectedCard.idCombo) {
       this.http.delete(`http://178.105.36.117:8080/api/combos/${this.selectedCard.idCombo}`).subscribe({
         next: () => {
-          alert('Combo eliminado con éxito');
+          this.addToast('Combo eliminado con éxito', 'success');
           this.cargarCombos();
           this.cerrarDetalle();
           this.closeEliminarModal();
         },
         error: (err) => {
           console.error('Error al eliminar el combo', err);
-          alert('No se pudo eliminar el combo. Asegúrate de que no esté asociado a facturas pasadas.');
+          this.addToast('No se pudo eliminar el combo. Asegúrate de que no esté asociado a facturas.', 'danger');
           this.closeEliminarModal();
         }
       });
@@ -304,11 +320,11 @@ export class CombosyPromocionesComponent implements OnInit {
 
   guardarCombo(): void {
     if (!this.nuevoCombo.nombre || !this.nuevoCombo.precioFijo) {
-      alert('El nombre y el precio del combo son obligatorios.');
+      this.addToast('El nombre y el precio del combo son obligatorios.', 'warning');
       return;
     }
     if (!this.nuevoCombo.detalles || this.nuevoCombo.detalles.length === 0) {
-      alert('Debes agregar al menos un producto al combo.');
+      this.addToast('Debes agregar al menos un producto al combo.', 'warning');
       return;
     }
     
@@ -327,7 +343,7 @@ export class CombosyPromocionesComponent implements OnInit {
         },
         error: (err) => {
           console.error(err);
-          alert('Error al actualizar el combo');
+          this.addToast('Error al actualizar el combo', 'danger');
         }
       });
     } else {
@@ -338,14 +354,14 @@ export class CombosyPromocionesComponent implements OnInit {
           if (newComboId) {
             this.sincronizarDetallesCombo(newComboId);
           } else {
-            alert('Combo creado, pero no se pudo obtener el ID para guardar los productos.');
+            this.addToast('Combo creado, pero hubo un problema al guardar los productos.', 'warning');
             this.cargarCombos();
             this.closeModal();
           }
         },
         error: (err) => {
           console.error(err);
-          alert('Error al crear el combo');
+          this.addToast('Error al crear el combo', 'danger');
         }
       });
     }
@@ -398,7 +414,10 @@ export class CombosyPromocionesComponent implements OnInit {
   }
 
   finalizarGuardado(conErrores: boolean = false): void {
-    alert(conErrores ? 'El combo se guardó, pero hubo un error con algunos productos.' : 'Combo guardado correctamente con sus productos');
+    const mensaje = conErrores ? 'El combo se guardó, pero hubo un error con algunos productos.' : 'Combo guardado correctamente con sus productos';
+    const tipo = conErrores ? 'warning' : 'success';
+    
+    this.addToast(mensaje, tipo);
     this.cargarCombos();
     this.closeModal();
   }

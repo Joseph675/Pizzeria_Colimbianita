@@ -3,12 +3,13 @@ import { HttpClient } from '@angular/common/http';
 import { NgForOf, NgIf, NgClass, NgStyle, CurrencyPipe, UpperCasePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { ToastBodyComponent, ToastComponent, ToasterComponent, ToastHeaderComponent, ButtonCloseDirective } from '@coreui/angular';
 
 @Component({
   templateUrl: 'pos.component.html',
   styleUrls: ['pos.component.scss'],
   standalone: true,
-  imports: [NgIf, NgForOf, NgClass, NgStyle, CurrencyPipe, UpperCasePipe, FormsModule]
+  imports: [NgIf, NgForOf, NgClass, NgStyle, CurrencyPipe, UpperCasePipe, FormsModule, ToastBodyComponent, ToastComponent, ToasterComponent, ToastHeaderComponent, ButtonCloseDirective]
 })
 export class PosComponent implements OnInit {
   public presentaciones: any[] = [];
@@ -68,7 +69,22 @@ export class PosComponent implements OnInit {
   public originalEstado: string | null = null;
   public deletedDetalles: number[] = []; // Array para registrar los detalles eliminados
 
+  // Variables para Toasts de CoreUI
+  public position = 'top-end';
+  public toasts: { id: number; message: string; type: 'success' | 'danger' | 'warning' | 'info' }[] = [];
+  private nextToastId = 0;
+
   constructor(private http: HttpClient, private route: ActivatedRoute, private router: Router) {}
+
+  addToast(message: string, type: 'success' | 'danger' | 'warning' | 'info' = 'success', duration = 3500) {
+    const id = this.nextToastId++;
+    this.toasts.push({ id, message, type });
+    setTimeout(() => this.removeToast(id), duration);
+  }
+
+  removeToast(id: number) {
+    this.toasts = this.toasts.filter((t) => t.id !== id);
+  }
 
   ngOnInit(): void {
     this.route.queryParams.subscribe(params => {
@@ -121,7 +137,7 @@ export class PosComponent implements OnInit {
     this.http.get<any>(`http://178.105.36.117:8080/api/pedidos/${orderId}`).subscribe({
       next: (pedido) => {
         if (!pedido || !pedido.detalles) {
-          alert('No se pudo cargar el pedido para editar o no tiene detalles.');
+          this.addToast('No se pudo cargar el pedido para editar o no tiene detalles.', 'danger');
           this.router.navigate(['/pedidos']); // Volver si el pedido es inválido
           return;
         }
@@ -169,7 +185,7 @@ export class PosComponent implements OnInit {
       },
       error: (err) => {
         console.error(`Error al cargar el pedido #${orderId} para editar:`, err);
-        alert('Error al cargar la información del pedido. Volviendo a la lista.');
+        this.addToast('Error al cargar la información del pedido. Volviendo a la lista.', 'danger');
         this.router.navigate(['/pedidos']);
       }
     });
@@ -400,7 +416,7 @@ export class PosComponent implements OnInit {
 
   guardarNuevoCliente(): void {
     if (!this.nuevoCliente.celular || !this.nuevoCliente.nombres) {
-      alert('El celular y los nombres son obligatorios.');
+      this.addToast('El celular y los nombres son obligatorios.', 'warning');
       return;
     }
     this.http.post('http://178.105.36.117:8080/api/clientes', this.nuevoCliente).subscribe({
@@ -411,7 +427,7 @@ export class PosComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error al crear cliente desde POS:', err);
-        alert('Ocurrió un error al crear el cliente (¿el celular ya está registrado?).');
+        this.addToast('Ocurrió un error al crear el cliente (¿el celular ya está registrado?).', 'danger', 4500);
       }
     });
   }
@@ -472,7 +488,7 @@ export class PosComponent implements OnInit {
     
     // Bloqueo para evitar sumar unidades enteras a las mitades de pizza (qty fraccionado)
     if (item.qty % 1 !== 0 && delta > 0) {
-      alert('No puedes aumentar la cantidad de una mitad individualmente. Elimínala y vuelve a agregar la pizza Mitad y Mitad.');
+      this.addToast('No puedes aumentar la cantidad de una mitad. Elimínala y vuelve a agregarla.', 'warning', 4500);
       return;
     }
     
@@ -527,11 +543,11 @@ export class PosComponent implements OnInit {
 
   agregarPizzaMitadYMitad(): void {
     if (!this.mitadSabor1Id || !this.mitadSabor2Id) {
-      alert('Por favor selecciona ambos sabores.');
+      this.addToast('Por favor selecciona ambos sabores.', 'warning');
       return;
     }
     if (this.mitadSabor1Id === this.mitadSabor2Id) {
-      alert('Selecciona sabores diferentes. Si deseas un solo sabor, agrégala normalmente desde el catálogo.');
+      this.addToast('Selecciona sabores diferentes o agrégala desde el catálogo normal.', 'warning', 4500);
       return;
     }
 
@@ -568,12 +584,12 @@ export class PosComponent implements OnInit {
   // ----- ENVIAR PEDIDO -----
   submitOrder(): void {
     if (this.orderItems.length === 0) {
-      alert('Por favor, agrega al menos un producto al pedido.');
+      this.addToast('Por favor, agrega al menos un producto al pedido.', 'warning');
       return;
     }
 
     if (this.orderType === 'mesa' && !this.selectedMesa) {
-      alert('Por favor, selecciona una mesa para este pedido.');
+      this.addToast('Por favor, selecciona una mesa para este pedido.', 'warning');
       this.openMesaModal();
       return;
     }
@@ -642,7 +658,7 @@ export class PosComponent implements OnInit {
           },
           error: (err) => {
               console.error('Error al actualizar el pedido:', err);
-              alert('Ocurrió un error al actualizar el pedido.');
+              this.addToast('Ocurrió un error al actualizar el pedido.', 'danger');
           }
       });
 
@@ -656,7 +672,7 @@ export class PosComponent implements OnInit {
         },
         error: (err) => {
           console.error('Error al crear el pedido:', err);
-          alert('Ocurrió un error al enviar el pedido a cocina.');
+          this.addToast('Ocurrió un error al enviar el pedido a cocina.', 'danger');
         }
       });
     }
@@ -700,7 +716,7 @@ export class PosComponent implements OnInit {
   confirmPayment(): void {
     const received = parseInt(this.numpadValue || '0', 10);
     if (received < this.orderTotal) {
-      alert('El monto recibido es insuficiente.');
+      this.addToast('El monto recibido es insuficiente.', 'warning');
       return;
     }
     this.closeNumpad();

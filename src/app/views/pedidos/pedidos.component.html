@@ -67,6 +67,17 @@
         <div class="meta-item" *ngIf="p.cliente"><span class="icon">👤</span> {{ p.cliente?.nombres || p.cliente?.nombre }} <small *ngIf="p.cliente?.celular">({{ p.cliente?.celular }})</small></div>
         <!-- NUEVO: Dirección de Entrega -->
         <div class="meta-item" *ngIf="p.direccion_entrega || p.direccionEntrega"><span class="icon">📍</span> {{ p.direccion_entrega || p.direccionEntrega }}</div>
+        
+        <!-- NUEVO: Asignar Repartidor (Solo visible si es domicilio) -->
+        <div class="meta-item" *ngIf="(p.tipo_pedido || p.tipoPedido) === 'DOMICILIO' || (p.tipo_pedido || p.tipoPedido) === 'WHATSAPP'">
+          <span class="icon">🛵</span>
+          <select class="pc-status-select" style="background: rgba(255,255,255,0.05); color: #fff; border: 1px solid #333; font-size: 0.8rem; padding: 0.2rem 0.6rem; height: auto;" 
+                  [ngModel]="p.repartidor?.idUsuario || p.repartidor?.id_usuario || ''" 
+                  (change)="asignarRepartidor(p, $any($event.target).value)">
+            <option value="">-- Sin asignar --</option>
+            <option *ngFor="let rep of repartidores" [value]="rep.idUsuario || rep.id_usuario">{{ rep.nombres || rep.nombre || rep.username || ('Repartidor ' + (rep.idUsuario || rep.id_usuario)) }}</option>
+          </select>
+        </div>
       </div>
 
       <!-- Detalles del Carrito (Vista Previa Clickable) -->
@@ -130,6 +141,17 @@
           </div>
           <div *ngIf="pedidoSeleccionado.direccion_entrega || pedidoSeleccionado.direccionEntrega" style="font-size: 0.9rem; color: #666;">
             <strong>📍 Dirección:</strong> {{ pedidoSeleccionado.direccion_entrega || pedidoSeleccionado.direccionEntrega }}
+          </div>
+          
+          <!-- Selector de Repartidor en el Modal -->
+          <div *ngIf="(pedidoSeleccionado.tipo_pedido || pedidoSeleccionado.tipoPedido) === 'DOMICILIO' || (pedidoSeleccionado.tipo_pedido || pedidoSeleccionado.tipoPedido) === 'DELIVERY'" style="font-size: 0.9rem; color: #666; margin-top: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+            <strong>🛵 Repartidor:</strong>
+            <select class="pc-status-select" style="background: #fff; color: #333; border: 1px solid #ccc; font-size: 0.85rem; padding: 0.2rem 0.5rem; flex-grow: 1; max-width: 200px;" 
+                    [ngModel]="pedidoSeleccionado.repartidor?.idUsuario || pedidoSeleccionado.repartidor?.id_usuario || ''" 
+                    (change)="asignarRepartidor(pedidoSeleccionado, $any($event.target).value)">
+              <option value="">-- Sin asignar --</option>
+              <option *ngFor="let rep of repartidores" [value]="rep.idUsuario || rep.id_usuario">{{ rep.nombres || rep.nombre || rep.username || ('Repartidor ' + (rep.idUsuario || rep.id_usuario)) }}</option>
+            </select>
           </div>
         </div>
 
@@ -281,4 +303,16 @@
       <p>Se ha recibido un nuevo pedido en cocina.</p>
     </div>
   </div>
+</div>
+
+<!-- Contenedor de Toasts de CoreUI -->
+<div style="position: fixed; top: 0; right: 0; z-index: 99999; pointer-events: none; width: 100%; height: 100%;">
+  <c-toaster [placement]="position" class="p-3" position="absolute" style="pointer-events: auto;">
+    <c-toast *ngFor="let toast of toasts" [visible]="true" [color]="toast.type" class="text-white align-items-center border-0 shadow-lg mb-2">
+      <div class="d-flex">
+        <c-toast-body style="font-weight: 500; font-size: 0.95rem;">{{ toast.message }}</c-toast-body>
+        <button cButtonClose class="me-2 m-auto" white (click)="removeToast(toast.id)"></button>
+      </div>
+    </c-toast>
+  </c-toaster>
 </div>

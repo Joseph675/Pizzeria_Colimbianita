@@ -17,6 +17,7 @@
     "build": "ng build",
     "build:angular": "ng build --base-href ./",
     "build:exe": "electron-builder --win",
+    "build:all": "npm run build:angular && npm run build:exe",
     "electron:start": "electron .",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"

@@ -5,11 +5,12 @@ import { FormsModule } from '@angular/forms';
 import { Subscription, interval } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
+import { ToastBodyComponent, ToastComponent, ToasterComponent, ToastHeaderComponent, ButtonCloseDirective } from '@coreui/angular';
 
 @Component({
   selector: 'app-pedidos',
   standalone: true,
-  imports: [NgIf, NgForOf, NgClass, DatePipe, CurrencyPipe, FormsModule],
+  imports: [NgIf, NgForOf, NgClass, DatePipe, CurrencyPipe, FormsModule, ToastBodyComponent, ToastComponent, ToasterComponent, ToastHeaderComponent, ButtonCloseDirective],
   templateUrl: './pedidos.component.html',
   styleUrl: './pedidos.component.scss'
 })
@@ -19,6 +20,7 @@ export class PedidosComponent implements OnInit, OnDestroy {
   public cargando: boolean = false;
   public pedidoSeleccionado: any = null;
   public modalTop: string = '50%'; // Posición vertical dinámica
+  public repartidores: any[] = []; // Lista de usuarios/repartidores cargados del servidor
   private pollingSubscription?: Subscription;
   private ultimoIdPedido: number = 0;
   public mostrarNotificacion: boolean = false;
@@ -35,6 +37,21 @@ export class PedidosComponent implements OnInit, OnDestroy {
   public montoRecibido: number = 0;
 
   public autoOpenMesaId: number | null = null;
+
+  // Variables para Toasts de CoreUI
+  public position = 'top-end';
+  public toasts: { id: number; message: string; type: 'success' | 'danger' | 'warning' | 'info' }[] = [];
+  private nextToastId = 0;
+
+  addToast(message: string, type: 'success' | 'danger' | 'warning' | 'info' = 'success', duration = 3500) {
+    const id = this.nextToastId++;
+    this.toasts.push({ id, message, type });
+    setTimeout(() => this.removeToast(id), duration);
+  }
+
+  removeToast(id: number) {
+    this.toasts = this.toasts.filter((t) => t.id !== id);
+  }
 
   constructor(private http: HttpClient, private authService: AuthService, private route: ActivatedRoute, private router: Router) {
     this.fechaHoy = this.obtenerFechaHoy();
@@ -59,6 +76,7 @@ export class PedidosComponent implements OnInit, OnDestroy {
     });
 
     this.cargarPedidos();
+    this.cargarRepartidores();
 
     // Consultar nuevos pedidos de forma automática cada 10 segundos (10000ms)
     this.pollingSubscription = interval(10000).subscribe(() => {
@@ -71,6 +89,16 @@ export class PedidosComponent implements OnInit, OnDestroy {
     if (this.pollingSubscription) {
       this.pollingSubscription.unsubscribe();
     }
+  }
+
+  cargarRepartidores(): void {
+    // Cargamos los usuarios disponibles (Si tienes un endpoint o rol específico, ajústalo aquí)
+    this.http.get<any[]>('http://178.105.36.117:8080/api/usuarios').subscribe({
+      next: (data) => {
+        this.repartidores = data || [];
+      },
+      error: (err) => console.error('Error al cargar repartidores:', err)
+    });
   }
 
   cargarPedidos(esPolling: boolean = false): void {
@@ -122,7 +150,7 @@ export class PedidosComponent implements OnInit, OnDestroy {
             this.abrirDetalles(pedidoMesa);
             this.abrirModalCobrar();
           } else {
-            alert('Esta mesa no tiene pedidos activos pendientes por cobrar en este momento.');
+            this.addToast('Esta mesa no tiene pedidos activos pendientes por cobrar en este momento.', 'info');
           }
           this.autoOpenMesaId = null; // Lo reiniciamos para que no se auto-abra en cada polling
         }
@@ -237,7 +265,30 @@ export class PedidosComponent implements OnInit, OnDestroy {
       error: (err) => {
         console.error('Error al actualizar el estado', err);
         pedido.estado = estadoAnterior; // Revertir visualmente si el server falla
-        alert('No se pudo actualizar el estado en el servidor.');
+        this.addToast('No se pudo actualizar el estado en el servidor.', 'danger');
+      }
+    });
+  }
+
+  asignarRepartidor(pedido: any, idUsuario: string): void {
+    if (!idUsuario) return;
+
+    const idPedido = pedido.idPedido || pedido.id_pedido;
+    // Preparamos el payload. Spring Boot espera el objeto anidado por la relación de la llave foránea
+    const payload = { ...pedido, repartidor: { idUsuario: Number(idUsuario), id_usuario: Number(idUsuario) } };
+
+    this.http.put(`http://178.105.36.117:8080/api/pedidos/${idPedido}`, payload).subscribe({
+      next: () => {
+        this.addToast('Repartidor asignado con éxito.', 'success');
+        // Actualizamos la interfaz visualmente sin recargar la página
+        const rep = this.repartidores.find(r => (r.idUsuario || r.id_usuario) === Number(idUsuario));
+        if (rep) {
+          pedido.repartidor = rep;
+        }
+      },
+      error: (err) => {
+        console.error('Error al asignar repartidor', err);
+        this.addToast('No se pudo asignar el repartidor en el servidor.', 'danger');
       }
     });
   }
@@ -264,7 +315,7 @@ export class PedidosComponent implements OnInit, OnDestroy {
     const ID_USUARIO_VALIDO = user?.idUsuario || user?.id_usuario;
 
     if (!ID_USUARIO_VALIDO) {
-      alert('Error: No se pudo identificar al cajero para emitir la factura.');
+      this.addToast('No se pudo identificar al cajero para emitir la factura.', 'danger');
       return;
     }
 
@@ -274,7 +325,7 @@ export class PedidosComponent implements OnInit, OnDestroy {
         const turnoAbierto = cierres.find(c => c.estado === 'ABIERTA');
         
         if (!turnoAbierto) {
-          alert('Error: No hay ningún turno de caja abierto. Ve a la sección "Facturación" y abre un nuevo turno antes de cobrar.');
+          this.addToast('No hay ningún turno de caja abierto. Ve a "Facturación" y abre un turno.', 'warning', 4500);
           return;
         }
 
@@ -318,13 +369,13 @@ export class PedidosComponent implements OnInit, OnDestroy {
           },
           error: (err) => {
             console.error('Error al registrar la factura:', err);
-            alert('Error: No se pudo generar la factura en base de datos.');
+            this.addToast('No se pudo generar la factura en la base de datos.', 'danger');
           }
         });
       },
       error: (err) => {
         console.error('Error al verificar turnos de caja:', err);
-        alert('Error al verificar la caja. Asegúrate de tener conexión al servidor.');
+        this.addToast('Error al verificar la caja. Revisa tu conexión al servidor.', 'danger');
       }
     });
   }
@@ -332,7 +383,7 @@ export class PedidosComponent implements OnInit, OnDestroy {
   public editarPedido(pedido: any): void {
     const idPedido = pedido.id_pedido || pedido.idPedido;
     if (!idPedido) {
-      alert('No se pudo identificar el pedido para editar.');
+      this.addToast('No se pudo identificar el pedido para editar.', 'warning');
       return;
     }
     this.cerrarDetalles(); // Cerramos el modal actual
@@ -353,7 +404,7 @@ export class PedidosComponent implements OnInit, OnDestroy {
     // 2. Abrimos una ventana temporal o emergente
     const printWindow = window.open('', '_blank', 'height=600,width=400');
     if (!printWindow) {
-      alert('Por favor, permite las ventanas emergentes (pop-ups) para imprimir el ticket.');
+      this.addToast('Permite las ventanas emergentes (pop-ups) para imprimir el ticket.', 'warning', 5000);
       return;
     }
 
