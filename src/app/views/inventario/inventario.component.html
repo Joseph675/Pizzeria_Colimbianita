@@ -1,11 +1,199 @@
-<div style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 70vh; text-align: center;">
-  <div style="font-size: 5rem; margin-bottom: 1rem;">
-    🚧
+<div class="inventario-container">
+  <div class="grain"></div>
+
+  <!-- ═══════════════ MAIN ═══════════════ -->
+  <div class="main-wrap">
+    
+    <!-- HEADER -->
+    <div class="inv-header">
+      <div class="ih-top">
+        <div class="ih-title">Control de <span>Inventario</span></div>
+        <div class="ih-spacer"></div>
+        <div style="display:flex;gap:.5rem;">
+          <button class="btn-ghost-sm" (click)="abrirModal('ajuste')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            Ajuste
+          </button>
+          <button class="btn-ghost-sm" (click)="abrirModal('entrada')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Entrada
+          </button>
+          <button class="btn-primary" (click)="abrirModal('nuevo')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Nuevo producto
+          </button>
+        </div>
+      </div>
+      <div class="ih-controls">
+        <div class="search-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" placeholder="Buscar producto, SKU…" [(ngModel)]="searchTerm"/>
+        </div>
+        <div class="cat-btn" *ngFor="let cat of categoriasFiltro" [class.active]="catActual === cat.id" (click)="filtrarCat(cat.id)">
+          <div class="cdot" *ngIf="cat.color" [style.background]="cat.color"></div>{{ cat.label }}
+        </div>
+        <div class="ih-spacer"></div>
+        <select class="sort-select" [(ngModel)]="ordenActual" (change)="ordenar($event)">
+          <option value="nombre">Ordenar: Nombre</option>
+          <option value="stock_asc">Stock: menor a mayor</option>
+          <option value="stock_desc">Stock: mayor a menor</option>
+          <option value="precio">Precio venta</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats-bar">
+      <div class="stat-chip"><span class="sc-num green">{{ totalActivos }}</span><span class="sc-lbl" style="margin-left:.4rem;">Productos activos</span></div>
+      <div class="stat-chip"><span class="sc-num gold" style="margin-right:.3rem;">{{ valorTotal }}</span><span class="sc-lbl">Valor total stock</span></div>
+      <div class="alert-chip" *ngIf="stockCritico > 0"><span class="sc-num red" style="margin-right:.3rem;">{{ stockCritico }}</span><span class="sc-lbl" style="color:rgba(232,52,42,.7);">Stock crítico</span></div>
+      <div class="stat-chip" *ngIf="stockBajo > 0"><span class="sc-num orange" style="margin-right:.3rem;">{{ stockBajo }}</span><span class="sc-lbl">Stock bajo</span></div>
+      <div class="stat-chip" *ngIf="sinStock > 0"><span class="sc-num muted" style="margin-right:.3rem;">{{ sinStock }}</span><span class="sc-lbl">Sin stock</span></div>
+      <div class="stat-chip" style="margin-left:auto;"><span class="sc-lbl">Última actualización</span><span class="sc-num muted" style="font-size:.78rem;font-family:'DM Sans';margin-left:.45rem;">Hoy 6:30 PM</span></div>
+    </div>
+
+    <!-- BODY -->
+    <div class="inv-body">
+      <div class="table-wrap">
+        
+        <ng-container *ngFor="let grupo of productosAgrupados">
+          <div class="cat-divider">
+            <span class="cat-icon">{{ getCatEmoji(grupo.categoria) }}</span>
+            <span class="cat-name">{{ grupo.categoria }}</span>
+            <span class="cat-count">{{ grupo.productos.length }} productos</span>
+          </div>
+          <table class="inv-table">
+            <thead>
+              <tr><th>Producto</th><th>SKU</th><th>Stock actual</th><th>Estado</th><th>Precio costo</th><th>Precio venta</th><th style="text-align:right;">Acciones</th></tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let prod of grupo.productos" [class.selected]="selectedProducto?.id === prod.id" (click)="seleccionar(prod)">
+                <td><div class="prod-cell"><div class="prod-emoji" [style.background]="getEmojiBg(grupo.categoria)">{{prod.emoji}}</div><div><div class="prod-name">{{prod.name}}</div><div class="prod-sub">{{prod.sub}}</div></div></div></td>
+                <td><span class="sku-badge">{{prod.sku}}</span></td>
+                <td><div class="stock-cell"><span class="stock-num" [style.color]="getStockColor(prod)">{{prod.stock}}</span><div class="stock-bar"><div class="stock-fill" [style.width.%]="getStockPercent(prod)" [style.background]="getStockColor(prod)"></div></div><span class="stock-unit">{{prod.unit}}</span></div></td>
+                <td><span class="status-tag" [ngClass]="'tag-' + getStockStatusTag(prod)">{{ getStockStatusText(prod) }}</span></td>
+                <td><span class="cost-cell">{{prod.costo}}</span></td>
+                <td><span class="price-cell">{{prod.venta}}</span></td>
+                <td>
+                  <div class="actions-cell">
+                    <div class="row-btn" (click)="$event.stopPropagation(); abrirModal('entrada')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
+                    <div class="row-btn" (click)="$event.stopPropagation(); abrirModal('ajuste')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></div>
+                    <div class="row-btn danger" (click)="$event.stopPropagation()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg></div>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </ng-container>
+
+      </div><!-- /table-wrap -->
+
+      <!-- ── DETAIL PANEL ── -->
+      <div class="detail-panel" [class.open]="selectedProducto != null">
+        <div *ngIf="selectedProducto">
+          <div class="dp-header">
+            <div class="dp-header-top">
+              <div>
+                <div class="dp-emoji">{{ selectedProducto.emoji }}</div>
+                <div class="dp-prod-name">{{ selectedProducto.name }}</div>
+                <div class="dp-prod-sub">{{ selectedProducto.sub }}</div>
+                <div class="dp-sku">SKU: {{ selectedProducto.sku }}</div>
+              </div>
+              <div class="dp-close" (click)="cerrarDetalle()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>
+            </div>
+          </div>
+          <div class="dp-body">
+            <div class="dp-section">
+              <div class="dp-sec-title">Stock</div>
+              <div class="dp-row"><span class="lbl">Cantidad actual</span><span class="val" [ngClass]="getStockValClass(selectedProducto)" style="font-family:'Bebas Neue';font-size:1.3rem;letter-spacing:.04em;">{{ selectedProducto.stock }} {{ selectedProducto.unit }}</span></div>
+              <div class="gauge-wrap">
+                <div class="gauge-track"><div class="gauge-fill" [style.width.%]="getStockPercent(selectedProducto)" [style.background]="getStockColor(selectedProducto)"></div></div>
+                <div class="gauge-labels"><span>0</span><span>Mín: {{ selectedProducto.min }}</span><span>Máx: {{ selectedProducto.max }}</span></div>
+              </div>
+              <div class="dp-row"><span class="lbl">Nivel</span><span class="val">{{ getStockPercent(selectedProducto) }}% del máximo</span></div>
+            </div>
+            <div class="dp-section">
+              <div class="dp-sec-title">Información</div>
+              <div class="dp-row"><span class="lbl">Categoría</span><span class="val">{{ selectedProducto.cat }}</span></div>
+              <div class="dp-row"><span class="lbl">Proveedor</span><span class="val">{{ selectedProducto.proveedor }}</span></div>
+              <div class="dp-row"><span class="lbl">Ubicación</span><span class="val">{{ selectedProducto.ubicacion }}</span></div>
+              <div class="dp-row"><span class="lbl">Vence</span><span class="val">{{ selectedProducto.caducidad }}</span></div>
+            </div>
+            <div class="dp-section">
+              <div class="dp-sec-title">Precios</div>
+              <div class="dp-row"><span class="lbl">Costo unitario</span><span class="val gold">{{ selectedProducto.costo }}</span></div>
+              <div class="dp-row"><span class="lbl">Precio venta</span><span class="val">{{ selectedProducto.venta }}</span></div>
+            </div>
+            <div class="dp-section">
+              <div class="dp-sec-title">Historial reciente</div>
+              <div class="mini-hist">
+                <div class="hist-item" *ngFor="let h of selectedProducto.historia">
+                  <div class="hist-icon" [ngClass]="'hist-'+h.t">{{ h.t === 'in' ? '▲' : h.t === 'out' ? '▼' : '~' }}</div>
+                  <div class="hist-desc">{{ h.desc }}</div>
+                  <div class="hist-date">{{ h.fecha }}</div>
+                  <div class="hist-qty" [style.color]="h.t === 'in' ? 'var(--green)' : h.t === 'out' ? 'var(--red)' : 'var(--gold)'">{{ h.qty }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="dp-actions">
+            <button class="dp-btn primary" (click)="abrirModal('entrada')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Registrar entrada</button>
+            <div class="dp-btn-row">
+              <button class="dp-btn warn" (click)="abrirModal('ajuste')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Ajuste</button>
+              <button class="dp-btn ghost"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Historial</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /inv-body -->
+  </div><!-- /main-wrap -->
+</div>
+
+<!-- ═══════════════ MODAL ═══════════════ -->
+<div class="modal-overlay" [class.open]="showModal" (click)="cerrarModal()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title" [innerHTML]="getModalTitle()"></div>
+      <div class="modal-close" (click)="cerrarModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>
+    </div>
+    
+    <div class="modal-body">
+      <ng-container *ngIf="modalTipo === 'nuevo'">
+        <div class="form-row"><div class="form-col"><label class="form-label">Nombre del producto</label><input class="form-input" placeholder="Ej: Salsa BBQ"/></div><div class="form-col"><label class="form-label">SKU / Código</label><input class="form-input" placeholder="BBQ-015"/></div></div>
+        <div class="form-row"><div class="form-col"><label class="form-label">Categoría</label><select class="form-input"><option>Pizzas e Ingredientes</option><option>Carnes y Proteínas</option><option>Bebidas</option><option>Lácteos</option><option>Otros / Empaque</option></select></div><div class="form-col"><label class="form-label">Unidad de medida</label><select class="form-input"><option>und</option><option>kg</option><option>L</option><option>paq</option><option>bdj</option></select></div></div>
+        <div class="form-row"><div class="form-col"><label class="form-label">Stock inicial</label><input class="form-input" type="number" placeholder="0"/></div><div class="form-col"><label class="form-label">Stock mínimo</label><input class="form-input" type="number" placeholder="5"/></div><div class="form-col"><label class="form-label">Stock máximo</label><input class="form-input" type="number" placeholder="30"/></div></div>
+        <div class="form-row"><div class="form-col"><label class="form-label">Precio costo</label><input class="form-input" placeholder="$0"/></div><div class="form-col"><label class="form-label">Precio venta (opc.)</label><input class="form-input" placeholder="$0"/></div></div>
+        <div class="form-row"><div class="form-col"><label class="form-label">Proveedor</label><input class="form-input" placeholder="Nombre proveedor"/></div><div class="form-col"><label class="form-label">Ubicación en bodega</label><input class="form-input" placeholder="Bodega A · Estante 1"/></div></div>
+      </ng-container>
+      
+      <ng-container *ngIf="modalTipo === 'entrada'">
+        <div class="form-row"><div class="form-col"><label class="form-label">Producto</label><select class="form-input"><option>Mozzarella (MOZ-002)</option><option>Masa de pizza (MSP-003)</option><option>Carne molida (CRM-005)</option></select></div></div>
+        <div class="form-row"><div class="form-col"><label class="form-label">Cantidad a ingresar</label><input class="form-input" type="number" placeholder="0"/></div><div class="form-col"><label class="form-label">Unidad</label><select class="form-input"><option>kg</option><option>und</option><option>paq</option><option>L</option></select></div></div>
+        <div class="form-row"><div class="form-col"><label class="form-label">Proveedor / Origen</label><input class="form-input" placeholder="Nombre proveedor"/></div><div class="form-col"><label class="form-label">Fecha recepción</label><input class="form-input" type="date"/></div></div>
+        <div class="form-row"><div class="form-col"><label class="form-label">Costo total compra</label><input class="form-input" placeholder="$0"/></div><div class="form-col"><label class="form-label">N° factura (opc.)</label><input class="form-input" placeholder="FAC-0001"/></div></div>
+        <div class="form-row"><div class="form-col"><label class="form-label">Observaciones</label><input class="form-input" placeholder="Notas adicionales…"/></div></div>
+      </ng-container>
+
+      <ng-container *ngIf="modalTipo === 'ajuste'">
+        <div class="form-row"><div class="form-col"><label class="form-label">Producto</label><select class="form-input"><option>Mozzarella (MOZ-002)</option><option>Masa de pizza (MSP-003)</option></select></div></div>
+        <div class="form-row"><div class="form-col"><label class="form-label">Tipo de ajuste</label><select class="form-input"><option>Conteo físico</option><option>Merma / Daño</option><option>Vencimiento</option><option>Error de registro</option></select></div><div class="form-col"><label class="form-label">Nueva cantidad real</label><input class="form-input" type="number" placeholder="0"/></div></div>
+        <div class="form-row"><div class="form-col"><label class="form-label">Motivo del ajuste</label><input class="form-input" placeholder="Descripción del ajuste…"/></div></div>
+        <div style="padding:.5rem .85rem;border-radius:.65rem;background:rgba(245,200,66,.07);border:1px solid rgba(245,200,66,.2);font-size:.74rem;color:var(--gold);margin-top:.2rem;">⚠️ Los ajustes quedan registrados en el historial del producto con tu usuario.</div>
+      </ng-container>
+    </div>
+
+    <div class="modal-footer">
+      <button class="modal-btn cancel" (click)="cerrarModal()">Cancelar</button>
+      <button *ngIf="modalTipo === 'nuevo'" class="modal-btn confirm" (click)="guardarModal('Producto creado exitosamente')">Guardar producto</button>
+      <button *ngIf="modalTipo === 'entrada'" class="modal-btn confirm green" (click)="guardarModal('Entrada registrada correctamente', 'var(--green)')">Confirmar entrada</button>
+      <button *ngIf="modalTipo === 'ajuste'" class="modal-btn confirm" style="background:var(--orange);" (click)="guardarModal('Ajuste registrado', 'var(--orange)')">Aplicar ajuste</button>
+    </div>
   </div>
-  <h1 style="color: var(--white, #F7F4EE); font-family: 'Bebas Neue', sans-serif; font-size: 3rem; letter-spacing: 0.05em;">
-    Coming <span style="color: var(--gold, #F5C842);">Soon</span>
-  </h1>
-  <p style="color: var(--muted, #a0a0a0); font-size: 1.1rem; max-width: 400px; margin-top: 0.5rem;">
-    Estamos trabajando arduamente en el módulo de Inventario. ¡Estará disponible muy pronto!
-  </p>
+</div>
+
+<!-- TOAST -->
+<div class="toast" [class.show]="showToastMsg">
+  <div class="t-dot" [style.background]="toastColor"></div>
+  <span>{{ toastMsg }}</span>
 </div>

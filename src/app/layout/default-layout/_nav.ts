@@ -85,6 +85,11 @@ export const navItems: CustomNavData[] = [
     url: '/inventario',
     materialIcon: 'inventory',  // Material icon name
   },
+  {
+    name: 'Recetas',
+    url: '/recetas',
+    materialIcon: 'menu_book',  // Material icon name
+  },
 
 
 
