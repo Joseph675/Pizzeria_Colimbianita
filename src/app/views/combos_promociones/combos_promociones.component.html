@@ -5,22 +5,18 @@
     <!-- HEADER / BARRA SUPERIOR -->
     <div class="combos-header">
       <div class="mh-top">
-         <div class="mh-title">Combos y <span>Promociones</span></div>
+         <div class="mh-title">Gestión de <span>Combos</span></div>
          <div class="mh-spacer"></div>
          <button class="btn-primary" (click)="openModal()">
            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
              <line x1="12" y1="5" x2="12" y2="19"/>
              <line x1="5" y1="12" x2="19" y2="12"/>
            </svg>
-           {{ currentTab === 'combos' ? 'Nuevo Combo' : 'Nueva Promoción' }}
+           Nuevo Combo
          </button>
       </div>
       
       <div class="ph-controls">
-        <div class="tab-switcher">
-          <button class="tsw-btn" [class.active]="currentTab === 'combos'" (click)="switchTab('combos')">🛒 Combos</button>
-          <button class="tsw-btn" [class.active]="currentTab === 'promos'" (click)="switchTab('promos')">🎟️ Promociones</button>
-        </div>
         
         <div class="search-box">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -37,9 +33,19 @@
        <div class="cards-pane">
          
          <!-- SECCIÓN DE COMBOS -->
-         <div *ngIf="currentTab === 'combos'">
-           <div class="sec-label">Combos disponibles</div>
-           <div class="combos-grid">
+           <div class="sec-label">Todos los Combos</div>
+
+           <!-- Indicador de Carga -->
+           <div *ngIf="isLoadingCombos" style="text-align: center; color: var(--muted); padding: 3rem;">
+             <div style="font-size: 2rem; margin-bottom: 1rem; animation: pulse 1.5s infinite;">⏳</div>
+             Cargando combos...
+           </div>
+
+           <div *ngIf="!isLoadingCombos && combosFiltrados.length === 0" style="text-align: center; color: var(--muted); padding: 3rem;">
+             No se encontraron combos disponibles.
+           </div>
+
+           <div class="combos-grid" *ngIf="!isLoadingCombos && combosFiltrados.length > 0">
              <div class="combo-card" *ngFor="let combo of combosFiltrados" [class.selected]="selectedCard?.id === combo.id" [class.inactive]="combo.estado === 0" (click)="selectCard(combo)">
                <div class="cc-banner" [style.background]="combo.bannerBg || 'rgba(255,255,255,.02)'">
                  <div class="cc-banner-glow"></div>
@@ -60,44 +66,10 @@
                      <span class="cc-price">{{ combo.precio_combo | currency }}</span>
                      <span class="cc-price-old" *ngIf="combo.precio_normal">{{ combo.precio_normal | currency }}</span>
                    </div>
-                   <button class="cc-add-btn" (click)="agregarAlPedido(combo); $event.stopPropagation();">+</button>
                  </div>
                </div>
              </div>
            </div>
-         </div>
-         
-         <!-- SECCIÓN DE PROMOCIONES -->
-         <div *ngIf="currentTab === 'promos'">
-           <div class="sec-label">Promociones activas</div>
-           <div class="promos-grid">
-             <div class="promo-card" *ngFor="let promo of promosFiltradas" [class.selected]="selectedCard?.id === promo.id" [class.inactive]="promo.estado === 0" (click)="selectCard(promo)">
-               <div class="pc-header">
-                 <div class="pc-icon-wrap" [style.background]="promo.bannerBg || 'rgba(255,255,255,.05)'">{{ promo.emoji || '🎟️' }}</div>
-                 <div class="pc-header-info">
-                   <div class="pc-promo-name">{{ promo.nombre }}</div>
-                   <div class="pc-promo-desc">{{ promo.descripcion }}</div>
-                 </div>
-               </div>
-               <div class="pc-details">
-                 <div class="pc-detail-row">
-                   <span class="pc-detail-lbl">Tipo</span>
-                   <span class="pc-detail-val">{{ promo.tipo }}</span>
-                 </div>
-                 <div class="pc-detail-row">
-                   <span class="pc-detail-lbl">Descuento</span>
-                   <span class="pc-detail-val gold">{{ promo.descuento }}</span>
-                 </div>
-               </div>
-               <div class="pc-footer">
-                 <div class="pc-toggle-wrap">
-                   <div class="toggle" [class.on]="promo.estado === 1" [class.off]="promo.estado === 0" (click)="toggleEstado(promo); $event.stopPropagation();"></div>
-                   <span>{{ promo.estado === 1 ? 'Activa' : 'Inactiva' }}</span>
-                 </div>
-               </div>
-             </div>
-           </div>
-         </div>
 
        </div>
 
@@ -117,8 +89,6 @@
              <div class="dp-desc">{{ selectedCard.descripcion }}</div>
            </div>
 
-           <!-- Campos dinámicos dependiendo de si es Combo o Promoción -->
-           <ng-container *ngIf="currentTab === 'combos'">
              <div class="dp-section">
                <div class="dp-sec-title">Productos incluidos</div>
                <div class="dp-combo-items">
@@ -134,20 +104,11 @@
                <div class="dp-row"><span class="lbl">Precio normal</span><span class="val strikethrough">{{ selectedCard.precio_normal | currency }}</span></div>
                <div class="dp-row"><span class="lbl">Precio combo</span><span class="val gold">{{ selectedCard.precio_combo | currency }}</span></div>
              </div>
-           </ng-container>
-
-           <ng-container *ngIf="currentTab === 'promos'">
-             <div class="dp-section">
-               <div class="dp-sec-title">Detalles</div>
-               <div class="dp-row"><span class="lbl">Tipo</span><span class="val">{{ selectedCard.tipo }}</span></div>
-               <div class="dp-row"><span class="lbl">Descuento</span><span class="val gold">{{ selectedCard.descuento }}</span></div>
-             </div>
-           </ng-container>
          </div>
 
          <div class="dp-actions" *ngIf="selectedCard">
            <button class="dp-btn secondary" (click)="openModal(selectedCard)">Editar</button>
-           <button class="dp-btn ghost" style="color:rgba(232,52,42,.6); border-color:rgba(232,52,42,.15);" (click)="eliminarSeleccionado()">Eliminar</button>
+           <button class="dp-btn ghost" style="color:rgba(232,52,42,.6); border-color:rgba(232,52,42,.15);" (click)="openEliminarModal()">Eliminar</button>
          </div>
        </div>
     </div>
@@ -155,12 +116,12 @@
 
   <!-- ══ MODAL FORMULARIO COMBO / PROMO ══ -->
   <div class="modal-overlay" [class.open]="showModal" (click)="closeModal()" style="display: flex; align-items: center; justify-content: center; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.3s;" [style.opacity]="showModal ? '1' : '0'" [style.pointer-events]="showModal ? 'all' : 'none'">
-    <div class="item-modal" (click)="$event.stopPropagation()" style="background: var(--bg); border: 1px solid var(--border); border-radius: 12px; width: 500px; max-width: 95vw; box-shadow: 0 10px 30px rgba(0,0,0,0.5); transform: scale(0.95); transition: transform 0.3s;" [style.transform]="showModal ? 'scale(1)' : 'scale(0.95)'">
+    <div class="item-modal" (click)="$event.stopPropagation()" style="background: #1e1e1e; border: 1px solid var(--border); border-radius: 12px; width: 500px; max-width: 95vw; box-shadow: 0 10px 30px rgba(0,0,0,0.5); transform: scale(0.95); transition: transform 0.3s;" [style.transform]="showModal ? 'scale(1)' : 'scale(0.95)'">
       
       <!-- Encabezado del modal -->
       <div class="nm-header" style="display: flex; justify-content: space-between; align-items: center; padding: 1.5rem; border-bottom: 1px solid var(--border);">
         <div class="nm-title" style="font-size: 1.4rem; font-weight: bold; color: var(--white);">
-          {{ selectedCard ? 'Editar' : 'Nuevo' }} <em style="color: var(--gold); font-style: normal;">{{ currentTab === 'combos' ? 'Combo' : 'Promoción' }}</em>
+          {{ selectedCard ? 'Editar' : 'Nuevo' }} <em style="color: var(--gold); font-style: normal;">Combo</em>
         </div>
         <button class="modal-close" (click)="closeModal()" style="background: transparent; border: none; color: var(--muted); cursor: pointer; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%;">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width: 22px; height: 22px;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -170,64 +131,106 @@
       <!-- Cuerpo del modal -->
       <div style="padding: 1.5rem; max-height: 75vh; overflow-y: auto;">
         
-        <!-- PESTAÑA COMBOS -->
-        <ng-container *ngIf="currentTab === 'combos'">
           <div style="margin-bottom: 1.2rem;">
             <label style="color: var(--muted); font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Nombre del Combo *</label>
-            <input type="text" [(ngModel)]="nuevoCombo.nombre" placeholder="Ej. Combo Familiar Supremo" style="width: 100%; padding: 0.8rem 1rem; background: var(--dark-2); border: 1px solid var(--border); color: var(--white); border-radius: 8px; font-size: 1rem;" autocomplete="off" />
+            <input type="text" [(ngModel)]="nuevoCombo.nombre" placeholder="Ej. Combo Familiar Supremo" style="width: 100%; padding: 0.8rem 1rem; background: #2b2b2b; border: 1px solid var(--border); color: var(--white); border-radius: 8px; font-size: 1rem;" autocomplete="off" />
           </div>
           <div style="margin-bottom: 1.2rem;">
             <label style="color: var(--muted); font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Descripción</label>
-            <textarea [(ngModel)]="nuevoCombo.descripcion" placeholder="Ej. Incluye 1 pizza grande + 2 hamburguesas + bebidas..." rows="3" style="width: 100%; padding: 0.8rem 1rem; background: var(--dark-2); border: 1px solid var(--border); color: var(--white); border-radius: 8px; font-size: 1rem; resize: none; font-family: inherit;"></textarea>
+            <textarea [(ngModel)]="nuevoCombo.descripcion" placeholder="Ej. Incluye 1 pizza grande + 2 hamburguesas + bebidas..." rows="3" style="width: 100%; padding: 0.8rem 1rem; background: #2b2b2b; border: 1px solid var(--border); color: var(--white); border-radius: 8px; font-size: 1rem; resize: none; font-family: inherit;"></textarea>
           </div>
           <div style="display: flex; gap: 1rem; margin-bottom: 1.2rem;">
             <div style="flex: 1;">
-              <label style="color: var(--muted); font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Precio Normal</label>
-              <input type="number" [(ngModel)]="nuevoCombo.precio_normal" placeholder="Ej. 50000" style="width: 100%; padding: 0.8rem 1rem; background: var(--dark-2); border: 1px solid var(--border); color: var(--white); border-radius: 8px; font-size: 1rem;" />
+              <label style="color: var(--muted); font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Precio Normal (Suma de productos)</label>
+              <input type="number" [value]="calcularPrecioNormal()" disabled style="width: 100%; padding: 0.8rem 1rem; background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--muted); border-radius: 8px; font-size: 1rem; cursor: not-allowed;" />
             </div>
             <div style="flex: 1;">
-              <label style="color: var(--muted); font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Precio Combo *</label>
-              <input type="number" [(ngModel)]="nuevoCombo.precio_combo" placeholder="Ej. 39900" style="width: 100%; padding: 0.8rem 1rem; background: var(--dark-2); border: 1px solid var(--border); color: var(--white); border-radius: 8px; font-size: 1rem;" />
+              <label style="color: var(--muted); font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Precio Oferta (Combo) *</label>
+              <input type="number" [(ngModel)]="nuevoCombo.precioFijo" placeholder="Ej. 39900" style="width: 100%; padding: 0.8rem 1rem; background: #2b2b2b; border: 1px solid var(--border); color: var(--white); border-radius: 8px; font-size: 1rem;" />
             </div>
           </div>
-          <div style="margin-bottom: 1.8rem;">
-            <label style="color: var(--muted); font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Emoji o Icono</label>
-            <input type="text" [(ngModel)]="nuevoCombo.emoji" placeholder="Ej. 🍕🍔" style="width: 100%; padding: 0.8rem 1rem; background: var(--dark-2); border: 1px solid var(--border); color: var(--white); border-radius: 8px; font-size: 1rem;" />
+          
+          <!-- Nueva sección: Productos del Combo -->
+          <div style="margin-bottom: 1.8rem; border-top: 1px solid var(--border); padding-top: 1.2rem;">
+            <label style="color: var(--gold); font-size: 1rem; font-weight: bold; display: block; margin-bottom: 0.8rem;">📦 Productos Incluidos</label>
+            
+            <p style="color: var(--muted); font-size: 0.85rem; margin-bottom: 1rem; line-height: 1.4;">💡 <b>Tip Pizzería:</b> Si en tu combo el cliente puede elegir el sabor (Ej: <em>Cualquier</em> Pizza Mediana), te recomendamos crear un producto genérico llamado "Pizza Mediana a Elección" en tu inventario y agregarlo aquí. Luego en la caja (POS) usas las notas para escribir el sabor elegido.</p>
+            
+            <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem; position: relative;">
+              <input type="text" [(ngModel)]="searchProdTerm" (input)="filtrarProductos()" placeholder="🔍 Buscar producto para agregar (Ej. Pizza, Gaseosa...)" style="flex: 1; padding: 0.8rem; background: #2b2b2b; border: 1px solid var(--border); color: var(--white); border-radius: 6px; font-size: 0.9rem;">
+            </div>
+            
+            <!-- Sugerencias de búsqueda -->
+            <div *ngIf="searchProdTerm && productosSugeridos.length > 0" style="max-height: 150px; overflow-y: auto; background: #1e1e1e; border: 1px solid var(--gold); border-radius: 6px; margin-bottom: 1rem;">
+              <div *ngFor="let prod of productosSugeridos" (click)="agregarItemAlCombo(prod)" style="padding: 0.6rem; cursor: pointer; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; transition: background 0.2s;" onmouseover="this.style.background='rgba(245,200,66,0.1)'" onmouseout="this.style.background='transparent'">
+                <span>{{ prod.producto?.nombre }} - {{ prod.nombrePresentacion || prod.nombre_presentacion }}</span>
+                <span style="color: var(--gold); font-weight: bold;">{{ prod.precio | currency }}</span>
+              </div>
+            </div>
+            <div *ngIf="searchProdTerm && productosSugeridos.length === 0" style="padding: 0.5rem; color: var(--muted); font-size: 0.85rem;">
+              No se encontraron productos.
+            </div>
+
+            <!-- Lista de items agregados -->
+            <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-top: 1rem;">
+              <div *ngIf="!nuevoCombo.detalles || nuevoCombo.detalles.length === 0" style="text-align: center; color: var(--muted); padding: 1rem; border: 1px dashed var(--border); border-radius: 6px;">
+                Aún no has agregado productos al combo.
+              </div>
+              <div *ngFor="let item of nuevoCombo.detalles; let i = index" style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.03); padding: 0.6rem 0.8rem; border-radius: 6px; border-left: 3px solid var(--gold);">
+                <div style="flex: 1; font-size: 0.9rem;">
+                  {{ item.presentacion.producto?.nombre }} <span style="color: var(--muted);">({{ item.presentacion.nombrePresentacion || item.presentacion.nombre_presentacion }})</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.8rem;">
+                  <span style="color: var(--gold); font-size: 0.9rem;">{{ (item.presentacion.precio * item.cantidad) | currency }}</span>
+                  <div style="display: flex; align-items: center; background: #2b2b2b; border-radius: 4px; overflow: hidden; border: 1px solid var(--border);">
+                    <button (click)="cambiarCantidadItem(i, -1)" style="background: transparent; color: white; border: none; width: 28px; height: 28px; cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'">−</button>
+                    <span style="width: 24px; text-align: center; font-size: 0.9rem;">{{ item.cantidad }}</span>
+                    <button (click)="cambiarCantidadItem(i, 1)" style="background: transparent; color: white; border: none; width: 28px; height: 28px; cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'">+</button>
+                  </div>
+                  <button (click)="removerItem(i)" title="Quitar producto" style="background: rgba(232,52,42,0.15); color: var(--red); border: 1px solid rgba(232,52,42,0.3); padding: 0.3rem; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;"><path d="M18 6L6 18M6 6l12 12"></path></svg>
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
           <button style="width: 100%; background: var(--gold); color: #000; border: none; padding: 1rem; border-radius: 8px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: opacity 0.2s;" onmouseover="this.style.opacity=0.9" onmouseout="this.style.opacity=1" (click)="guardarCombo()">
             {{ selectedCard ? 'Actualizar Combo' : 'Guardar Nuevo Combo' }}
           </button>
-        </ng-container>
-
-        <!-- PESTAÑA PROMOS -->
-        <ng-container *ngIf="currentTab === 'promos'">
-          <div style="margin-bottom: 1.2rem;">
-            <label style="color: var(--muted); font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Nombre de la Promoción *</label>
-            <input type="text" [(ngModel)]="nuevaPromo.nombre" placeholder="Ej. Happy Hour" style="width: 100%; padding: 0.8rem 1rem; background: var(--dark-2); border: 1px solid var(--border); color: var(--white); border-radius: 8px; font-size: 1rem;" autocomplete="off" />
-          </div>
-          <div style="margin-bottom: 1.2rem;">
-            <label style="color: var(--muted); font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Descripción</label>
-            <textarea [(ngModel)]="nuevaPromo.descripcion" placeholder="Ej. 2x1 en cócteles de 6pm a 8pm" rows="3" style="width: 100%; padding: 0.8rem 1rem; background: var(--dark-2); border: 1px solid var(--border); color: var(--white); border-radius: 8px; font-size: 1rem; resize: none; font-family: inherit;"></textarea>
-          </div>
-          <div style="display: flex; gap: 1rem; margin-bottom: 1.2rem;">
-            <div style="flex: 1;">
-              <label style="color: var(--muted); font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Tipo</label>
-              <input type="text" [(ngModel)]="nuevaPromo.tipo" placeholder="Ej. Descuento" style="width: 100%; padding: 0.8rem 1rem; background: var(--dark-2); border: 1px solid var(--border); color: var(--white); border-radius: 8px; font-size: 1rem;" />
-            </div>
-            <div style="flex: 1;">
-              <label style="color: var(--muted); font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Descuento *</label>
-              <input type="text" [(ngModel)]="nuevaPromo.descuento" placeholder="Ej. 30% OFF" style="width: 100%; padding: 0.8rem 1rem; background: var(--dark-2); border: 1px solid var(--border); color: var(--white); border-radius: 8px; font-size: 1rem;" />
-            </div>
-          </div>
-          <div style="margin-bottom: 1.8rem;">
-            <label style="color: var(--muted); font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Emoji o Icono</label>
-            <input type="text" [(ngModel)]="nuevaPromo.emoji" placeholder="Ej. 🎟️" style="width: 100%; padding: 0.8rem 1rem; background: var(--dark-2); border: 1px solid var(--border); color: var(--white); border-radius: 8px; font-size: 1rem;" />
-          </div>
-          <button style="width: 100%; background: var(--gold); color: #000; border: none; padding: 1rem; border-radius: 8px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: opacity 0.2s;" onmouseover="this.style.opacity=0.9" onmouseout="this.style.opacity=1" (click)="guardarPromo()">
-            {{ selectedCard ? 'Actualizar Promoción' : 'Guardar Nueva Promoción' }}
-          </button>
-        </ng-container>
       </div>
     </div>
   </div>
+
+  <!-- ══ MODAL ELIMINAR COMBO ══ -->
+  <div class="modal-overlay" [class.open]="showEliminarModal" (click)="closeEliminarModal()" style="display: flex; align-items: center; justify-content: center; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.3s;" [style.opacity]="showEliminarModal ? '1' : '0'" [style.pointer-events]="showEliminarModal ? 'all' : 'none'">
+    <div class="item-modal" (click)="$event.stopPropagation()" style="background: #1e1e1e; border: 1px solid var(--border); border-radius: 12px; width: 400px; max-width: 95vw; box-shadow: 0 10px 30px rgba(0,0,0,0.5); transform: scale(0.95); transition: transform 0.3s;" [style.transform]="showEliminarModal ? 'scale(1)' : 'scale(0.95)'">
+      <div class="nm-header" style="display: flex; justify-content: space-between; align-items: center; padding: 1.5rem; border-bottom: 1px solid var(--border);">
+        <div class="nm-title" style="font-size: 1.4rem; font-weight: bold; color: var(--white);">Eliminar <em>Combo</em></div>
+        <button class="modal-close" (click)="closeEliminarModal()" style="background: transparent; border: none; color: var(--muted); cursor: pointer; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width: 22px; height: 22px;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="nm-body" style="padding: 2rem; text-align: center;">
+        <p style="font-size: 3rem; margin-bottom: 1rem; margin-top: 0;">🗑️</p>
+        <p style="color: var(--white); margin-bottom: 0.5rem; font-size: 1.1rem;">Esta acción no se puede deshacer.</p>
+        <p style="color: var(--muted); margin-bottom: 0;">El combo <strong style="color: var(--white);">{{ selectedCard?.nombre }}</strong> será eliminado permanentemente.</p>
+      </div>
+      <div class="nm-footer" style="padding: 1.2rem 1.5rem; border-top: 1px solid var(--border); display: flex; gap: 1rem; background: rgba(0,0,0,0.2);">
+        <button class="dp-btn ghost" (click)="closeEliminarModal()" style="flex: 1; padding: 0.8rem; border-radius: 8px; background: rgba(255,255,255,0.05); color: var(--muted); border: 1px solid var(--border); cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'">Cancelar</button>
+        <button class="dp-btn primary" (click)="confirmarEliminacion()" style="flex: 1; padding: 0.8rem; border-radius: 8px; background: var(--red); color: white; border: none; cursor: pointer; font-weight: bold; transition: opacity 0.2s;" onmouseover="this.style.opacity=0.8" onmouseout="this.style.opacity=1">Eliminar Combo</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Contenedor de Toasts de CoreUI -->
+<div style="position: fixed; top: 0; right: 0; z-index: 99999; pointer-events: none; width: 100%; height: 100%;">
+  <c-toaster [placement]="position" class="p-3" position="absolute" style="pointer-events: auto;">
+    <c-toast *ngFor="let toast of toasts" [visible]="true" [color]="toast.type" class="text-white align-items-center border-0 shadow-lg mb-2">
+      <div class="d-flex">
+        <c-toast-body style="font-weight: 500; font-size: 0.95rem;">{{ toast.message }}</c-toast-body>
+        <button cButtonClose class="me-2 m-auto" white (click)="removeToast(toast.id)"></button>
+      </div>
+    </c-toast>
+  </c-toaster>
 </div>

@@ -3,13 +3,14 @@ import { HttpClient } from '@angular/common/http';
 import { NgIf, NgForOf, NgClass, DatePipe, CurrencyPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subscription, interval } from 'rxjs';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
+import { ToastBodyComponent, ToastComponent, ToasterComponent, ToastHeaderComponent, ButtonCloseDirective } from '@coreui/angular';
 
 @Component({
   selector: 'app-pedidos',
   standalone: true,
-  imports: [NgIf, NgForOf, NgClass, DatePipe, CurrencyPipe, FormsModule],
+  imports: [NgIf, NgForOf, NgClass, DatePipe, CurrencyPipe, FormsModule, ToastBodyComponent, ToastComponent, ToasterComponent, ToastHeaderComponent, ButtonCloseDirective],
   templateUrl: './pedidos.component.html',
   styleUrl: './pedidos.component.scss'
 })
@@ -19,6 +20,7 @@ export class PedidosComponent implements OnInit, OnDestroy {
   public cargando: boolean = false;
   public pedidoSeleccionado: any = null;
   public modalTop: string = '50%'; // Posición vertical dinámica
+  public repartidores: any[] = []; // Lista de usuarios/repartidores cargados del servidor
   private pollingSubscription?: Subscription;
   private ultimoIdPedido: number = 0;
   public mostrarNotificacion: boolean = false;
@@ -36,7 +38,22 @@ export class PedidosComponent implements OnInit, OnDestroy {
 
   public autoOpenMesaId: number | null = null;
 
-  constructor(private http: HttpClient, private authService: AuthService, private route: ActivatedRoute) {
+  // Variables para Toasts de CoreUI
+  public position = 'top-end';
+  public toasts: { id: number; message: string; type: 'success' | 'danger' | 'warning' | 'info' }[] = [];
+  private nextToastId = 0;
+
+  addToast(message: string, type: 'success' | 'danger' | 'warning' | 'info' = 'success', duration = 3500) {
+    const id = this.nextToastId++;
+    this.toasts.push({ id, message, type });
+    setTimeout(() => this.removeToast(id), duration);
+  }
+
+  removeToast(id: number) {
+    this.toasts = this.toasts.filter((t) => t.id !== id);
+  }
+
+  constructor(private http: HttpClient, private authService: AuthService, private route: ActivatedRoute, private router: Router) {
     this.fechaHoy = this.obtenerFechaHoy();
     this.filtroFecha = this.fechaHoy;
   }
@@ -59,6 +76,7 @@ export class PedidosComponent implements OnInit, OnDestroy {
     });
 
     this.cargarPedidos();
+    this.cargarRepartidores();
 
     // Consultar nuevos pedidos de forma automática cada 10 segundos (10000ms)
     this.pollingSubscription = interval(10000).subscribe(() => {
@@ -73,6 +91,16 @@ export class PedidosComponent implements OnInit, OnDestroy {
     }
   }
 
+  cargarRepartidores(): void {
+    // Cargamos los usuarios disponibles (Si tienes un endpoint o rol específico, ajústalo aquí)
+    this.http.get<any[]>('http://178.105.36.117:8080/api/usuarios').subscribe({
+      next: (data) => {
+        this.repartidores = data || [];
+      },
+      error: (err) => console.error('Error al cargar repartidores:', err)
+    });
+  }
+
   cargarPedidos(esPolling: boolean = false): void {
     // Solo activamos el estado "cargando" si NO es una petición automática de fondo
     if (!esPolling) {
@@ -81,7 +109,7 @@ export class PedidosComponent implements OnInit, OnDestroy {
     
     // Se asume que el backend (Spring Boot) devuelve la lista de pedidos y, 
     // gracias a las relaciones, cada pedido incluye su lista de detalles
-    this.http.get<any[]>('http://localhost:8080/api/pedidos').subscribe({
+    this.http.get<any[]>('http://178.105.36.117:8080/api/pedidos').subscribe({
       next: (data) => {
         const pedidosRecibidos = data || [];
         
@@ -110,9 +138,9 @@ export class PedidosComponent implements OnInit, OnDestroy {
           // Buscamos el pedido activo (que no esté pagado o cancelado) para esta mesa
           const pedidoMesa = this.pedidos.find(p => {
             const estado = (p.estado || '').toUpperCase();
-            // Capturamos el ID o el Número de la mesa sin importar la estructura del JSON
-            const idMesaPedido = p.mesa?.idMesa || p.mesa?.id_mesa || p.idMesa || p.id_mesa;
-            const numMesaPedido = p.mesa?.numeroMesa || p.mesa?.numero_mesa || p.numeroMesa || p.numero_mesa;
+            // Capturamos el ID o el Número de la mesa de forma ultra robusta (soporta objetos o IDs sueltos)
+            const idMesaPedido = p.mesa?.idMesa || p.mesa?.id_mesa || p.idMesa || p.id_mesa || (typeof p.mesa === 'number' || typeof p.mesa === 'string' ? p.mesa : null);
+            const numMesaPedido = p.mesa?.numeroMesa || p.mesa?.numero_mesa || p.numeroMesa || p.numero_mesa || idMesaPedido;
             
             return (estado !== 'PAGADO' && estado !== 'CANCELADO') && 
                    (Number(idMesaPedido) === this.autoOpenMesaId || Number(numMesaPedido) === this.autoOpenMesaId);
@@ -122,7 +150,7 @@ export class PedidosComponent implements OnInit, OnDestroy {
             this.abrirDetalles(pedidoMesa);
             this.abrirModalCobrar();
           } else {
-            alert('Esta mesa no tiene pedidos activos pendientes por cobrar en este momento.');
+            this.addToast('Esta mesa no tiene pedidos activos pendientes por cobrar en este momento.', 'info');
           }
           this.autoOpenMesaId = null; // Lo reiniciamos para que no se auto-abra en cada polling
         }
@@ -230,14 +258,37 @@ export class PedidosComponent implements OnInit, OnDestroy {
     
     // Petición PUT para actualizar el pedido.
     // Nota: Asegúrate de que el backend soporte PUT en este endpoint (o ajústalo a tu API).
-    this.http.put(`http://localhost:8080/api/pedidos/${id}`, pedido).subscribe({
+    this.http.put(`http://178.105.36.117:8080/api/pedidos/${id}`, pedido).subscribe({
       next: () => {
         console.log(`Estado del pedido #${id} actualizado a ${nuevoEstado}`);
       },
       error: (err) => {
         console.error('Error al actualizar el estado', err);
         pedido.estado = estadoAnterior; // Revertir visualmente si el server falla
-        alert('No se pudo actualizar el estado en el servidor.');
+        this.addToast('No se pudo actualizar el estado en el servidor.', 'danger');
+      }
+    });
+  }
+
+  asignarRepartidor(pedido: any, idUsuario: string): void {
+    if (!idUsuario) return;
+
+    const idPedido = pedido.idPedido || pedido.id_pedido;
+    // Preparamos el payload. Spring Boot espera el objeto anidado por la relación de la llave foránea
+    const payload = { ...pedido, repartidor: { idUsuario: Number(idUsuario), id_usuario: Number(idUsuario) } };
+
+    this.http.put(`http://178.105.36.117:8080/api/pedidos/${idPedido}`, payload).subscribe({
+      next: () => {
+        this.addToast('Repartidor asignado con éxito.', 'success');
+        // Actualizamos la interfaz visualmente sin recargar la página
+        const rep = this.repartidores.find(r => (r.idUsuario || r.id_usuario) === Number(idUsuario));
+        if (rep) {
+          pedido.repartidor = rep;
+        }
+      },
+      error: (err) => {
+        console.error('Error al asignar repartidor', err);
+        this.addToast('No se pudo asignar el repartidor en el servidor.', 'danger');
       }
     });
   }
@@ -264,17 +315,17 @@ export class PedidosComponent implements OnInit, OnDestroy {
     const ID_USUARIO_VALIDO = user?.idUsuario || user?.id_usuario;
 
     if (!ID_USUARIO_VALIDO) {
-      alert('Error: No se pudo identificar al cajero para emitir la factura.');
+      this.addToast('No se pudo identificar al cajero para emitir la factura.', 'danger');
       return;
     }
 
     // 1. Consultamos si hay un turno de caja abierto dinámicamente
-    this.http.get<any[]>('http://localhost:8080/api/cierres-caja').subscribe({
+    this.http.get<any[]>('http://178.105.36.117:8080/api/cierres-caja').subscribe({
       next: (cierres) => {
         const turnoAbierto = cierres.find(c => c.estado === 'ABIERTA');
         
         if (!turnoAbierto) {
-          alert('Error: No hay ningún turno de caja abierto. Ve a la sección "Facturación" y abre un nuevo turno antes de cobrar.');
+          this.addToast('No hay ningún turno de caja abierto. Ve a "Facturación" y abre un turno.', 'warning', 4500);
           return;
         }
 
@@ -291,15 +342,23 @@ export class PedidosComponent implements OnInit, OnDestroy {
         };
 
         // 3. Registramos la factura
-        this.http.post('http://localhost:8080/api/facturas', payloadFactura).subscribe({
+        this.http.post('http://178.105.36.117:8080/api/facturas', payloadFactura).subscribe({
           next: () => {
             this.cambiarEstado(this.pedidoSeleccionado, 'PAGADO');
             
             // Liberar la mesa automáticamente en la base de datos
             if (this.pedidoSeleccionado.mesa) {
-              const mesaActualizada = { ...this.pedidoSeleccionado.mesa, estado: 'LIBRE' };
-              const idMesa = mesaActualizada.idMesa || mesaActualizada.id_mesa;
-              this.http.put(`http://localhost:8080/api/mesas/${idMesa}`, mesaActualizada).subscribe({
+              let idMesa = this.pedidoSeleccionado.mesa?.idMesa || this.pedidoSeleccionado.mesa?.id_mesa || this.pedidoSeleccionado.idMesa || this.pedidoSeleccionado.id_mesa;
+              
+              if (!idMesa && (typeof this.pedidoSeleccionado.mesa === 'number' || typeof this.pedidoSeleccionado.mesa === 'string')) {
+                idMesa = this.pedidoSeleccionado.mesa;
+              }
+              
+              // Creamos un objeto base seguro por si la mesa venía como un número simple
+              const baseMesa = typeof this.pedidoSeleccionado.mesa === 'object' ? this.pedidoSeleccionado.mesa : { idMesa: idMesa, numeroMesa: idMesa, capacidad: 4, sucursal: { idSucursal: 1 } };
+              const mesaActualizada = { ...baseMesa, estado: 'LIBRE' };
+              
+              this.http.put(`http://178.105.36.117:8080/api/mesas/${idMesa}`, mesaActualizada).subscribe({
                 next: () => console.log(`Mesa #${idMesa} liberada exitosamente.`),
                 error: (err) => console.error(`Error al liberar la mesa #${idMesa}:`, err)
               });
@@ -310,15 +369,27 @@ export class PedidosComponent implements OnInit, OnDestroy {
           },
           error: (err) => {
             console.error('Error al registrar la factura:', err);
-            alert('Error: No se pudo generar la factura en base de datos.');
+            this.addToast('No se pudo generar la factura en la base de datos.', 'danger');
           }
         });
       },
       error: (err) => {
         console.error('Error al verificar turnos de caja:', err);
-        alert('Error al verificar la caja. Asegúrate de tener conexión al servidor.');
+        this.addToast('Error al verificar la caja. Revisa tu conexión al servidor.', 'danger');
       }
     });
+  }
+
+  public editarPedido(pedido: any): void {
+    const idPedido = pedido.id_pedido || pedido.idPedido;
+    if (!idPedido) {
+      this.addToast('No se pudo identificar el pedido para editar.', 'warning');
+      return;
+    }
+    this.cerrarDetalles(); // Cerramos el modal actual
+
+    // Navegamos al componente POS en modo edición
+    this.router.navigate(['/pos'], { queryParams: { editOrderId: idPedido } });
   }
 
   imprimirTicket(): void {
@@ -333,7 +404,7 @@ export class PedidosComponent implements OnInit, OnDestroy {
     // 2. Abrimos una ventana temporal o emergente
     const printWindow = window.open('', '_blank', 'height=600,width=400');
     if (!printWindow) {
-      alert('Por favor, permite las ventanas emergentes (pop-ups) para imprimir el ticket.');
+      this.addToast('Permite las ventanas emergentes (pop-ups) para imprimir el ticket.', 'warning', 5000);
       return;
     }
 

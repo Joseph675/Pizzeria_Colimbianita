@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
+import { ToastBodyComponent, ToastComponent, ToasterComponent, ToastHeaderComponent, ButtonCloseDirective } from '@coreui/angular';
 
 // Interfaz basada en la tabla de la base de datos
 export interface Mesa {
@@ -17,7 +18,7 @@ export interface Mesa {
 @Component({
   selector: 'app-mesas',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ToastBodyComponent, ToastComponent, ToasterComponent, ToastHeaderComponent, ButtonCloseDirective],
   templateUrl: './mesas-component.component.html',
   styleUrls: ['./mesas-component.component.scss']
 })
@@ -36,7 +37,22 @@ export class MesasComponent implements OnInit {
   nuevaMesaCapacidad: number = 2;
   nuevaMesaSucursal: number = 1; // Puede ser dinámico según la sucursal actual
 
+  // Variables para Toasts de CoreUI
+  public position = 'top-end';
+  public toasts: { id: number; message: string; type: 'success' | 'danger' | 'warning' | 'info' }[] = [];
+  private nextToastId = 0;
+
   constructor(private http: HttpClient, private router: Router) { }
+
+  addToast(message: string, type: 'success' | 'danger' | 'warning' | 'info' = 'success', duration = 3500) {
+    const id = this.nextToastId++;
+    this.toasts.push({ id, message, type });
+    setTimeout(() => this.removeToast(id), duration);
+  }
+
+  removeToast(id: number) {
+    this.toasts = this.toasts.filter((t) => t.id !== id);
+  }
 
   ngOnInit(): void {
     this.obtenerMesas();
@@ -44,7 +60,7 @@ export class MesasComponent implements OnInit {
 
   // ----- OBTENER MESAS (GET) -----
   obtenerMesas(): void {
-    this.http.get<Mesa[]>('http://localhost:8080/api/mesas').subscribe({
+    this.http.get<Mesa[]>('http://178.105.36.117:8080/api/mesas').subscribe({
       next: (data) => {
         // Ordenamos las mesas por su número para que se vean organizadas
         this.mesas = data.sort((a, b) => (a.numeroMesa || 0) - (b.numeroMesa || 0));
@@ -52,7 +68,7 @@ export class MesasComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error al cargar mesas', err);
-        alert('Error al cargar la lista de mesas. Verifica la consola.');
+        this.addToast('Error al cargar la lista de mesas. Verifica tu conexión.', 'danger');
       }
     });
   }
@@ -113,7 +129,7 @@ export class MesasComponent implements OnInit {
 
   guardarNuevaMesa(): void {
     if (!this.nuevaMesaNumero || this.nuevaMesaNumero <= 0) {
-      alert('Por favor ingresa un número de mesa válido.');
+      this.addToast('Por favor ingresa un número de mesa válido.', 'warning');
       return;
     }
 
@@ -126,10 +142,10 @@ export class MesasComponent implements OnInit {
 
     console.log('Creando nueva mesa:', nuevaMesa);
 
-    this.http.post('http://localhost:8080/api/mesas', nuevaMesa).subscribe({
+    this.http.post('http://178.105.36.117:8080/api/mesas', nuevaMesa).subscribe({
       next: (res: any) => {
         console.log('Mesa creada correctamente', res);
-        alert('Mesa creada con éxito');
+        this.addToast('Mesa creada con éxito', 'success');
         this.closeNuevaMesaModal();
         
         // Refrescamos la lista llamando de nuevo al GET
@@ -137,7 +153,7 @@ export class MesasComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error al crear la mesa', err);
-        alert('Ocurrió un error al crear la mesa. Verifica la consola.');
+        this.addToast('Ocurrió un error al crear la mesa.', 'danger');
       }
     });
   }
@@ -156,13 +172,13 @@ export class MesasComponent implements OnInit {
 
   actualizarMesa(): void {
     if (!this.selectedMesa || !this.nuevaMesaNumero || this.nuevaMesaNumero <= 0) {
-      alert('Por favor ingresa un número de mesa válido antes de actualizar.');
+      this.addToast('Por favor ingresa un número de mesa válido.', 'warning');
       return;
     }
 
     const mesaId = this.selectedMesa.id_mesa || this.selectedMesa.idMesa;
     if (!mesaId) {
-      alert('No se encontró el identificador de la mesa.');
+      this.addToast('No se encontró el identificador de la mesa.', 'danger');
       return;
     }
 
@@ -173,17 +189,44 @@ export class MesasComponent implements OnInit {
       estado: this.selectedMesa.estado || 'LIBRE'
     };
 
-    this.http.put(`http://localhost:8080/api/mesas/${mesaId}`, updatedMesa).subscribe({
+    this.http.put(`http://178.105.36.117:8080/api/mesas/${mesaId}`, updatedMesa).subscribe({
       next: () => {
-        alert('Mesa actualizada con éxito');
+        this.addToast('Mesa actualizada con éxito', 'success');
         this.closeEditarMesaModal();
         this.obtenerMesas();
       },
       error: (err) => {
         console.error('Error al actualizar la mesa', err);
-        alert('Ocurrió un error al actualizar la mesa. Verifica la consola.');
+        this.addToast('Ocurrió un error al actualizar la mesa.', 'danger');
       }
     });
+  }
+
+  liberarMesa(mesa: Mesa): void {
+    const mesaId = mesa.id_mesa || mesa.idMesa;
+    if (!mesaId) {
+      this.addToast('No se encontró el identificador de la mesa.', 'danger');
+      return;
+    }
+
+    if (confirm(`¿Estás seguro de que deseas liberar la mesa ${mesa.numeroMesa} manualmente?`)) {
+      const updatedMesa: Mesa = {
+        sucursal: { idSucursal: mesa.sucursal?.idSucursal || 1 },
+        numeroMesa: mesa.numeroMesa,
+        capacidad: mesa.capacidad,
+        estado: 'LIBRE'
+      };
+
+      this.http.put(`http://178.105.36.117:8080/api/mesas/${mesaId}`, updatedMesa).subscribe({
+        next: () => {
+          this.obtenerMesas();
+        },
+        error: (err) => {
+          console.error('Error al liberar la mesa', err);
+          this.addToast('Ocurrió un error al liberar la mesa.', 'danger');
+        }
+      });
+    }
   }
 
   openEliminarMesaModal(mesa: Mesa): void {
@@ -198,19 +241,19 @@ export class MesasComponent implements OnInit {
 
   confirmEliminarMesa(mesaId: number | undefined): void {
     if (!mesaId) {
-      alert('No se encontró el identificador de la mesa a eliminar.');
+      this.addToast('No se encontró el identificador de la mesa a eliminar.', 'warning');
       return;
     }
 
-    this.http.delete(`http://localhost:8080/api/mesas/${mesaId}`).subscribe({
+    this.http.delete(`http://178.105.36.117:8080/api/mesas/${mesaId}`).subscribe({
       next: () => {
-        alert('Mesa eliminada correctamente');
+        this.addToast('Mesa eliminada correctamente', 'success');
         this.closeEliminarMesaModal();
         this.obtenerMesas();
       },
       error: (err) => {
         console.error('Error al eliminar la mesa', err);
-        alert('Ocurrió un error al eliminar la mesa. Verifica la consola.');
+        this.addToast('Ocurrió un error al eliminar la mesa.', 'danger');
       }
     });
   }

@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Subscription, interval } from 'rxjs';
+import { ToastBodyComponent, ToastComponent, ToasterComponent, ToastHeaderComponent, ButtonCloseDirective } from '@coreui/angular';
 
 interface PedidoItem {
   e: string;
@@ -35,7 +36,7 @@ interface Pedido {
 @Component({
   selector: 'app-cocina',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ToastBodyComponent, ToastComponent, ToasterComponent, ToastHeaderComponent, ButtonCloseDirective],
   templateUrl: './cocina.component.html',
   styleUrl: './cocina.component.scss'
 })
@@ -49,7 +50,22 @@ export class CocinaComponent implements OnInit, OnDestroy {
   private pollingSubscription?: Subscription;
   private ultimoIdPedido: number = 0;
 
+  // Variables para Toasts de CoreUI
+  public position = 'top-end';
+  public toasts: { id: number; message: string; type: 'success' | 'danger' | 'warning' | 'info' }[] = [];
+  private nextToastId = 0;
+
   constructor(private http: HttpClient) {}
+
+  addToast(message: string, type: 'success' | 'danger' | 'warning' | 'info' = 'success', duration = 3000) {
+    const id = this.nextToastId++;
+    this.toasts.push({ id, message, type });
+    setTimeout(() => this.removeToast(id), duration);
+  }
+
+  removeToast(id: number) {
+    this.toasts = this.toasts.filter((t) => t.id !== id);
+  }
 
   ngOnInit() {
     this.cargarPedidos();
@@ -142,7 +158,7 @@ export class CocinaComponent implements OnInit, OnDestroy {
   cargarPedidos(esPolling: boolean = false): void {
     if (!esPolling) this.cargando = true;
 
-    this.http.get<any[]>('http://localhost:8080/api/pedidos').subscribe({
+    this.http.get<any[]>('http://178.105.36.117:8080/api/pedidos').subscribe({
       next: (data) => {
         const pedidosRecibidos = data || [];
         
@@ -247,7 +263,7 @@ export class CocinaComponent implements OnInit, OnDestroy {
       this.pedidoSeleccionado.estado = nuevoEstadoVisual as any;
     }
 
-    this.http.put(`http://localhost:8080/api/pedidos/${pedido.id}`, payload).subscribe({
+    this.http.put(`http://178.105.36.117:8080/api/pedidos/${pedido.id}`, payload).subscribe({
       next: () => {
         this.cargarPedidos(true); // Se refresca en segundo plano para estar en sintonía
       },
@@ -257,7 +273,7 @@ export class CocinaComponent implements OnInit, OnDestroy {
         if (this.pedidoSeleccionado && this.pedidoSeleccionado.id === pedido.id) {
           this.pedidoSeleccionado.estado = estadoAnterior;
         }
-        alert('No se pudo actualizar el estado en la base de datos.');
+        this.addToast('No se pudo actualizar el estado en la base de datos.', 'danger');
       }
     });
   }

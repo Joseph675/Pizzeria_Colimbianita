@@ -62,11 +62,22 @@
       
       <div class="pc-meta">
         <div class="meta-item"><span class="icon">📅</span> {{ (p.fecha_hora || p.fechaHora) | date:'medium' }}</div>
-        <div class="meta-item"><span class="icon">🏷️</span> {{ p.tipo_pedido || p.tipoPedido }} <span *ngIf="p.mesa"> (Mesa {{ p.mesa?.numero_mesa || p.mesa?.numeroMesa }})</span></div>
+        <div class="meta-item"><span class="icon">🏷️</span> {{ p.tipo_pedido || p.tipoPedido }} <span *ngIf="p.mesa"> (Mesa {{ p.mesa?.numero_mesa || p.mesa?.numeroMesa || p.numero_mesa || p.numeroMesa || p.mesa?.idMesa || p.mesa?.id_mesa || p.idMesa || p.id_mesa || p.mesa }})</span></div>
         <!-- NUEVO: Información del Cliente -->
         <div class="meta-item" *ngIf="p.cliente"><span class="icon">👤</span> {{ p.cliente?.nombres || p.cliente?.nombre }} <small *ngIf="p.cliente?.celular">({{ p.cliente?.celular }})</small></div>
         <!-- NUEVO: Dirección de Entrega -->
         <div class="meta-item" *ngIf="p.direccion_entrega || p.direccionEntrega"><span class="icon">📍</span> {{ p.direccion_entrega || p.direccionEntrega }}</div>
+        
+        <!-- NUEVO: Asignar Repartidor (Solo visible si es domicilio) -->
+        <div class="meta-item" *ngIf="(p.tipo_pedido || p.tipoPedido) === 'DOMICILIO' || (p.tipo_pedido || p.tipoPedido) === 'WHATSAPP'">
+          <span class="icon">🛵</span>
+          <select class="pc-status-select" style="background: rgba(255,255,255,0.05); color: #fff; border: 1px solid #333; font-size: 0.8rem; padding: 0.2rem 0.6rem; height: auto;" 
+                  [ngModel]="p.repartidor?.idUsuario || p.repartidor?.id_usuario || ''" 
+                  (change)="asignarRepartidor(p, $any($event.target).value)">
+            <option value="">-- Sin asignar --</option>
+            <option *ngFor="let rep of repartidores" [value]="rep.idUsuario || rep.id_usuario">{{ rep.nombres || rep.nombre || rep.username || ('Repartidor ' + (rep.idUsuario || rep.id_usuario)) }}</option>
+          </select>
+        </div>
       </div>
 
       <!-- Detalles del Carrito (Vista Previa Clickable) -->
@@ -131,6 +142,17 @@
           <div *ngIf="pedidoSeleccionado.direccion_entrega || pedidoSeleccionado.direccionEntrega" style="font-size: 0.9rem; color: #666;">
             <strong>📍 Dirección:</strong> {{ pedidoSeleccionado.direccion_entrega || pedidoSeleccionado.direccionEntrega }}
           </div>
+          
+          <!-- Selector de Repartidor en el Modal -->
+          <div *ngIf="(pedidoSeleccionado.tipo_pedido || pedidoSeleccionado.tipoPedido) === 'DOMICILIO' || (pedidoSeleccionado.tipo_pedido || pedidoSeleccionado.tipoPedido) === 'DELIVERY'" style="font-size: 0.9rem; color: #666; margin-top: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+            <strong>🛵 Repartidor:</strong>
+            <select class="pc-status-select" style="background: #fff; color: #333; border: 1px solid #ccc; font-size: 0.85rem; padding: 0.2rem 0.5rem; flex-grow: 1; max-width: 200px;" 
+                    [ngModel]="pedidoSeleccionado.repartidor?.idUsuario || pedidoSeleccionado.repartidor?.id_usuario || ''" 
+                    (change)="asignarRepartidor(pedidoSeleccionado, $any($event.target).value)">
+              <option value="">-- Sin asignar --</option>
+              <option *ngFor="let rep of repartidores" [value]="rep.idUsuario || rep.id_usuario">{{ rep.nombres || rep.nombre || rep.username || ('Repartidor ' + (rep.idUsuario || rep.id_usuario)) }}</option>
+            </select>
+          </div>
         </div>
 
         <div class="pm-item" *ngFor="let det of pedidoSeleccionado.detalles">
@@ -158,9 +180,14 @@
           <span class="pm-total-lbl">Total del Pedido</span>
           <span class="pm-total-val">{{ pedidoSeleccionado.total | currency:'USD':'symbol':'1.0-0' }}</span>
         </div>
-        <button class="btn-cobrar" *ngIf="pedidoSeleccionado.estado !== 'PAGADO'" (click)="abrirModalCobrar()">
-          💰 Cobrar Pedido
-        </button>
+        <div style="display: flex; gap: 1rem; align-items: center;">
+          <button class="btn-editar" style="padding: 0.8rem 1.5rem; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.15); color: #fff; border-radius: 8px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 0.5rem;" *ngIf="pedidoSeleccionado.estado !== 'PAGADO' && pedidoSeleccionado.estado !== 'CANCELADO'" (click)="editarPedido(pedidoSeleccionado)">
+            <span>✏️</span> Editar
+          </button>
+          <button class="btn-cobrar" *ngIf="pedidoSeleccionado.estado !== 'PAGADO' && pedidoSeleccionado.estado !== 'CANCELADO'" (click)="abrirModalCobrar()">
+            💰 Cobrar
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -221,7 +248,7 @@
     <div class="ticket-info">
       <p><strong>Factura/Pedido:</strong> #{{ pedidoSeleccionado.id_pedido || pedidoSeleccionado.idPedido }}</p>
       <p><strong>Fecha:</strong> {{ (pedidoSeleccionado.fecha_hora || pedidoSeleccionado.fechaHora) | date:'dd/MM/yyyy HH:mm' }}</p>
-      <p><strong>Tipo:</strong> {{ pedidoSeleccionado.tipo_pedido || pedidoSeleccionado.tipoPedido }} <span *ngIf="pedidoSeleccionado.mesa">(Mesa {{ pedidoSeleccionado.mesa.numeroMesa || pedidoSeleccionado.mesa.numero_mesa }})</span></p>
+      <p><strong>Tipo:</strong> {{ pedidoSeleccionado.tipo_pedido || pedidoSeleccionado.tipoPedido }} <span *ngIf="pedidoSeleccionado.mesa">(Mesa {{ pedidoSeleccionado.mesa?.numeroMesa || pedidoSeleccionado.mesa?.numero_mesa || pedidoSeleccionado.numeroMesa || pedidoSeleccionado.numero_mesa || pedidoSeleccionado.mesa?.idMesa || pedidoSeleccionado.mesa?.id_mesa || pedidoSeleccionado.idMesa || pedidoSeleccionado.id_mesa || pedidoSeleccionado.mesa }})</span></p>
       <p *ngIf="pedidoSeleccionado.cliente"><strong>Cliente:</strong> {{ pedidoSeleccionado.cliente.nombres || pedidoSeleccionado.cliente.nombre }}</p>
       <p><strong>Método de Pago:</strong> {{ metodoPago }}</p>
     </div>
@@ -276,4 +303,16 @@
       <p>Se ha recibido un nuevo pedido en cocina.</p>
     </div>
   </div>
+</div>
+
+<!-- Contenedor de Toasts de CoreUI -->
+<div style="position: fixed; top: 0; right: 0; z-index: 99999; pointer-events: none; width: 100%; height: 100%;">
+  <c-toaster [placement]="position" class="p-3" position="absolute" style="pointer-events: auto;">
+    <c-toast *ngFor="let toast of toasts" [visible]="true" [color]="toast.type" class="text-white align-items-center border-0 shadow-lg mb-2">
+      <div class="d-flex">
+        <c-toast-body style="font-weight: 500; font-size: 0.95rem;">{{ toast.message }}</c-toast-body>
+        <button cButtonClose class="me-2 m-auto" white (click)="removeToast(toast.id)"></button>
+      </div>
+    </c-toast>
+  </c-toaster>
 </div>

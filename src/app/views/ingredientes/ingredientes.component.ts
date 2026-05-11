@@ -113,7 +113,7 @@ export class IngredientesComponent implements OnInit {
 
 
   cargarIngredientes(): void {
-    this.http.get<{ idIngrediente?: number; id_ingrediente?: number; nombre: string; unidadMedida?: string; costoUnitario?: number;  }[]>('http://localhost:8080/api/ingredientes').subscribe(
+    this.http.get<{ idIngrediente?: number; id_ingrediente?: number; nombre: string; unidadMedida?: string; costoUnitario?: number;  }[]>('http://178.105.36.117:8080/api/ingredientes').subscribe(
       (data) => {
         this.ingrediente = data || [];
         this.applyFilters();
@@ -148,7 +148,7 @@ export class IngredientesComponent implements OnInit {
         costoUnitario: formValues.costoUnitario
       };
 
-      this.http.post('http://localhost:8080/api/ingredientes', payload).subscribe(
+      this.http.post('http://178.105.36.117:8080/api/ingredientes', payload).subscribe(
         (response) => {
           console.log('Ingrediente creado exitosamente:', response);
           this.addToast('Ingrediente registrado exitosamente!', 'success');
@@ -175,7 +175,7 @@ export class IngredientesComponent implements OnInit {
         costoUnitario: formValues.costoUnitario
       };
 
-      this.http.put(`http://localhost:8080/api/ingredientes/${this.selectedIngrediente.idIngrediente || this.selectedIngrediente.id_ingrediente}`, payload).subscribe(
+      this.http.put(`http://178.105.36.117:8080/api/ingredientes/${this.selectedIngrediente.idIngrediente || this.selectedIngrediente.id_ingrediente}`, payload).subscribe(
         (response) => {
           console.log('Ingrediente actualizado exitosamente:', response);
           this.addToast('Ingrediente actualizado exitosamente!', 'success');
@@ -249,7 +249,7 @@ export class IngredientesComponent implements OnInit {
       return;
     }
 
-    this.http.delete(`http://localhost:8080/api/ingredientes/${ingredienteId}`).subscribe(
+    this.http.delete(`http://178.105.36.117:8080/api/ingredientes/${ingredienteId}`).subscribe(
       (response) => {
         this.addToast('Ingrediente eliminado permanentemente', 'success');
         this.cargarIngredientes();

@@ -1,19 +1,24 @@
 {
-  "name": "coreui-free-angular-admin-template",
+  "name": "Pizzeria-Colombianita",
   "version": "5.4.3",
-  "copyright": "Copyright 2024 creativeLabs Łukasz Holeczek",
+  "main": "main.js",
+  "copyright": "Copyright 2026 Kevin Mijares",
   "license": "MIT",
-  "author": "The CoreUI Team (https://github.com/orgs/coreui/people) and contributors",
-  "homepage": "https://coreui.io/angular",
+  "author": "Kevin Mijares",
+  "homepage": "https://https://github.com/Joseph675",
   "config": {
     "theme": "default",
     "coreui_library_short_version": "5.4",
-    "coreui_library_docs_url": "https://coreui.io/angular/docs/"
+    "coreui_library_docs_url": "https://https://github.com/Joseph675"
   },
   "scripts": {
     "ng": "ng",
     "start": "ng serve -o",
     "build": "ng build",
+    "build:angular": "ng build --base-href ./",
+    "build:exe": "electron-builder --win",
+    "build:all": "npm run build:angular && npm run build:exe",
+    "electron:start": "electron .",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },
@@ -55,6 +60,8 @@
     "@types/lodash-es": "^4.17.12",
     "@types/node": "^22.13.5",
     "@types/sockjs-client": "^1.5.4",
+    "electron": "^42.0.0",
+    "electron-builder": "^26.8.1",
     "jasmine-core": "^5.6.0",
     "karma": "^6.4.4",
     "karma-chrome-launcher": "^3.2.0",
@@ -73,5 +80,20 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/coreui/coreui-free-angular-admin-template.git"
+  },
+  "build": {
+    "appId": "com.pizzeriacolombianita.pos",
+    "productName": "POS Pizzería",
+    "directories": {
+      "output": "release/"
+    },
+    "win": {
+      "icon": "src/assets/icon.ico",
+      "target": "nsis"
+    },
+    "files": [
+      "main.js",
+      "app_angular/**/*"
+    ]
   }
 }

@@ -113,7 +113,7 @@ export class ClientesComponent implements OnInit {
   }
 
   cargarClientes(): void {
-    this.http.get<any[]>('http://localhost:8080/api/clientes').subscribe(
+    this.http.get<any[]>('http://178.105.36.117:8080/api/clientes').subscribe(
       (data) => {
         this.clientes = data || [];
         this.applyFilters();
@@ -153,7 +153,7 @@ export class ClientesComponent implements OnInit {
         estado: formValues.estado !== null && formValues.estado !== '' ? formValues.estado : 1
       };
 
-      this.http.post('http://localhost:8080/api/clientes', payload).subscribe(
+      this.http.post('http://178.105.36.117:8080/api/clientes', payload).subscribe(
         (response) => {
           console.log('Cliente creado exitosamente:', response);
           this.addToast('Cliente registrado exitosamente!', 'success');
@@ -183,7 +183,7 @@ export class ClientesComponent implements OnInit {
       };
 
       const clienteId = this.selectedCliente.idCliente || this.selectedCliente.id_cliente;
-      this.http.put(`http://localhost:8080/api/clientes/${clienteId}`, payload).subscribe(
+      this.http.put(`http://178.105.36.117:8080/api/clientes/${clienteId}`, payload).subscribe(
         (response) => {
           console.log('Cliente actualizado exitosamente:', response);
           this.addToast('Cliente actualizado exitosamente!', 'success');
@@ -230,7 +230,7 @@ export class ClientesComponent implements OnInit {
     this.myForm.patchValue({
       celular: cliente.celular || '',
       nombres: cliente.nombres || '',
-      direccion_predeterminada: cliente.direccion_predeterminada || '',
+      direccion_predeterminada: cliente.direccionPredeterminada || cliente.direccion_predeterminada || '',
       estado: cliente.estado !== undefined ? cliente.estado : 1
     });
     this.showEditarClienteModal = true;
@@ -258,15 +258,25 @@ export class ClientesComponent implements OnInit {
       return;
     }
 
-    this.http.delete(`http://localhost:8080/api/clientes/${clienteId}`).subscribe(
+    this.http.delete(`http://178.105.36.117:8080/api/clientes/${clienteId}`).subscribe(
       (response) => {
         this.addToast('Cliente eliminado permanentemente', 'success');
         this.cargarClientes();
         this.closeEliminarClienteModal();
       },
       (error) => {
-        console.error('Error al eliminar cliente:', error.error);
-        this.addToast(error.error || 'No se pudo eliminar el cliente', 'danger');
+        console.error('Error al eliminar cliente:', error);
+        let errorMsg = 'No se pudo eliminar el cliente';
+        
+        // Detectar si el error viene de la base de datos por tener pedidos asociados
+        const errorStr = JSON.stringify(error).toLowerCase();
+        if (errorStr.includes('constraint') || errorStr.includes('ora-02292') || errorStr.includes('fk_pedido_cliente')) {
+          errorMsg = 'No se puede eliminar porque este cliente ya tiene pedidos registrados. Te sugerimos editarlo y cambiar su estado a Inactivo.';
+        } else if (error.error && typeof error.error === 'string') {
+          errorMsg = error.error;
+        }
+        
+        this.addToast(errorMsg, 'danger', 6000);
       }
     );
   }

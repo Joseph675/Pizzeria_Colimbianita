@@ -56,6 +56,9 @@
             <button *ngIf="(mesa.estado || '').toLowerCase() !== 'libre'" class="mc-btn" title="Ver Pedido y Cobrar" (click)="irAPedidos(mesa); $event.stopPropagation();" style="background: rgba(46, 204, 113, 0.15); color: #2ecc71;">
               💰
             </button>
+            <button *ngIf="(mesa.estado || '').toLowerCase() !== 'libre'" class="mc-btn" title="Liberar mesa manualmente" (click)="liberarMesa(mesa); $event.stopPropagation();" style="background: rgba(52, 152, 219, 0.15); color: #3498db;">
+              🔓
+            </button>
             <button class="mc-btn edit" title="Editar mesa" (click)="openEditarMesaModal(mesa); $event.stopPropagation();">
               ✏️
             </button>
@@ -258,3 +261,15 @@
       </div>
     </div>
   </div>
+
+<!-- Contenedor de Toasts de CoreUI -->
+<div style="position: fixed; top: 0; right: 0; z-index: 99999; pointer-events: none; width: 100%; height: 100%;">
+  <c-toaster [placement]="position" class="p-3" position="absolute" style="pointer-events: auto;">
+    <c-toast *ngFor="let toast of toasts" [visible]="true" [color]="toast.type" class="text-white align-items-center border-0 shadow-lg mb-2">
+      <div class="d-flex">
+        <c-toast-body style="font-weight: 500; font-size: 0.95rem;">{{ toast.message }}</c-toast-body>
+        <button cButtonClose class="me-2 m-auto" white (click)="removeToast(toast.id)"></button>
+      </div>
+    </c-toast>
+  </c-toaster>
+</div>
