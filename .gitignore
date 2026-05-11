@@ -3,6 +3,8 @@
 # Compiled output
 /dist
 /tmp
+/release
+/app_angular
 /out-tsc
 /bazel-out
 

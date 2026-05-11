@@ -15,6 +15,8 @@
     "ng": "ng",
     "start": "ng serve -o",
     "build": "ng build",
+    "build:angular": "ng build --base-href ./",
+    "build:exe": "electron-builder --win",
     "electron:start": "electron .",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
@@ -77,5 +79,20 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/coreui/coreui-free-angular-admin-template.git"
+  },
+  "build": {
+    "appId": "com.pizzeriacolombianita.pos",
+    "productName": "POS Pizzería",
+    "directories": {
+      "output": "release/"
+    },
+    "win": {
+      "icon": "src/assets/icon.ico",
+      "target": "nsis"
+    },
+    "files": [
+      "main.js",
+      "app_angular/**/*"
+    ]
   }
 }

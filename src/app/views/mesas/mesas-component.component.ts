@@ -186,6 +186,33 @@ export class MesasComponent implements OnInit {
     });
   }
 
+  liberarMesa(mesa: Mesa): void {
+    const mesaId = mesa.id_mesa || mesa.idMesa;
+    if (!mesaId) {
+      alert('No se encontró el identificador de la mesa.');
+      return;
+    }
+
+    if (confirm(`¿Estás seguro de que deseas liberar la mesa ${mesa.numeroMesa} manualmente?`)) {
+      const updatedMesa: Mesa = {
+        sucursal: { idSucursal: mesa.sucursal?.idSucursal || 1 },
+        numeroMesa: mesa.numeroMesa,
+        capacidad: mesa.capacidad,
+        estado: 'LIBRE'
+      };
+
+      this.http.put(`http://178.105.36.117:8080/api/mesas/${mesaId}`, updatedMesa).subscribe({
+        next: () => {
+          this.obtenerMesas();
+        },
+        error: (err) => {
+          console.error('Error al liberar la mesa', err);
+          alert('Ocurrió un error al liberar la mesa. Verifica la consola.');
+        }
+      });
+    }
+  }
+
   openEliminarMesaModal(mesa: Mesa): void {
     this.selectedMesa = { ...mesa };
     this.showEliminarMesaModal = true;

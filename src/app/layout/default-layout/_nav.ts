@@ -99,17 +99,6 @@ export const navItems: CustomNavData[] = [
     materialIcon: 'people',  // Material icon name
   },
 
-  {
-    name: 'Reportes',
-    url: '/reportes',
-    materialIcon: 'description',  // Material icon name
-  },
-
-  {
-    name: 'Configuración',
-    url: '/configuracion',
-    materialIcon: 'settings',  // Material icon name
-  },
 
   
 

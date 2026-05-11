@@ -230,7 +230,7 @@ export class ClientesComponent implements OnInit {
     this.myForm.patchValue({
       celular: cliente.celular || '',
       nombres: cliente.nombres || '',
-      direccion_predeterminada: cliente.direccion_predeterminada || '',
+      direccion_predeterminada: cliente.direccionPredeterminada || cliente.direccion_predeterminada || '',
       estado: cliente.estado !== undefined ? cliente.estado : 1
     });
     this.showEditarClienteModal = true;
@@ -265,8 +265,18 @@ export class ClientesComponent implements OnInit {
         this.closeEliminarClienteModal();
       },
       (error) => {
-        console.error('Error al eliminar cliente:', error.error);
-        this.addToast(error.error || 'No se pudo eliminar el cliente', 'danger');
+        console.error('Error al eliminar cliente:', error);
+        let errorMsg = 'No se pudo eliminar el cliente';
+        
+        // Detectar si el error viene de la base de datos por tener pedidos asociados
+        const errorStr = JSON.stringify(error).toLowerCase();
+        if (errorStr.includes('constraint') || errorStr.includes('ora-02292') || errorStr.includes('fk_pedido_cliente')) {
+          errorMsg = 'No se puede eliminar porque este cliente ya tiene pedidos registrados. Te sugerimos editarlo y cambiar su estado a Inactivo.';
+        } else if (error.error && typeof error.error === 'string') {
+          errorMsg = error.error;
+        }
+        
+        this.addToast(errorMsg, 'danger', 6000);
       }
     );
   }

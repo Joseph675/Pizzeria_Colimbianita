@@ -193,9 +193,31 @@ export class PosComponent implements OnInit {
   }
 
   loadMesas(): void {
+    // 1. Cargar desde caché (Respuesta instantánea)
+    const cached = localStorage.getItem('pos_mesas');
+    if (cached) {
+      try {
+        this.todasLasMesas = JSON.parse(cached);
+        this.mesasDisponibles = this.todasLasMesas
+          .filter((mesa: any) => mesa.estado && mesa.estado.toUpperCase() === 'LIBRE')
+          .sort((a, b) => (a.numeroMesa || 0) - (b.numeroMesa || 0));
+          
+        if (this.isEditMode() && this.selectedMesa) {
+          const currentId = this.selectedMesa.idMesa || this.selectedMesa.id_mesa;
+          const realMesa = this.todasLasMesas.find(m => (m.idMesa || m.id_mesa) == currentId);
+          if (realMesa) {
+            this.selectedMesa = realMesa;
+          }
+        }
+      } catch (e) { console.error(e); }
+    }
+
+    // 2. Actualizar en segundo plano
     this.http.get<any[]>('http://178.105.36.117:8080/api/mesas').subscribe({
       next: (data) => {
         this.todasLasMesas = data || []; // Guardamos TODAS las mesas sin importar su estado
+        localStorage.setItem('pos_mesas', JSON.stringify(this.todasLasMesas));
+
         // Filtramos solo las mesas con estado 'LIBRE' y las ordenamos
         this.mesasDisponibles = this.todasLasMesas
           .filter((mesa: any) => mesa.estado && mesa.estado.toUpperCase() === 'LIBRE')

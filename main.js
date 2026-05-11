@@ -10,6 +10,7 @@ function createWindow () {
     width: 1280,
     height: 800,
     title: "Pizzería Colombianita", // El título que saldrá en la ventana
+    icon: path.join(__dirname, 'app_angular', 'Pizzeria_Colimbianita', 'browser', 'assets', 'icon.ico'),
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false
