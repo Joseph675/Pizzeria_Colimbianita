@@ -75,21 +75,6 @@ export const navItems: CustomNavData[] = [
     materialIcon: 'people',  // Material icon name
   },
 
-  {
-    name: 'Ingredientes',
-    url: '/ingredientes',
-    materialIcon: 'local_pizza',  // Material icon name
-  },
-  {
-    name: 'Inventario',
-    url: '/inventario',
-    materialIcon: 'inventory',  // Material icon name
-  },
-  {
-    name: 'Recetas',
-    url: '/recetas',
-    materialIcon: 'menu_book',  // Material icon name
-  },
 
 
 
