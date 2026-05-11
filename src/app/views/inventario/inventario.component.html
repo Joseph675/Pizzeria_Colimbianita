@@ -168,7 +168,22 @@
       </ng-container>
       
       <ng-container *ngIf="modalTipo === 'entrada'">
-        <div class="form-row"><div class="form-col"><label class="form-label">Producto</label><select class="form-input"><option>Mozzarella (MOZ-002)</option><option>Masa de pizza (MSP-003)</option><option>Carne molida (CRM-005)</option></select></div></div>
+        <div class="form-row"><div class="form-col"><label class="form-label">Ingrediente</label><select class="form-input">
+            <option *ngFor="let item of inventarioSucursal" [value]="item.id_ingrediente || item.idIngrediente">{{ item.nombre }} (ID {{ item.id_ingrediente || item.idIngrediente }})</option>
+          </select></div></div>
+        <div class="form-row" *ngIf="inventarioSucursal?.length">
+          <div class="form-col full" style="margin-top:.8rem;">
+            <label class="form-label">Ingredientes en inventario</label>
+            <div class="mini-table">
+              <div class="mini-table-row mini-table-header"><span>Ingrediente</span><span>Cantidad</span><span>Mínimo</span></div>
+              <div class="mini-table-row" *ngFor="let item of inventarioSucursal">
+                <span>{{ item.nombre }}</span>
+                <span>{{ item.cantidad ?? '0' }}</span>
+                <span>{{ item.cantidad_minima ?? item.cantidadMinima ?? '0' }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
         <div class="form-row"><div class="form-col"><label class="form-label">Cantidad a ingresar</label><input class="form-input" type="number" placeholder="0"/></div><div class="form-col"><label class="form-label">Unidad</label><select class="form-input"><option>kg</option><option>und</option><option>paq</option><option>L</option></select></div></div>
         <div class="form-row"><div class="form-col"><label class="form-label">Proveedor / Origen</label><input class="form-input" placeholder="Nombre proveedor"/></div><div class="form-col"><label class="form-label">Fecha recepción</label><input class="form-input" type="date"/></div></div>
         <div class="form-row"><div class="form-col"><label class="form-label">Costo total compra</label><input class="form-input" placeholder="$0"/></div><div class="form-col"><label class="form-label">N° factura (opc.)</label><input class="form-input" placeholder="FAC-0001"/></div></div>
@@ -176,7 +191,22 @@
       </ng-container>
 
       <ng-container *ngIf="modalTipo === 'ajuste'">
-        <div class="form-row"><div class="form-col"><label class="form-label">Producto</label><select class="form-input"><option>Mozzarella (MOZ-002)</option><option>Masa de pizza (MSP-003)</option></select></div></div>
+        <div class="form-row"><div class="form-col"><label class="form-label">Ingrediente</label><select class="form-input">
+            <option *ngFor="let item of inventarioSucursal" [value]="item.id_ingrediente || item.idIngrediente">{{ item.nombre }} (ID {{ item.id_ingrediente || item.idIngrediente }})</option>
+          </select></div></div>
+        <div class="form-row" *ngIf="inventarioSucursal?.length">
+          <div class="form-col full" style="margin-top:.8rem;">
+            <label class="form-label">Ingredientes en inventario</label>
+            <div class="mini-table">
+              <div class="mini-table-row mini-table-header"><span>Ingrediente</span><span>Cantidad</span><span>Mínimo</span></div>
+              <div class="mini-table-row" *ngFor="let item of inventarioSucursal">
+                <span>{{ item.nombre }}</span>
+                <span>{{ item.cantidad ?? '0' }}</span>
+                <span>{{ item.cantidad_minima ?? item.cantidadMinima ?? '0' }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
         <div class="form-row"><div class="form-col"><label class="form-label">Tipo de ajuste</label><select class="form-input"><option>Conteo físico</option><option>Merma / Daño</option><option>Vencimiento</option><option>Error de registro</option></select></div><div class="form-col"><label class="form-label">Nueva cantidad real</label><input class="form-input" type="number" placeholder="0"/></div></div>
         <div class="form-row"><div class="form-col"><label class="form-label">Motivo del ajuste</label><input class="form-input" placeholder="Descripción del ajuste…"/></div></div>
         <div style="padding:.5rem .85rem;border-radius:.65rem;background:rgba(245,200,66,.07);border:1px solid rgba(245,200,66,.2);font-size:.74rem;color:var(--gold);margin-top:.2rem;">⚠️ Los ajustes quedan registrados en el historial del producto con tu usuario.</div>

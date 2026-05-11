@@ -1,1 +1,485 @@
-<p>recetas works!</p>
+<style>
+/* ══════════════════════════════════════
+   ESTILOS ADAPTADOS DEL MOCKUP
+══════════════════════════════════════ */
+.recetas-container {
+  --red:#E8342A;--gold:#F5C842;--green:#2ECC71;--blue:#3498DB;--orange:#F39C12;--purple:#9B59B6;
+  --white:#F7F4EE;--dark:#0D0D0D;
+  --panel:rgba(255,255,255,0.03);--border:rgba(255,255,255,0.07);
+  --border-gold:rgba(245,200,66,0.18);--muted:rgba(247,244,238,0.42);
+  
+  font-family: 'DM Sans', sans-serif;
+  background: #0A0A09;
+  color: var(--white);
+  height: calc(100vh - 120px); /* Ajuste para que encaje en el layout de CoreUI */
+  position: relative;
+  overflow: hidden;
+  border-radius: 0.6rem;
+  display: flex;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+
+.recetas-container * { box-sizing: border-box; }
+
+.recetas-container .grain {
+  position:absolute; inset:0; z-index:1; pointer-events:none; opacity:.025;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size:180px;
+}
+
+.recetas-container .main-wrap {
+  position:relative; z-index:2; display:flex; flex:1; overflow:hidden; width: 100%;
+}
+
+/* ── COLUMNA IZQUIERDA ── */
+.recetas-container .col-productos {
+  width:260px; flex-shrink:0; border-right:1px solid var(--border); display:flex; flex-direction:column; background:rgba(10,10,9,.6);
+}
+.cp-header { padding:.85rem 1.1rem .75rem; border-bottom:1px solid var(--border); flex-shrink:0; }
+.cp-title { font-family:'Bebas Neue',sans-serif; font-size:1.1rem; letter-spacing:.06em; margin-bottom:.55rem; }
+.cp-title span { color:var(--gold); }
+.cp-search { position:relative; }
+.cp-search svg { position:absolute; left:.65rem; top:50%; transform:translateY(-50%); width:13px; height:13px; color:var(--muted); pointer-events:none; }
+.cp-search input { width:100%; padding:.36rem .75rem .36rem 2rem; border-radius:.6rem; background:rgba(255,255,255,.05); border:1px solid var(--border); color:var(--white); font-family:'DM Sans',sans-serif; font-size:.76rem; outline:none; transition:border-color .18s; }
+.cp-search input:focus { border-color:rgba(245,200,66,.3); }
+.cp-search input::placeholder { color:var(--muted); }
+
+.cp-cats { display:flex; gap:.35rem; padding:.6rem 1.1rem; border-bottom:1px solid var(--border); flex-wrap:wrap; flex-shrink:0; }
+.cp-cat { font-size:.65rem; padding:.22rem .6rem; border-radius:2rem; border:1px solid var(--border); background:rgba(255,255,255,.04); color:var(--muted); cursor:pointer; transition:all .18s; white-space:nowrap; }
+.cp-cat:hover { color:var(--white); background:rgba(255,255,255,.07); }
+.cp-cat.active { background:rgba(245,200,66,.1); border-color:rgba(245,200,66,.3); color:var(--gold); }
+
+.cp-list { flex:1; overflow-y:auto; padding:.5rem 0; }
+.cp-list::-webkit-scrollbar { width:3px; }
+.cp-list::-webkit-scrollbar-thumb { background:rgba(255,255,255,.07); border-radius:2px; }
+
+.prod-item { display:flex; align-items:center; gap:.65rem; padding:.55rem 1.1rem; cursor:pointer; transition:background .15s; position:relative; }
+.prod-item:hover { background:rgba(255,255,255,.04); }
+.prod-item.active { background:rgba(245,200,66,.07); }
+.prod-item.active::before { content:''; position:absolute; left:0; top:15%; bottom:15%; width:3px; border-radius:0 2px 2px 0; background:var(--gold); }
+.pi-emoji { width:34px; height:34px; border-radius:.65rem; display:flex; align-items:center; justify-content:center; font-size:1.1rem; background:rgba(255,255,255,.05); flex-shrink:0; border:1px solid var(--border); }
+.prod-item.active .pi-emoji { background:rgba(245,200,66,.1); border-color:rgba(245,200,66,.2); }
+.pi-info { flex:1; min-width:0; }
+.pi-name { font-size:.8rem; font-weight:500; color:var(--white); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.pi-cat { font-size:.62rem; color:var(--muted); margin-top:.05rem; }
+.pi-badge { font-size:.55rem; font-weight:600; padding:.1rem .4rem; border-radius:2rem; flex-shrink:0; }
+.badge-pres { background:rgba(52,152,219,.12); color:var(--blue); border:1px solid rgba(52,152,219,.2); }
+
+/* ── COLUMNA CENTRAL ── */
+.recetas-container .col-central { flex:1; display:flex; flex-direction:column; overflow:hidden; border-right:1px solid var(--border); }
+
+.pres-tabs { display:flex; gap:.5rem; padding:1rem 1.4rem; border-bottom:1px solid var(--border); overflow-x:auto; }
+.pres-tabs::-webkit-scrollbar { height:3px; }
+.pres-tabs::-webkit-scrollbar-thumb { background:rgba(255,255,255,.07); border-radius:2px; }
+.pres-tab { padding:.5rem 1rem; border-radius:.5rem; background:rgba(255,255,255,.05); cursor:pointer; border:1px solid var(--border); display:flex; gap:.5rem; align-items:center; white-space:nowrap; transition:all .18s; }
+.pres-tab:hover { background:rgba(255,255,255,.08); }
+.pres-tab.active { background:rgba(245,200,66,.07); border-color:rgba(245,200,66,.3); }
+.pt-price { color:var(--gold); font-family:'Bebas Neue'; }
+.pres-add { padding:.5rem 1rem; border-radius:.5rem; background:rgba(255,255,255,.02); cursor:pointer; border:1px dashed var(--border); display:flex; gap:.5rem; align-items:center; color:var(--muted); font-size:.85rem; transition:all .18s; }
+.pres-add:hover { border-color:var(--gold); color:var(--gold); }
+
+.recetas-container .receta-area { flex:1; display:flex; flex-direction:column; overflow-y:auto; }
+.receta-area::-webkit-scrollbar { width:3px; }
+.receta-area::-webkit-scrollbar-thumb { background:rgba(255,255,255,.07); }
+
+.ing-table-wrap { padding:1rem 1.4rem; }
+.ing-table { width:100%; border-collapse:collapse; }
+.ing-table th { font-size:.6rem; letter-spacing:.12em; text-transform:uppercase; color:rgba(247,244,238,.25); font-weight:500; padding:.5rem .75rem; text-align:left; border-bottom:1px solid var(--border); }
+.ing-table td { padding:.58rem .75rem; border-bottom:1px solid rgba(255,255,255,.033); vertical-align:middle; }
+.ing-table tr { transition:background .15s; }
+.ing-table tr:hover td { background:rgba(255,255,255,.022); }
+
+.ing-cell { display:flex; align-items:center; gap:.6rem; }
+.ing-emoji { width:30px; height:30px; border-radius:.5rem; background:rgba(255,255,255,.05); display:flex; align-items:center; justify-content:center; font-size:.95rem; flex-shrink:0; }
+.ing-name { font-size:.8rem; font-weight:500; color:var(--white); }
+.ing-sku { font-size:.62rem; color:var(--muted); margin-top:.05rem; }
+.qty-cell { display:flex; align-items:center; gap:.5rem; }
+.qty-ctrl { display:flex; align-items:center; gap:.3rem; }
+.qty-btn { width:22px; height:22px; border-radius:.4rem; border:1px solid var(--border); background:rgba(255,255,255,.04); color:var(--white); display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:.8rem; transition:all .18s; }
+.qty-btn:hover { background:rgba(255,255,255,.1); border-color:rgba(245,200,66,.3); }
+.qty-val { font-size:.82rem; font-weight:500; min-width:32px; text-align:center; }
+.qty-unit { font-size:.65rem; color:var(--muted); }
+.unit-badge { font-size:.62rem; padding:.12rem .45rem; border-radius:.3rem; background:rgba(255,255,255,.06); color:var(--muted); border:1px solid var(--border); }
+.cost-per { font-size:.75rem; color:var(--muted); }
+.cost-total { font-family:'Bebas Neue',sans-serif; font-size:.95rem; letter-spacing:.04em; color:var(--gold); }
+.avail-cell { display:flex; align-items:center; gap:.4rem; font-size:.74rem; }
+.avail-bar { width:48px; height:4px; border-radius:2px; background:rgba(255,255,255,.07); overflow:hidden; }
+.avail-fill { height:100%; border-radius:2px; }
+.del-btn { width:26px; height:26px; display:flex; align-items:center; justify-content:center; border-radius:.45rem; background:rgba(255,255,255,.04); border:1px solid var(--border); color:var(--muted); cursor:pointer; transition:all .18s; }
+.del-btn:hover { background:rgba(232,52,42,.1); border-color:rgba(232,52,42,.3); color:var(--red); }
+.del-btn svg { width:11px; height:11px; }
+
+.add-ing-row { display:flex; align-items:center; gap:.65rem; padding:.65rem .75rem; border:1px dashed rgba(255,255,255,.08); border-radius:.7rem; margin:.5rem 0; cursor:pointer; transition:all .18s; color:var(--muted); font-size:.76rem; }
+.add-ing-row:hover { border-color:rgba(245,200,66,.25); color:var(--gold); background:rgba(245,200,66,.03); }
+
+.receta-totals { padding:.85rem 1.4rem 1rem; border-top:1px solid var(--border); background:rgba(255,255,255,.015); flex-shrink:0; position:sticky; bottom:0; }
+.rt-row { display:flex; justify-content:space-between; font-size:.78rem; margin-bottom:.28rem; }
+.rt-row .lbl { color:var(--muted); }
+.rt-row .val { color:var(--white); font-weight:500; }
+.rt-row.grand { padding-top:.45rem; border-top:1px solid var(--border); margin-top:.2rem; }
+.rt-row.grand .lbl { font-size:.84rem; font-weight:500; color:var(--white); }
+.rt-row.grand .val { font-family:'Bebas Neue'; font-size:1.3rem; letter-spacing:.04em; color:var(--gold); }
+.rt-row .val.green { color:var(--green); }
+.rt-row .val.red { color:var(--red); }
+.rt-row .val.blue { color:var(--blue); }
+
+/* ── COLUMNA DERECHA ── */
+.recetas-container .col-detalle { width:290px; flex-shrink:0; background:rgba(13,13,13,.98); display:flex; flex-direction:column; overflow:hidden; }
+.cd-header { padding:.85rem 1rem .75rem; border-bottom:1px solid var(--border); flex-shrink:0; }
+.cd-title { font-family:'Bebas Neue',sans-serif; font-size:1rem; letter-spacing:.07em; color:var(--white); margin-bottom:.05rem; }
+.cd-title span { color:var(--gold); }
+.cd-subtitle { font-size:.68rem; color:var(--muted); }
+.cd-id { font-size:.58rem; color:rgba(247,244,238,.2); margin-top:.15rem; font-family:monospace; }
+
+.cd-scroll { flex:1; overflow-y:auto; padding:.75rem 1rem; }
+.cd-scroll::-webkit-scrollbar { width:3px; }
+.cd-scroll::-webkit-scrollbar-thumb { background:rgba(255,255,255,.07); }
+
+.cd-section { margin-bottom:.85rem; }
+.cd-sec-title { font-size:.58rem; letter-spacing:.14em; text-transform:uppercase; color:rgba(247,244,238,.2); margin-bottom:.5rem; padding-bottom:.3rem; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+.cd-row { display:flex; justify-content:space-between; align-items:center; padding:.26rem 0; font-size:.76rem; }
+.cd-row .k { color:var(--muted); }
+.cd-row .v { color:var(--white); font-weight:500; }
+.cd-row .v.gold { color:var(--gold); font-family:'Bebas Neue'; font-size:.92rem; letter-spacing:.04em; }
+.cd-row .v.green { color:var(--green); }
+.cd-row .v.blue { color:var(--blue); }
+.cd-row .v.red { color:var(--red); }
+
+.cost-breakdown { display:flex; flex-direction:column; gap:.3rem; margin-top:.4rem; }
+.cb-item { display:flex; align-items:center; gap:.5rem; }
+.cb-emoji { font-size:.85rem; flex-shrink:0; width:20px; text-align:center; }
+.cb-bar-wrap { flex:1; }
+.cb-bar-track { height:4px; background:rgba(255,255,255,.06); border-radius:2px; overflow:hidden; }
+.cb-bar-fill { height:100%; border-radius:2px; background:linear-gradient(90deg,rgba(245,200,66,.5),var(--gold)); }
+.cb-name { font-size:.63rem; color:var(--muted); margin-top:.06rem; }
+.cb-pct { font-size:.62rem; color:var(--muted); min-width:28px; text-align:right; }
+
+.portiones-grid { display:grid; grid-template-columns:1fr 1fr; gap:.4rem; margin-top:.3rem; }
+.pg-item { background:rgba(255,255,255,.03); border:1px solid var(--border); border-radius:.6rem; padding:.45rem .55rem; text-align:center; }
+.pg-num { font-family:'Bebas Neue',sans-serif; font-size:1.1rem; letter-spacing:.04em; line-height:1; }
+.pg-lbl { font-size:.58rem; color:var(--muted); margin-top:.1rem; }
+
+.cd-actions { padding:.8rem 1rem; border-top:1px solid var(--border); display:flex; flex-direction:column; gap:.4rem; flex-shrink:0; }
+.cda-btn { display:flex; align-items:center; justify-content:center; gap:.45rem; padding:.55rem .9rem; border-radius:.7rem; font-family:'DM Sans',sans-serif; font-size:.77rem; font-weight:500; cursor:pointer; border:none; transition:all .18s; }
+.cda-btn svg { width:13px; height:13px; }
+.cda-btn.primary { background:var(--red); color:#fff; box-shadow:0 4px 14px rgba(232,52,42,.25); }
+.cda-btn.primary:hover { box-shadow:0 6px 20px rgba(232,52,42,.4); transform:translateY(-1px); }
+.cda-btn.secondary { background:rgba(52,152,219,.1); border:1px solid rgba(52,152,219,.25); color:var(--blue); }
+.cda-btn.secondary:hover { background:rgba(52,152,219,.18); }
+.cda-btn.ghost { background:rgba(255,255,255,.04); border:1px solid var(--border); color:var(--muted); }
+.cda-btn.ghost:hover { background:rgba(255,255,255,.08); color:var(--white); }
+.cda-btn-row { display:flex; gap:.4rem; }
+.cda-btn-row .cda-btn { flex:1; }
+
+/* ── MODALES ── */
+.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.7); backdrop-filter:blur(5px); z-index:500; display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none; transition:opacity .22s; }
+.modal-overlay.open { opacity:1; pointer-events:all; }
+.modal { background:#141413; border:1px solid var(--border); border-radius:1.25rem; width:520px; max-width:97vw; max-height:88vh; overflow:hidden; display:flex; flex-direction:column; box-shadow:0 28px 70px rgba(0,0,0,.8); transform:translateY(16px) scale(.97); transition:transform .22s; color:var(--white); font-family:'DM Sans', sans-serif;}
+.modal-overlay.open .modal { transform:none; }
+.modal-hdr { padding:1.2rem 1.4rem 1rem; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
+.modal-title { font-family:'Bebas Neue',sans-serif; font-size:1.2rem; letter-spacing:.05em; }
+.modal-title span { color:var(--gold); }
+.modal-close { width:30px; height:30px; display:flex; align-items:center; justify-content:center; border-radius:.5rem; background:rgba(255,255,255,.05); border:1px solid var(--border); cursor:pointer; color:var(--muted); transition:all .18s; }
+.modal-close:hover { background:rgba(255,255,255,.1); color:var(--white); }
+.modal-body { padding:1.2rem 1.4rem; overflow-y:auto; flex:1; }
+.modal-body::-webkit-scrollbar { width:3px; }
+.modal-body::-webkit-scrollbar-thumb { background:rgba(255,255,255,.07); }
+.form-row { display:flex; gap:.8rem; margin-bottom:.85rem; }
+.form-col { flex:1; }
+.form-label { font-size:.64rem; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:.35rem; display:block; }
+.form-input { width:100%; padding:.48rem .8rem; border-radius:.65rem; background:rgba(255,255,255,.05); border:1px solid var(--border); color:var(--white); font-family:'DM Sans',sans-serif; font-size:.82rem; outline:none; transition:border-color .18s; }
+.form-input:focus { border-color:rgba(245,200,66,.35); }
+.form-input::placeholder { color:var(--muted); }
+select.form-input option { background:#1a1a18; }
+.modal-ftr { padding:.9rem 1.4rem 1.2rem; border-top:1px solid var(--border); display:flex; gap:.6rem; justify-content:flex-end; flex-shrink:0; }
+.mf-btn { display:flex; align-items:center; gap:.4rem; padding:.48rem 1.1rem; border-radius:.65rem; font-family:'DM Sans',sans-serif; font-size:.78rem; font-weight:500; cursor:pointer; border:none; transition:all .18s; }
+.mf-btn.cancel { background:rgba(255,255,255,.04); border:1px solid var(--border); color:var(--muted); }
+.mf-btn.cancel:hover { background:rgba(255,255,255,.08); color:var(--white); }
+.mf-btn.confirm { background:var(--red); color:#fff; box-shadow:0 3px 10px rgba(232,52,42,.3); }
+.mf-btn.confirm:hover { box-shadow:0 5px 16px rgba(232,52,42,.4); }
+</style>
+
+<div class="recetas-container">
+  <div class="grain"></div>
+  
+  <div class="main-wrap">
+    
+    <!-- ═══════════════ COLUMNA 1: PRODUCTOS ═══════════════ -->
+    <div class="col-productos">
+      <div class="cp-header">
+        <div class="cp-title">Ficha <span>Técnica</span></div>
+        <div class="cp-search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" placeholder="Buscar producto…" [(ngModel)]="searchTerm" (input)="searchProds()"/>
+        </div>
+      </div>
+      
+      <div class="cp-cats">
+        <div class="cp-cat" [class.active]="activeCat === 'todas'" (click)="filterProdCat('todas')">Todas</div>
+        <div class="cp-cat" [class.active]="activeCat === 'pizzas'" (click)="filterProdCat('pizzas')">Pizzas</div>
+        <div class="cp-cat" [class.active]="activeCat === 'burgers'" (click)="filterProdCat('burgers')">Burgers</div>
+        <div class="cp-cat" [class.active]="activeCat === 'hotdogs'" (click)="filterProdCat('hotdogs')">Hot Dogs</div>
+        <div class="cp-cat" [class.active]="activeCat === 'bebidas'" (click)="filterProdCat('bebidas')">Bebidas</div>
+      </div>
+      
+      <div class="cp-list">
+        <div class="prod-item" *ngFor="let p of productosFiltrados" [class.active]="p.id === activeProd?.id" (click)="selectProd(p)">
+          <div class="pi-emoji">{{ p.emoji }}</div>
+          <div class="pi-info">
+            <div class="pi-name">{{ p.nombre }}</div>
+            <div class="pi-cat">{{ p.presentaciones?.length || 0 }} presentaciones</div>
+          </div>
+          <div class="pi-badge badge-pres">{{ p.presentaciones?.length || 0 }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════ COLUMNA 2: CENTRAL ═══════════════ -->
+    <div class="col-central">
+      
+      <div class="receta-area">
+        <!-- Tabs Presentaciones -->
+        <div class="pres-tabs">
+          <div class="pres-tab" *ngFor="let pid of activeProd?.presentaciones" [class.active]="pid === activePres" (click)="selectPres(pid)">
+            <span class="pt-emoji">{{ getPresentacion(pid)?.emoji }}</span>
+            <span class="pt-name" style="font-size: 0.85rem;">{{ getPresentacion(pid)?.nombre }}</span>
+            <span class="pt-price">${{ (getPresentacion(pid)?.precio / 1000) | number:'1.1-1' }}k</span>
+          </div>
+          <div class="pres-add" (click)="openModal('pres')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Presentación
+          </div>
+        </div>
+
+        <!-- Tabla de ingredientes de la receta -->
+        <div class="ing-table-wrap">
+          <ng-container *ngIf="activeReceta.length > 0; else noIngredients">
+            <table class="ing-table">
+              <thead>
+                <tr>
+                  <th>Ingrediente</th>
+                  <th>Cantidad</th>
+                  <th>Medida</th>
+                  <th>Costo unit.</th>
+                  <th>Costo total</th>
+                  <th>Disponible</th>
+                  <th style="text-align:right;">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let r of activeReceta">
+                  <td>
+                    <div class="ing-cell">
+                      <div class="ing-emoji">{{ getIngrediente(r.id_ingrediente)?.emoji }}</div>
+                      <div>
+                        <div class="ing-name">{{ getIngrediente(r.id_ingrediente)?.nombre }}</div>
+                        <div class="ing-sku">{{ r.id_ingrediente }} · {{ getIngrediente(r.id_ingrediente)?.sku }}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="qty-cell">
+                      <div class="qty-ctrl">
+                        <div class="qty-btn" (click)="adjustQty(r.id_receta, -1)">−</div>
+                        <span class="qty-val">{{ r.cantidad_necesaria }}</span>
+                        <div class="qty-btn" (click)="adjustQty(r.id_receta, 1)">+</div>
+                      </div>
+                      <span class="qty-unit">{{ getIngrediente(r.id_ingrediente)?.unidad }}</span>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="unit-badge">
+                      {{ r.cantidad_necesaria }}{{ getIngrediente(r.id_ingrediente)?.unidad === 'g' ? 'g' : ' ' + getIngrediente(r.id_ingrediente)?.unidad }}
+                    </span>
+                  </td>
+                  <td><span class="cost-per">${{ (getIngrediente(r.id_ingrediente)?.costo / 1000) | number:'1.2-2' }}/g</span></td>
+                  <td><span class="cost-total">${{ getCostoTotalIngrediente(r) | number }}</span></td>
+                  <td>
+                    <div class="avail-cell">
+                      <div class="avail-bar"><div class="avail-fill" [style.width.%]="getStockPct(r)" [style.background]="getStockColor(r)"></div></div>
+                      <span [style.color]="getStockColor(r)" style="font-size:.7rem;font-weight:500;">{{ getPorcionesDisponibles(r) }} prc.</span>
+                    </div>
+                  </td>
+                  <td>
+                    <div style="display:flex;justify-content:flex-end;">
+                      <div class="del-btn" (click)="removeIng(r.id_receta)" title="Eliminar">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </ng-container>
+          
+          <ng-template #noIngredients>
+            <div style="padding:3rem;text-align:center;color:var(--muted);font-size:.82rem;">
+              Sin ingredientes registrados para esta presentación. <br>
+              <span style="color:var(--gold);cursor:pointer;" (click)="openModal('ing')">+ Agregar ingrediente</span>
+            </div>
+          </ng-template>
+
+          <div class="add-ing-row" (click)="openModal('ing')" *ngIf="activeReceta.length > 0">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Agregar ingrediente a la receta
+          </div>
+        </div>
+      </div>
+
+      <!-- Totales Fijos Abajo -->
+      <div class="receta-totals" *ngIf="activeReceta.length > 0">
+        <div style="display:flex;gap:2rem;flex-wrap:wrap;align-items:flex-end;">
+          <div style="flex:1;">
+            <div class="rt-row"><span class="lbl">Costo total de ingredientes</span><span class="val">${{ getTotalCosto() | number }}</span></div>
+            <div class="rt-row"><span class="lbl">Precio de venta ({{ getPresentacion(activePres)?.nombre }})</span><span class="val blue">${{ getPresentacion(activePres)?.precio | number }}</span></div>
+            <div class="rt-row"><span class="lbl">% Costo sobre venta</span><span class="val" [ngClass]="(100 - getMargenPct()) > 45 ? 'red' : 'green'">{{ 100 - getMargenPct() }}%</span></div>
+          </div>
+          <div style="text-align:right;">
+            <div class="rt-row grand">
+              <span class="lbl">Margen bruto</span>
+              <span class="val">${{ getMargenBruto() | number }} <span style="font-size:.75rem;color:var(--green);font-family:'DM Sans';">({{ getMargenPct() }}%)</span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════ COLUMNA 3: FICHA TÉCNICA ═══════════════ -->
+    <div class="col-detalle">
+      <div class="cd-header">
+        <div class="cd-title">Ficha <span>Técnica</span></div>
+        <div class="cd-subtitle">{{ activeProd?.nombre }} — {{ getPresentacion(activePres)?.nombre || '—' }}</div>
+        <div class="cd-id">id_presentacion: {{ activePres }} · Receta con {{ activeReceta?.length || 0 }} ingredientes</div>
+      </div>
+      
+      <div class="cd-scroll">
+        <div class="cd-section">
+          <div class="cd-sec-title">Datos de la receta</div>
+          <div class="cd-row"><span class="k">id_receta (rango)</span><span class="v" style="font-size:.7rem;font-family:monospace;">#{{ activeReceta?.[0]?.id_receta || '—' }}–#{{ activeReceta?.[(activeReceta?.length || 1) - 1]?.id_receta || '—' }}</span></div>
+          <div class="cd-row"><span class="k">id_presentacion</span><span class="v" style="font-size:.7rem;font-family:monospace;">{{ activePres }}</span></div>
+          <div class="cd-row"><span class="k">Presentación</span><span class="v">{{ getPresentacion(activePres)?.nombre || '—' }}</span></div>
+          <div class="cd-row"><span class="k">Nº ingredientes</span><span class="v blue">{{ activeReceta?.length || 0 }}</span></div>
+        </div>
+
+        <div class="cd-section">
+          <div class="cd-sec-title">Costos y margen</div>
+          <div class="cd-row"><span class="k">Costo receta</span><span class="v gold">${{ getTotalCosto() | number }}</span></div>
+          <div class="cd-row"><span class="k">Precio venta</span><span class="v">${{ (getPresentacion(activePres)?.precio || 0) | number }}</span></div>
+          <div class="cd-row"><span class="k">Margen bruto</span><span class="v green">${{ getMargenBruto() | number }}</span></div>
+          <div class="cd-row"><span class="k">% Margen</span><span class="v" [ngClass]="getMargenPct() < 30 ? 'red' : (getMargenPct() < 50 ? '' : 'green')">{{ getMargenPct() }}%</span></div>
+        </div>
+
+        <div class="cd-section">
+          <div class="cd-sec-title">Distribución de costo</div>
+          <div class="cost-breakdown">
+            <ng-container *ngIf="getCostBreakdown().length > 0; else noBreakdown">
+              <div class="cb-item" *ngFor="let item of getCostBreakdown()">
+                <span class="cb-emoji">{{ item.ing.emoji }}</span>
+                <div class="cb-bar-wrap">
+                  <div class="cb-bar-track"><div class="cb-bar-fill" [style.width.%]="item.pctCosto"></div></div>
+                  <div class="cb-name">{{ item.ing.nombre }}</div>
+                </div>
+                <span class="cb-pct">{{ item.pctCosto }}%</span>
+              </div>
+            </ng-container>
+            <ng-template #noBreakdown>
+              <span style="font-size:.7rem;color:var(--muted);">Sin datos</span>
+            </ng-template>
+          </div>
+        </div>
+
+        <div class="cd-section">
+          <div class="cd-sec-title">Rendimiento</div>
+          <div class="portiones-grid">
+            <div class="pg-item"><div class="pg-num" style="color:var(--green);">{{ getPorcionesPosibles() }}</div><div class="pg-lbl">Porciones posibles</div></div>
+            <div class="pg-item"><div class="pg-num" style="color:var(--gold);">{{ activeReceta?.length || 0 }}</div><div class="pg-lbl">Ingredientes</div></div>
+            <div class="pg-item"><div class="pg-num" style="color:var(--blue); font-size:1rem;">{{ getPresentacion(activePres)?.nombre || '—' }}</div><div class="pg-lbl">Presentación</div></div>
+            <div class="pg-item"><div class="pg-num" style="color:var(--white);font-size:.85rem;">{{ 100 - getMargenPct() }}%</div><div class="pg-lbl">Costo s/venta</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cd-actions">
+        <button class="cda-btn primary" (click)="guardarReceta()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          Guardar receta
+        </button>
+        <div class="cda-btn-row">
+          <button class="cda-btn secondary" (click)="exportarPDF()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Exportar PDF
+          </button>
+          <button class="cda-btn ghost" (click)="enviarCocina()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            Enviar a cocina
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /main-wrap -->
+</div>
+
+<!-- ═══════════════ MODALES ═══════════════ -->
+<div class="modal-overlay" [class.open]="showModal" (click)="closeModal()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-hdr">
+      <div class="modal-title" [innerHTML]="modalConfig?.title"></div>
+      <div class="modal-close" (click)="closeModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </div>
+    </div>
+    
+    <div class="modal-body">
+      <!-- Agregar Ingrediente -->
+      <ng-container *ngIf="modalTipo === 'ing'">
+        <div class="form-row">
+          <div class="form-col">
+            <label class="form-label">Seleccionar ingrediente</label>
+            <select class="form-input" [(ngModel)]="nuevoIngredienteId">
+              <option *ngFor="let ing of ingredientesList" [value]="ing.id">{{ ing.emoji }} {{ ing.nombre }} — {{ ing.id }}</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-col">
+            <label class="form-label">Cantidad necesaria</label>
+            <input class="form-input" type="number" min="1" placeholder="Ej: 200" [(ngModel)]="nuevoIngredienteCant"/>
+          </div>
+          <div class="form-col">
+            <label class="form-label">Unidad (referencia)</label>
+            <select class="form-input" disabled>
+              <option [value]="getIngrediente(nuevoIngredienteId)?.unidad">{{ getIngrediente(nuevoIngredienteId)?.unidad || '-' }}</option>
+            </select>
+          </div>
+        </div>
+        <div style="padding:.55rem .75rem;background:rgba(52,152,219,.07);border:1px solid rgba(52,152,219,.18);border-radius:.65rem;font-size:.72rem;color:var(--blue);">
+          Se insertará en la tabla <code>receta</code> con:<br>
+          <strong>id_presentacion:</strong> {{ activePres }} &nbsp; <strong>id_ingrediente:</strong> {{ nuevoIngredienteId || '—' }}
+        </div>
+      </ng-container>
+
+      <!-- Nueva Presentación -->
+      <ng-container *ngIf="modalTipo === 'pres'">
+        <div class="form-row">
+          <div class="form-col"><label class="form-label">Nombre</label><input class="form-input" placeholder="Ej: XL, Familiar" [(ngModel)]="nuevaPresNombre"/></div>
+          <div class="form-col"><label class="form-label">Precio venta</label><input class="form-input" placeholder="$0" [(ngModel)]="nuevaPresPrecio"/></div>
+        </div>
+        <div class="form-row">
+          <div class="form-col"><label class="form-label">Emoji / ícono</label><input class="form-input" placeholder="🔴" style="text-align:center;font-size:1.2rem;" [(ngModel)]="nuevaPresEmoji"/></div>
+        </div>
+      </ng-container>
+    </div>
+
+    <div class="modal-ftr">
+      <button class="mf-btn cancel" (click)="closeModal()">Cancelar</button>
+      <button class="mf-btn confirm" (click)="saveModal()">{{ modalConfig?.btn }}</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ TOAST ═══════════════ -->
+<div class="toast" [class.show]="showToastMsg" style="position:fixed;bottom:1.5rem;right:1.5rem;z-index:999;padding:.65rem 1.1rem;border-radius:.8rem;background:#1d1d1b;border:1px solid var(--border);font-size:.78rem;color:var(--white);box-shadow:0 8px 24px rgba(0,0,0,.5);display:flex;align-items:center;gap:.55rem;transform:translateY(20px);opacity:0;transition:all .28s cubic-bezier(.4,0,.2,1);">
+  <div class="t-dot" [style.background]="toastColor" style="width:8px;height:8px;border-radius:50%;flex-shrink:0;"></div>
+  <span>{{ toastMsg }}</span>
+</div>

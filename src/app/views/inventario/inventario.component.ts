@@ -1,6 +1,9 @@
 ﻿import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
+import { forkJoin, of } from 'rxjs';
+import { catchError, tap } from 'rxjs/operators';
 
 interface Historial {
   t: 'in' | 'out' | 'adj';
@@ -28,6 +31,22 @@ interface Producto {
   historia: Historial[];
 }
 
+interface InventarioSucursalItem {
+  idInventario?: number;
+  id_inventario?: number;
+  idSucursal?: number;
+  id_sucursal?: number;
+  idIngrediente?: number;
+  id_ingrediente?: number;
+  nombre?: string;
+  nombreIngrediente?: string;
+  cantidad?: number;
+  cantidad_minima?: number;
+  cantidadMinima?: number;
+  unidadMedida?: string;
+  [key: string]: any; // Para atrapar nombres de columnas variables desde el backend
+}
+
 @Component({
   selector: 'app-inventario',
   standalone: true,
@@ -38,6 +57,7 @@ interface Producto {
 export class InventarioComponent implements OnInit, OnDestroy {
   currentTime: string = '—';
   private clockInterval: any;
+  private apiUrl = 'http://178.105.36.117:8080/api';
 
   searchTerm: string = '';
   catActual: string = 'todas';
@@ -46,6 +66,8 @@ export class InventarioComponent implements OnInit, OnDestroy {
   selectedProducto: Producto | null = null;
   showModal: boolean = false;
   modalTipo: string = '';
+
+  inventarioSucursal: InventarioSucursalItem[] = [];
 
   toastMsg: string = '';
   toastColor: string = 'var(--green)';
@@ -64,9 +86,12 @@ export class InventarioComponent implements OnInit, OnDestroy {
     { id: 'Empaque', label: 'Otros', color: '#9B59B6' }
   ];
 
+  constructor(private http: HttpClient) {}
+
   ngOnInit() {
     this.updateClock();
     this.clockInterval = setInterval(() => this.updateClock(), 10000);
+    this.cargarInventarioSucursal();
   }
 
   ngOnDestroy() {
@@ -200,6 +225,9 @@ export class InventarioComponent implements OnInit, OnDestroy {
   abrirModal(tipo: string) {
     this.modalTipo = tipo;
     this.showModal = true;
+    if ((tipo === 'entrada' || tipo === 'ajuste') && (!this.inventarioSucursal || this.inventarioSucursal.length === 0)) {
+      this.cargarInventarioSucursal();
+    }
   }
 
   cerrarModal(event?: Event) {
@@ -218,6 +246,89 @@ export class InventarioComponent implements OnInit, OnDestroy {
   guardarModal(msg: string, color: string = 'var(--green)') {
     this.cerrarModal();
     this.showToast(msg, color);
+  }
+
+  private cargarInventarioSucursal(): void {
+    // Usar forkJoin para pedir los ingredientes (para el nombre) y el inventario a la vez
+    forkJoin({
+      ingredientes: this.http.get<any>(`${this.apiUrl}/ingredientes`).pipe(
+        tap(res => console.log('Respuesta GET ingredientes:', res)),
+        catchError((err) => {
+          console.error('Error al obtener ingredientes:', err);
+          this.showToast('Error conectando con Ingredientes', 'var(--red)');
+          return of([]);
+        })
+      ),
+      inventario: this.http.get<any>(`${this.apiUrl}/inventario-sucursal`).pipe(
+        catchError(() => this.http.get<any>(`${this.apiUrl}/inventario`)), // Intento 2 automático
+        catchError(() => this.http.get<any>(`${this.apiUrl}/inventarios`)), // Intento 3 automático
+        tap(res => console.log('Respuesta GET inventario:', res)),
+        catchError((err) => {
+          console.error('Error al obtener inventario-sucursal:', err);
+          this.showToast('Error conectando con la tabla Inventario', 'var(--red)');
+          return of([]);
+        })
+      )
+    }).subscribe(({ ingredientes, inventario }) => {
+      // Extraemos los arrays seguros por si el backend los envuelve en un objeto (ej: { data: [...] })
+      const invArray: any[] = Array.isArray(inventario) ? inventario : (inventario?.data || inventario?.content || []);
+      const ingArray: any[] = Array.isArray(ingredientes) ? ingredientes : (ingredientes?.data || ingredientes?.content || []);
+
+      if (invArray && invArray.length > 0) {
+        this.inventarioSucursal = [];
+        this.productos = [];
+
+        invArray.forEach((item: any) => {
+          // Extraemos los IDs protegiéndonos de objetos anidados de Spring Boot (Ej: item.ingrediente.id_ingrediente)
+          const idIng = item.id_ingrediente || item.idIngrediente || item.ingrediente?.id_ingrediente || item.ingrediente?.idIngrediente || item.ingrediente?.id;
+          
+          const match = ingArray.find((ing: any) => (ing.id_ingrediente || ing.idIngrediente || ing.id) == idIng);
+          
+          const nombreReal = match ? match.nombre : (item.nombre || item.nombreIngrediente || item.ingrediente?.nombre || `Ingrediente ${idIng || 'N/A'}`);
+          const unidadReal = match ? (match.unidadMedida || match.unidad_medida) : (item.unidadMedida || item.ingrediente?.unidadMedida || 'und');
+          const costoReal = match && (match.costoUnitario || match.costo_unitario) ? (match.costoUnitario || match.costo_unitario) : 0;
+
+          const itemInventario = {
+            ...item,
+            id_ingrediente: idIng,
+            nombre: nombreReal,
+            unidadMedida: unidadReal
+          };
+
+          this.inventarioSucursal.push(itemInventario);
+
+          const stockActual = item.cantidad ?? item['cantidad_actual'] ?? item['cantidadActual'] ?? 0;
+          const stockMin = item.cantidad_minima ?? item.cantidadMinima ?? 0;
+          const idInv = item.id_inventario || item.idInventario || idIng || 0;
+          const idSuc = item.id_sucursal || item.idSucursal || item.sucursal?.id_sucursal || item.sucursal?.idSucursal || 1;
+
+          this.productos.push({
+            id: idInv,
+            emoji: '📦',
+            name: nombreReal || '',
+            sub: 'Ingrediente',
+            sku: `ING-${idIng || '00'}`,
+            cat: 'Pizzas e Ingredientes',
+            stock: stockActual,
+            min: stockMin,
+            max: stockMin > 0 ? stockMin * 5 : 100, // Máximo dinámico
+            unit: unidadReal,
+            costo: costoReal ? `$${costoReal}` : '$0',
+            venta: '-',
+            proveedor: 'N/A',
+            caducidad: '-',
+            ubicacion: `Bodega (Sucursal ${idSuc})`,
+            historia: []
+          });
+        });
+        
+        this.showToast(`Cargados ${this.productos.length} registros del inventario`, 'var(--green)');
+      } else {
+        this.inventarioSucursal = [];
+        this.productos = [];
+        this.showToast('El inventario en la base de datos está vacío', 'var(--orange)');
+      }
+    });
   }
 
   showToast(msg: string, color: string = 'var(--green)') {

@@ -1,4 +1,4 @@
-﻿import { Component, OnInit, signal  } from '@angular/core';
+﻿﻿import { Component, OnInit, signal  } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { NgForOf, NgIf, NgClass, CurrencyPipe } from '@angular/common';
 import {
@@ -113,9 +113,11 @@ export class IngredientesComponent implements OnInit {
 
 
   cargarIngredientes(): void {
-    this.http.get<{ idIngrediente?: number; id_ingrediente?: number; nombre: string; unidadMedida?: string; costoUnitario?: number;  }[]>('http://178.105.36.117:8080/api/ingredientes').subscribe(
+    this.http.get<any>('http://178.105.36.117:8080/api/ingredientes').subscribe(
       (data) => {
-        this.ingrediente = data || [];
+        // Extraer de forma segura el array por si el backend lo envuelve (ej. { data: [...] } o { content: [...] })
+        const arraySeguro = Array.isArray(data) ? data : (data?.data || data?.content || []);
+        this.ingrediente = arraySeguro;
         this.applyFilters();
         this.updateStats();
         console.log('Ingredientes cargados:', this.ingrediente);
