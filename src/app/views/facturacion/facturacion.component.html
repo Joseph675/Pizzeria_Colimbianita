@@ -10,6 +10,9 @@
       <button class="tab-btn" [class.active]="vistaActual === 'CIERRES'" (click)="cambiarVista('CIERRES')">
         🔐 Turnos de Caja
       </button>
+      <button class="tab-btn" [class.active]="vistaActual === 'GASTOS'" (click)="cambiarVista('GASTOS')">
+        💸 Gastos / Egresos
+      </button>
     </div>
   </div>
 
@@ -163,6 +166,44 @@
     </div>
   </div>
 
+  <!-- ==========================================
+       VISTA: GASTOS Y EGRESOS
+       ========================================== -->
+  <div *ngIf="vistaActual === 'GASTOS'">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <p class="text-muted m-0">Registra salidas de dinero por pago a proveedores, insumos, etc.</p>
+      <button class="btn-primary-custom" (click)="abrirModalGasto()">+ Registrar Gasto</button>
+    </div>
+
+    <div class="table-container">
+      <table class="custom-table">
+        <thead>
+          <tr>
+            <th>ID Gasto</th>
+            <th>Fecha y Hora</th>
+            <th>Descripción</th>
+            <th>Usuario (Autoriza)</th>
+            <th>Turno Afectado</th>
+            <th class="text-end">Monto Extraído</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let g of gastos">
+            <td class="text-gold fw-bold">#{{ g.id_gasto || g.idGasto }}</td>
+            <td>{{ (g.fecha_hora || g.fechaHora) | date:'medium' }}</td>
+            <td>{{ g.descripcion }}</td>
+            <td>{{ g.usuario?.nombres || g.usuario?.nombre || g.usuario?.username || 'Usuario #' + (g.usuario?.id_usuario || g.usuario?.idUsuario) }}</td>
+            <td>Turno #{{ g.cierreCaja?.id_cierre || g.cierreCaja?.idCierre }}</td>
+            <td class="text-end text-danger fw-bold">- {{ g.monto | currency:'USD':'symbol':'1.0-0' }}</td>
+          </tr>
+          <tr *ngIf="gastos.length === 0">
+            <td colspan="6" class="text-center text-muted py-4">No se han registrado salidas de dinero.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
   <!-- MODAL: DETALLES DE FACTURA -->
   <div class="modal-overlay" [class.open]="modalDetalleFactura" (click)="cerrarDetalleFactura()">
     <div class="nm-modal" (click)="$event.stopPropagation()" style="max-width: 600px;">
@@ -250,6 +291,7 @@
           <li class="d-flex justify-content-between border-bottom pb-2 mb-2" style="border-color: #333 !important;"><span>Apertura:</span> <span>{{ (turnoSeleccionado?.fecha_apertura || turnoSeleccionado?.fechaApertura) | date:'short' }}</span></li>
           <li class="d-flex justify-content-between border-bottom pb-2 mb-2" style="border-color: #333 !important;"><span>Cierre:</span> <span>{{ (turnoSeleccionado?.fecha_cierre || turnoSeleccionado?.fechaCierre) ? ((turnoSeleccionado?.fecha_cierre || turnoSeleccionado?.fechaCierre) | date:'short') : '---' }}</span></li>
           <li class="d-flex justify-content-between border-bottom pb-2 mb-2" style="border-color: #333 !important;"><span>Base Inicial:</span> <span>{{ (turnoSeleccionado?.base_inicial || turnoSeleccionado?.baseInicial) | currency:'USD':'symbol':'1.0-0' }}</span></li>
+          <li class="d-flex justify-content-between border-bottom pb-2 mb-2 text-danger" style="border-color: #333 !important;" *ngIf="totalGastosCierre > 0"><span>Gastos Retirados:</span> <span>- {{ totalGastosCierre | currency:'USD':'symbol':'1.0-0' }}</span></li>
           <li class="d-flex justify-content-between border-bottom pb-2 mb-2" style="border-color: #333 !important;"><span>Efectivo Declarado:</span> <span class="text-gold">{{ (turnoSeleccionado?.efectivo_declarado || turnoSeleccionado?.efectivoDeclarado) | currency:'USD':'symbol':'1.0-0' }}</span></li>
           <li class="d-flex justify-content-between">
             <span>Diferencia (Sobrante/Faltante):</span> 
@@ -312,7 +354,9 @@
 
         <!-- RESUMEN EN TIEMPO REAL -->
         <div class="totales-cierre-box">
-          <div class="t-row"><span>Total Esperado (Base + Ventas):</span> <span>{{ efectivoEsperado | currency:'USD':'symbol':'1.0-0' }}</span></div>
+          <div class="t-row text-muted" style="font-size: 0.8rem;"><span>Base: {{ (turnoSeleccionado?.base_inicial || turnoSeleccionado?.baseInicial) | currency:'USD':'symbol':'1.0-0' }} | Ventas: {{ ventasEfectivoCierre | currency:'USD':'symbol':'1.0-0' }}</span></div>
+          <div class="t-row text-danger" *ngIf="totalGastosCierre > 0"><span>Gastos / Retiros:</span> <span>- {{ totalGastosCierre | currency:'USD':'symbol':'1.0-0' }}</span></div>
+          <div class="t-row mt-1" style="border-top: 1px solid #333; padding-top: 0.5rem;"><span>Total Esperado en Caja:</span> <span>{{ efectivoEsperado | currency:'USD':'symbol':'1.0-0' }}</span></div>
           <div class="t-row"><span>Total Contado (Declarado):</span> <span class="text-gold fw-bold">{{ efectivoDeclarado | currency:'USD':'symbol':'1.0-0' }}</span></div>
           <div class="t-row t-diff" [ngClass]="{'faltante': diferenciaCalculada < 0, 'sobrante': diferenciaCalculada > 0, 'cuadre': diferenciaCalculada === 0}">
             <span>Diferencia:</span>
@@ -332,6 +376,30 @@
       <div class="nm-footer mt-4">
         <button class="dp-btn ghost" (click)="modalCierre = false">Cancelar</button>
         <button class="dp-btn danger-btn" (click)="procesarCierre()">Confirmar Cierre</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: REGISTRAR GASTO -->
+  <div class="modal-overlay" [class.open]="modalGasto" (click)="cerrarModalGasto()">
+    <div class="nm-modal" (click)="$event.stopPropagation()">
+      <div class="nm-header">
+        <div class="nm-title">Registrar <em>Gasto</em></div>
+        <button class="modal-close" (click)="cerrarModalGasto()">✖</button>
+      </div>
+      <div class="nm-body">
+        <div class="form-group mb-3">
+          <label>Monto Retirado (Efectivo)</label>
+          <input type="number" class="nm-input text-danger fw-bold" [(ngModel)]="nuevoGasto.monto" placeholder="Ej. 15000">
+        </div>
+        <div class="form-group">
+          <label>Descripción / Motivo</label>
+          <textarea class="nm-input" [(ngModel)]="nuevoGasto.descripcion" rows="3" placeholder="Ej. Compra urgente de servilletas en la tienda"></textarea>
+        </div>
+      </div>
+      <div class="nm-footer mt-4">
+        <button class="dp-btn ghost" (click)="cerrarModalGasto()">Cancelar</button>
+        <button class="dp-btn danger-btn" (click)="procesarGasto()">Confirmar Retiro</button>
       </div>
     </div>
   </div>
@@ -433,6 +501,10 @@
       <div class="t-row">
         <span>Total Ventas:</span>
         <span>{{ totalVentasCierre | currency:'USD':'symbol':'1.0-0' }}</span>
+      </div>
+      <div class="t-row" *ngIf="totalGastosCierre > 0">
+        <span>Gastos / Retiros:</span>
+        <span>- {{ totalGastosCierre | currency:'USD':'symbol':'1.0-0' }}</span>
       </div>
       <div class="t-row">
         <span>Efec. Declarado:</span>

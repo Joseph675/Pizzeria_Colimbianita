@@ -12,7 +12,7 @@ import { AuthService } from '../../services/auth.service';
   styleUrl: './facturacion.component.scss'
 })
 export class FacturacionComponent implements OnInit {
-  public vistaActual: 'FACTURAS' | 'CIERRES' = 'FACTURAS';
+  public vistaActual: 'FACTURAS' | 'CIERRES' | 'GASTOS' = 'FACTURAS';
 
   // Filtros de Facturas
   public fechaHoy: string = '';
@@ -24,6 +24,7 @@ export class FacturacionComponent implements OnInit {
   public facturas: any[] = [];
   public facturasFiltradas: any[] = [];
   public cierres: any[] = [];
+  public gastos: any[] = [];
 
   // Estadísticas del Dashboard
   public totalVentas: number = 0;
@@ -43,6 +44,8 @@ export class FacturacionComponent implements OnInit {
   // Variables para arqueo de caja detallado
   public efectivoEsperado: number = 0;
   public diferenciaCalculada: number = 0;
+  public ventasEfectivoCierre: number = 0;
+  public totalGastosCierre: number = 0;
   public denominaciones = [
     { valor: 100000, cantidad: null as number | null },
     { valor: 50000, cantidad: null as number | null },
@@ -56,6 +59,10 @@ export class FacturacionComponent implements OnInit {
     { valor: 100, cantidad: null as number | null },
     { valor: 50, cantidad: null as number | null }
   ];
+
+  // Modales de Gastos
+  public modalGasto: boolean = false;
+  public nuevoGasto = { monto: null as number | null, descripcion: '' };
 
   // Modales de Detalles (Ojito)
   public modalDetalleFactura: boolean = false;
@@ -78,6 +85,7 @@ export class FacturacionComponent implements OnInit {
   ngOnInit(): void {
     this.cargarFacturas();
     this.cargarCierres();
+    this.cargarGastos();
   }
 
   obtenerFechaHoy(): string {
@@ -88,7 +96,7 @@ export class FacturacionComponent implements OnInit {
     return `${anio}-${mes}-${dia}`;
   }
 
-  cambiarVista(vista: 'FACTURAS' | 'CIERRES'): void {
+  cambiarVista(vista: 'FACTURAS' | 'CIERRES' | 'GASTOS'): void {
     this.vistaActual = vista;
   }
 
@@ -332,7 +340,16 @@ export class FacturacionComponent implements OnInit {
         .reduce((sum, f) => sum + Number(f.total || 0), 0);
     }
 
-    this.efectivoEsperado = base + ventasEfectivo;
+    this.ventasEfectivoCierre = ventasEfectivo;
+
+    this.totalGastosCierre = this.gastos
+      .filter(g => {
+        const gCierreId = g.cierreCaja?.idCierre || g.cierreCaja?.id_cierre || g.id_cierre || g.idCierre;
+        return gCierreId === idTurno;
+      })
+      .reduce((sum, g) => sum + Number(g.monto || 0), 0);
+
+    this.efectivoEsperado = base + this.ventasEfectivoCierre - this.totalGastosCierre;
     this.diferenciaCalculada = -this.efectivoEsperado; // Al inicio faltaría todo
 
     this.modalCierre = true;
@@ -383,6 +400,15 @@ export class FacturacionComponent implements OnInit {
 
   abrirDetalleCierre(turno: any): void {
     this.turnoSeleccionado = turno;
+    
+    const idTurno = turno.id_cierre || turno.idCierre;
+    this.totalGastosCierre = this.gastos
+      .filter(g => {
+        const gCierreId = g.cierreCaja?.idCierre || g.cierreCaja?.id_cierre || g.id_cierre || g.idCierre;
+        return gCierreId === idTurno;
+      })
+      .reduce((sum, g) => sum + Number(g.monto || 0), 0);
+      
     this.modalDetalleCierre = true;
   }
 
@@ -428,6 +454,13 @@ export class FacturacionComponent implements OnInit {
 
     this.productosVendidosCierre = Array.from(aggregation.values());
 
+    this.totalGastosCierre = this.gastos
+      .filter(g => {
+        const gCierreId = g.cierreCaja?.idCierre || g.cierreCaja?.id_cierre || g.id_cierre || g.idCierre;
+        return gCierreId === idTurno;
+      })
+      .reduce((sum, g) => sum + Number(g.monto || 0), 0);
+
     // 2. Damos un pequeño retraso para que Angular dibuje el ticket oculto y lo mandamos a imprimir
     setTimeout(() => {
       const ticketElement = document.getElementById('ticket-impresion-cierre');
@@ -472,6 +505,62 @@ export class FacturacionComponent implements OnInit {
       `);
       printWindow.document.close();
     }, 100);
+  }
+
+  // === LÓGICA DE GASTOS DE CAJA ===
+
+  cargarGastos(): void {
+    this.http.get<any[]>('http://178.105.36.117:8080/api/gastos-caja').subscribe({
+      next: (data) => {
+        this.gastos = (data || []).sort((a,b) => {
+          const idA = a.idGasto || a.id_gasto || 0;
+          const idB = b.idGasto || b.id_gasto || 0;
+          return idB - idA; // Más recientes primero
+        });
+      },
+      error: (err) => console.error('Error al cargar gastos:', err)
+    });
+  }
+
+  abrirModalGasto(): void {
+    this.nuevoGasto = { monto: null, descripcion: '' };
+    this.modalGasto = true;
+  }
+
+  cerrarModalGasto(): void {
+    this.modalGasto = false;
+  }
+
+  procesarGasto(): void {
+    if (!this.nuevoGasto.monto || this.nuevoGasto.monto <= 0 || !this.nuevoGasto.descripcion.trim()) {
+      this.mostrarToast('Datos incompletos', 'Por favor ingresa un monto válido y una descripción.', true);
+      return;
+    }
+
+    const turnoAbierto = this.cierres.find(c => c.estado === 'ABIERTA');
+    if (!turnoAbierto) {
+      this.mostrarToast('Caja Cerrada', 'Debes abrir un turno de caja antes de registrar un gasto.', true);
+      return;
+    }
+
+    const user = this.authService.getUser();
+    const ID_USUARIO_VALIDO = user?.idUsuario || user?.id_usuario;
+
+    const payload = {
+      cierreCaja: { idCierre: turnoAbierto.idCierre || turnoAbierto.id_cierre },
+      usuario: { idUsuario: ID_USUARIO_VALIDO },
+      monto: this.nuevoGasto.monto,
+      descripcion: this.nuevoGasto.descripcion.trim()
+    };
+
+    this.http.post('http://178.105.36.117:8080/api/gastos-caja', payload).subscribe({
+      next: () => {
+        this.mostrarToast('Gasto Registrado', 'El gasto fue guardado exitosamente.', false);
+        this.cerrarModalGasto();
+        this.cargarGastos();
+      },
+      error: () => this.mostrarToast('Error', 'No se pudo registrar el gasto en el servidor.', true)
+    });
   }
 
   // === UTILIDADES ===

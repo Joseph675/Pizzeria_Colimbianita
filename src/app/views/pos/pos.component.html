@@ -28,21 +28,30 @@
     <div class="products-scroll">
       <div class="prod-grid">
 
-        <!-- Tarjetas de Producto -->
-        <div class="pos-card" *ngFor="let pre of presentacionesFiltrados" (click)="openItemModal(pre)">
-          <div class="pc-img">
-            {{ getEmoji(pre.producto?.nombre) }}
-            <div class="pc-add">+</div>
-          </div>
-          <div class="pc-body">
-            <div class="pc-cat">{{ pre.producto?.nombre }}</div>
-            <div class="pc-name">{{ pre.nombrePresentacion || pre.nombre_presentacion }}</div>
-            <div class="pc-price">{{ pre.precio | currency:'USD':'symbol':'1.0-0' }}</div>
-          </div>
+        <!-- Indicador de Carga Silencioso -->
+        <div *ngIf="isLoadingPresentaciones" style="grid-column: 1 / -1; text-align: center; padding: 4rem 0; color: var(--gold);">
+          <div style="font-size: 3.5rem; margin-bottom: 1rem; animation: pulse 1.5s infinite;">⏳</div>
+          <div style="font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; letter-spacing: 2px;">Sincronizando Catálogo...</div>
+          <div style="font-size: 0.9rem; color: var(--muted); margin-top: 0.5rem;">Conectando con el servidor central 🌍</div>
         </div>
 
+        <!-- Tarjetas de Producto -->
+        <ng-container *ngIf="!isLoadingPresentaciones">
+          <div class="pos-card" *ngFor="let pre of presentacionesFiltrados" (click)="openItemModal(pre)">
+            <div class="pc-img">
+              {{ getEmoji(pre.producto?.nombre) }}
+              <div class="pc-add">+</div>
+            </div>
+            <div class="pc-body">
+              <div class="pc-cat">{{ pre.producto?.nombre }}</div>
+              <div class="pc-name">{{ pre.nombrePresentacion || pre.nombre_presentacion }}</div>
+              <div class="pc-price">{{ pre.precio | currency:'USD':'symbol':'1.0-0' }}</div>
+            </div>
+          </div>
+        </ng-container>
+
         <!-- Empty state -->
-        <div *ngIf="presentacionesFiltrados.length === 0" style="grid-column: 1 / -1; text-align: center; margin-top: 2rem; color: var(--muted);">
+        <div *ngIf="!isLoadingPresentaciones && presentacionesFiltrados.length === 0" style="grid-column: 1 / -1; text-align: center; margin-top: 2rem; color: var(--muted);">
           No se encontraron presentaciones...
         </div>
 

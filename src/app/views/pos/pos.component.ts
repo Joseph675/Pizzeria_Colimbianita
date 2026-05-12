@@ -256,13 +256,28 @@ export class PosComponent implements OnInit {
   }
 
   loadPresentaciones(): void {
-    this.isLoadingPresentaciones = true;
+    // 1. Cargar desde la memoria caché del navegador (Respuesta instantánea 0s)
+    const cached = localStorage.getItem('pos_presentaciones');
+    if (cached) {
+      try {
+        const parsed = JSON.parse(cached);
+        this.presentaciones = parsed.filter((p: any) => p.estado === 1);
+        this.applyFilters();
+      } catch (e) { console.error('Error leyendo caché de presentaciones', e); }
+    } else {
+      // Si no hay caché (primera vez del día), mostramos el icono de carga
+      this.isLoadingPresentaciones = true;
+    }
+
+    // 2. Conectar a Alemania en segundo plano para actualizar los datos silenciosamente
     this.http
       .get<any[]>('http://178.105.36.117:8080/api/presentaciones')
       .subscribe({
         next: (data) => {
+          const validData = data || [];
+          localStorage.setItem('pos_presentaciones', JSON.stringify(validData));
           // Solo cargar presentaciones activas para la venta
-          this.presentaciones = (data || []).filter(p => p.estado === 1);
+          this.presentaciones = validData.filter(p => p.estado === 1);
           this.applyFilters();
           this.isLoadingPresentaciones = false;
         },
