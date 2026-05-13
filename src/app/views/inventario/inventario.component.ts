@@ -1,50 +1,34 @@
-﻿import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { forkJoin, of } from 'rxjs';
-import { catchError, tap } from 'rxjs/operators';
-
-interface Historial {
-  t: 'in' | 'out' | 'adj';
-  desc: string;
-  fecha: string;
-  qty: string;
-}
+import { catchError } from 'rxjs/operators';
 
 interface Producto {
   id: number;
   emoji: string;
   name: string;
-  sub: string;
   sku: string;
-  cat: string;
   stock: number;
   min: number;
   max: number;
   unit: string;
-  costo: string;
-  venta: string;
-  proveedor: string;
-  caducidad: string;
+  costo: number;
+  costoStr: string;
   ubicacion: string;
-  historia: Historial[];
 }
 
 interface InventarioSucursalItem {
-  idInventario?: number;
   id_inventario?: number;
-  idSucursal?: number;
-  id_sucursal?: number;
-  idIngrediente?: number;
+  idInventario?: number;
   id_ingrediente?: number;
+  idIngrediente?: number;
   nombre?: string;
-  nombreIngrediente?: string;
   cantidad?: number;
   cantidad_minima?: number;
   cantidadMinima?: number;
-  unidadMedida?: string;
-  [key: string]: any; // Para atrapar nombres de columnas variables desde el backend
+  [key: string]: any;
 }
 
 @Component({
@@ -54,18 +38,22 @@ interface InventarioSucursalItem {
   templateUrl: './inventario.component.html',
   styleUrls: ['./inventario.component.scss']
 })
-export class InventarioComponent implements OnInit, OnDestroy {
-  currentTime: string = '—';
-  private clockInterval: any;
+export class InventarioComponent implements OnInit {
   private apiUrl = 'http://178.105.36.117:8080/api';
 
+  isLoading: boolean = true;
+
   searchTerm: string = '';
-  catActual: string = 'todas';
+  filtroEstado: string = 'todas';
   ordenActual: string = 'nombre';
 
   selectedProducto: Producto | null = null;
   showModal: boolean = false;
   modalTipo: string = '';
+
+  editCantidad: number = 0;
+  editMinimo: number = 0;
+  editTarget: Producto | null = null;
 
   inventarioSucursal: InventarioSucursalItem[] = [];
 
@@ -74,260 +62,203 @@ export class InventarioComponent implements OnInit, OnDestroy {
   showToastMsg: boolean = false;
   private toastTimeout: any;
 
-  // Mockup Data
   productos: Producto[] = [];
 
-  categoriasFiltro = [
-    { id: 'todas', label: 'Todas', color: '' },
-    { id: 'Pizzas e Ingredientes', label: 'Pizzas', color: '#E8342A' },
-    { id: 'Carnes', label: 'Carnes', color: '#F39C12' },
-    { id: 'Bebidas', label: 'Bebidas', color: '#3498DB' },
-    { id: 'Lácteos', label: 'Lácteos', color: '#F5C842' },
-    { id: 'Empaque', label: 'Otros', color: '#9B59B6' }
+  estadosFiltro = [
+    { id: 'todas',    label: 'Todas',      color: '' },
+    { id: 'ok',       label: 'Normal',     color: 'var(--green)' },
+    { id: 'low',      label: 'Stock bajo', color: 'var(--orange)' },
+    { id: 'critical', label: 'Crítico',    color: 'var(--red)' },
+    { id: 'out',      label: 'Sin stock',  color: 'var(--muted)' }
   ];
 
   constructor(private http: HttpClient) {}
 
   ngOnInit() {
-    this.updateClock();
-    this.clockInterval = setInterval(() => this.updateClock(), 10000);
     this.cargarInventarioSucursal();
-  }
-
-  ngOnDestroy() {
-    if (this.clockInterval) {
-      clearInterval(this.clockInterval);
-    }
-  }
-
-  updateClock() {
-    const n = new Date();
-    let h = n.getHours();
-    const m = n.getMinutes();
-    const a = h >= 12 ? 'PM' : 'AM';
-    h = h % 12 || 12;
-    this.currentTime = `${h}:${m < 10 ? '0' : ''}${m} ${a}`;
   }
 
   get productosFiltrados(): Producto[] {
     let filtered = this.productos;
-    
-    if (this.catActual !== 'todas') {
-      filtered = filtered.filter(p => p.cat === this.catActual);
+
+    if (this.filtroEstado !== 'todas') {
+      filtered = filtered.filter(p => this.getStockStatusTag(p) === this.filtroEstado);
     }
-    
+
     if (this.searchTerm.trim()) {
       const q = this.searchTerm.toLowerCase().trim();
       filtered = filtered.filter(p =>
-        p.name.toLowerCase().includes(q) ||
-        p.sku.toLowerCase().includes(q) ||
-        p.sub.toLowerCase().includes(q)
+        p.name.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q)
       );
     }
 
-    filtered.sort((a, b) => {
-      if (this.ordenActual === 'stock_asc') return a.stock - b.stock;
+    return [...filtered].sort((a, b) => {
+      if (this.ordenActual === 'stock_asc')  return a.stock - b.stock;
       if (this.ordenActual === 'stock_desc') return b.stock - a.stock;
-      if (this.ordenActual === 'precio') {
-        const pA = parseFloat(a.venta.replace(/[^0-9]/g, '')) || 0;
-        const pB = parseFloat(b.venta.replace(/[^0-9]/g, '')) || 0;
-        return pB - pA;
-      }
+      if (this.ordenActual === 'costo')      return b.costo - a.costo;
       return a.name.localeCompare(b.name);
     });
-
-    return filtered;
-  }
-
-  get productosAgrupados() {
-    const filtrados = this.productosFiltrados;
-    const categoriasUnicas = [...new Set(filtrados.map(p => p.cat))];
-    return categoriasUnicas.map(cat => ({
-      categoria: cat,
-      productos: filtrados.filter(p => p.cat === cat)
-    }));
-  }
-
-  getCatEmoji(cat: string): string {
-    switch(cat) {
-      case 'Pizzas e Ingredientes': return '🍕';
-      case 'Carnes': return '🥩';
-      case 'Bebidas': return '🥤';
-      case 'Lácteos': return '🥛';
-      case 'Empaque': return '📦';
-      default: return '🏷️';
-    }
-  }
-
-  getEmojiBg(cat: string): string {
-    switch(cat) {
-      case 'Pizzas e Ingredientes': return 'rgba(232,52,42,.1)';
-      case 'Carnes': return 'rgba(243,156,18,.1)';
-      case 'Bebidas': return 'rgba(52,152,219,.1)';
-      case 'Lácteos': return 'rgba(245,200,66,.1)';
-      case 'Empaque': return 'rgba(155,89,182,.1)';
-      default: return 'rgba(255,255,255,.05)';
-    }
   }
 
   getStockColor(prod: Producto): string {
-    if (prod.stock === 0) return 'var(--muted)';
-    if (prod.stock <= prod.min * 0.5) return 'var(--red)';
-    if (prod.stock <= prod.min) return 'var(--orange)';
+    if (prod.stock === 0)              return 'var(--muted)';
+    if (prod.stock <= prod.min * 0.5)  return 'var(--red)';
+    if (prod.stock <= prod.min)        return 'var(--orange)';
     return 'var(--green)';
   }
 
   getStockValClass(prod: Producto): string {
-    if (prod.stock === 0) return 'muted';
+    if (prod.stock === 0)             return 'muted';
     if (prod.stock <= prod.min * 0.5) return 'red';
-    if (prod.stock <= prod.min) return 'orange';
+    if (prod.stock <= prod.min)       return 'orange';
     return 'green';
   }
 
   getStockStatusTag(prod: Producto): string {
-    if (prod.stock === 0) return 'out';
+    if (prod.stock === 0)             return 'out';
     if (prod.stock <= prod.min * 0.5) return 'critical';
-    if (prod.stock <= prod.min) return 'low';
+    if (prod.stock <= prod.min)       return 'low';
     return 'ok';
   }
 
   getStockStatusText(prod: Producto): string {
-    if (prod.stock === 0) return 'Sin stock';
+    if (prod.stock === 0)             return 'Sin stock';
     if (prod.stock <= prod.min * 0.5) return 'Crítico';
-    if (prod.stock <= prod.min) return 'Stock bajo';
+    if (prod.stock <= prod.min)       return 'Stock bajo';
     return 'Normal';
   }
 
   getStockPercent(prod: Producto): number {
+    if (prod.max <= 0) return 0;
     return Math.min(100, Math.round((prod.stock / prod.max) * 100));
   }
 
-  filtrarCat(catId: string) {
-    this.catActual = catId;
-  }
-
-  ordenar(event: any) {
-    this.showToast('Ordenado por: ' + this.ordenActual, 'var(--gold)');
+  filtrarEstado(id: string) {
+    this.filtroEstado = id;
   }
 
   seleccionar(prod: Producto) {
-    if (this.selectedProducto?.id === prod.id) {
-      this.cerrarDetalle();
-    } else {
-      this.selectedProducto = prod;
-    }
+    this.selectedProducto = this.selectedProducto?.id === prod.id ? null : prod;
   }
 
   cerrarDetalle() {
     this.selectedProducto = null;
   }
 
-  abrirModal(tipo: string) {
-    this.modalTipo = tipo;
+  abrirEditar(prod: Producto) {
+    this.editTarget = prod;
+    this.editCantidad = prod.stock;
+    this.editMinimo = prod.min;
+    this.modalTipo = 'editar';
     this.showModal = true;
-    if ((tipo === 'entrada' || tipo === 'ajuste') && (!this.inventarioSucursal || this.inventarioSucursal.length === 0)) {
-      this.cargarInventarioSucursal();
-    }
   }
 
   cerrarModal(event?: Event) {
     if (event) event.stopPropagation();
     this.showModal = false;
     this.modalTipo = '';
+    this.editTarget = null;
   }
 
   getModalTitle(): string {
-    if (this.modalTipo === 'nuevo') return 'Nuevo <span>Producto</span>';
-    if (this.modalTipo === 'entrada') return 'Registrar <span>Entrada</span>';
-    if (this.modalTipo === 'ajuste') return 'Ajuste de <span>Inventario</span>';
+    if (this.modalTipo === 'editar') return 'Editar <span>Inventario</span>';
     return '';
   }
 
-  guardarModal(msg: string, color: string = 'var(--green)') {
-    this.cerrarModal();
-    this.showToast(msg, color);
+  guardarEdicion(): void {
+    if (!this.editTarget) return;
+    const id = this.editTarget.id;
+    const body = { cantidad: this.editCantidad, cantidadMinima: this.editMinimo };
+    this.http.put(`${this.apiUrl}/inventario-sucursal/${id}`, body)
+      .pipe(catchError(() => {
+        this.showToast('Error al guardar cambios', 'var(--red)');
+        return of(null);
+      }))
+      .subscribe(res => {
+        if (res === null) return;
+        const prod = this.productos.find(p => p.id === id);
+        if (prod) { prod.stock = this.editCantidad; prod.min = this.editMinimo; }
+        const inv = this.inventarioSucursal.find(i => (i.id_inventario ?? i.idInventario) === id);
+        if (inv) { inv['cantidad'] = this.editCantidad; inv['cantidad_minima'] = this.editMinimo; }
+        this.showToast('Inventario actualizado', 'var(--green)');
+        this.cerrarModal();
+      });
+  }
+
+  eliminarProducto(prod: Producto): void {
+    if (!confirm(`¿Eliminar "${prod.name}" del inventario?`)) return;
+    this.http.delete(`${this.apiUrl}/inventario-sucursal/${prod.id}`)
+      .pipe(catchError(() => {
+        this.showToast('Error al eliminar', 'var(--red)');
+        return of(null);
+      }))
+      .subscribe(res => {
+        if (res === null) return;
+        this.productos = this.productos.filter(p => p.id !== prod.id);
+        this.inventarioSucursal = this.inventarioSucursal.filter(i => (i.id_inventario ?? i.idInventario) !== prod.id);
+        if (this.selectedProducto?.id === prod.id) this.selectedProducto = null;
+        this.showToast(`"${prod.name}" eliminado`, 'var(--red)');
+      });
   }
 
   private cargarInventarioSucursal(): void {
-    // Usar forkJoin para pedir los ingredientes (para el nombre) y el inventario a la vez
     forkJoin({
       ingredientes: this.http.get<any>(`${this.apiUrl}/ingredientes`).pipe(
-        tap(res => console.log('Respuesta GET ingredientes:', res)),
-        catchError((err) => {
-          console.error('Error al obtener ingredientes:', err);
-          this.showToast('Error conectando con Ingredientes', 'var(--red)');
-          return of([]);
-        })
+        catchError(() => { this.showToast('Error al cargar ingredientes', 'var(--red)'); return of([]); })
       ),
       inventario: this.http.get<any>(`${this.apiUrl}/inventario-sucursal`).pipe(
-        catchError(() => this.http.get<any>(`${this.apiUrl}/inventario`)), // Intento 2 automático
-        catchError(() => this.http.get<any>(`${this.apiUrl}/inventarios`)), // Intento 3 automático
-        tap(res => console.log('Respuesta GET inventario:', res)),
-        catchError((err) => {
-          console.error('Error al obtener inventario-sucursal:', err);
-          this.showToast('Error conectando con la tabla Inventario', 'var(--red)');
-          return of([]);
-        })
+        catchError(() => this.http.get<any>(`${this.apiUrl}/inventario`)),
+        catchError(() => this.http.get<any>(`${this.apiUrl}/inventarios`)),
+        catchError(() => { this.showToast('Error al cargar inventario', 'var(--red)'); return of([]); })
       )
     }).subscribe(({ ingredientes, inventario }) => {
-      // Extraemos los arrays seguros por si el backend los envuelve en un objeto (ej: { data: [...] })
-      const invArray: any[] = Array.isArray(inventario) ? inventario : (inventario?.data || inventario?.content || []);
-      const ingArray: any[] = Array.isArray(ingredientes) ? ingredientes : (ingredientes?.data || ingredientes?.content || []);
+      const invArray: any[] = Array.isArray(inventario) ? inventario : (inventario?.data ?? inventario?.content ?? []);
+      const ingArray: any[] = Array.isArray(ingredientes) ? ingredientes : (ingredientes?.data ?? ingredientes?.content ?? []);
 
-      if (invArray && invArray.length > 0) {
-        this.inventarioSucursal = [];
-        this.productos = [];
+      this.inventarioSucursal = [];
+      this.productos = [];
 
-        invArray.forEach((item: any) => {
-          // Extraemos los IDs protegiéndonos de objetos anidados de Spring Boot (Ej: item.ingrediente.id_ingrediente)
-          const idIng = item.id_ingrediente || item.idIngrediente || item.ingrediente?.id_ingrediente || item.ingrediente?.idIngrediente || item.ingrediente?.id;
-          
-          const match = ingArray.find((ing: any) => (ing.id_ingrediente || ing.idIngrediente || ing.id) == idIng);
-          
-          const nombreReal = match ? match.nombre : (item.nombre || item.nombreIngrediente || item.ingrediente?.nombre || `Ingrediente ${idIng || 'N/A'}`);
-          const unidadReal = match ? (match.unidadMedida || match.unidad_medida) : (item.unidadMedida || item.ingrediente?.unidadMedida || 'und');
-          const costoReal = match && (match.costoUnitario || match.costo_unitario) ? (match.costoUnitario || match.costo_unitario) : 0;
+      this.isLoading = false;
 
-          const itemInventario = {
-            ...item,
-            id_ingrediente: idIng,
-            nombre: nombreReal,
-            unidadMedida: unidadReal
-          };
-
-          this.inventarioSucursal.push(itemInventario);
-
-          const stockActual = item.cantidad ?? item['cantidad_actual'] ?? item['cantidadActual'] ?? 0;
-          const stockMin = item.cantidad_minima ?? item.cantidadMinima ?? 0;
-          const idInv = item.id_inventario || item.idInventario || idIng || 0;
-          const idSuc = item.id_sucursal || item.idSucursal || item.sucursal?.id_sucursal || item.sucursal?.idSucursal || 1;
-
-          this.productos.push({
-            id: idInv,
-            emoji: '📦',
-            name: nombreReal || '',
-            sub: 'Ingrediente',
-            sku: `ING-${idIng || '00'}`,
-            cat: 'Pizzas e Ingredientes',
-            stock: stockActual,
-            min: stockMin,
-            max: stockMin > 0 ? stockMin * 5 : 100, // Máximo dinámico
-            unit: unidadReal,
-            costo: costoReal ? `$${costoReal}` : '$0',
-            venta: '-',
-            proveedor: 'N/A',
-            caducidad: '-',
-            ubicacion: `Bodega (Sucursal ${idSuc})`,
-            historia: []
-          });
-        });
-        
-        this.showToast(`Cargados ${this.productos.length} registros del inventario`, 'var(--green)');
-      } else {
-        this.inventarioSucursal = [];
-        this.productos = [];
-        this.showToast('El inventario en la base de datos está vacío', 'var(--orange)');
+      if (!invArray.length) {
+        this.showToast('El inventario está vacío', 'var(--orange)');
+        return;
       }
+
+      invArray.forEach((item: any) => {
+        const idIng = item.id_ingrediente ?? item.idIngrediente
+                   ?? item.ingrediente?.id_ingrediente ?? item.ingrediente?.idIngrediente ?? item.ingrediente?.id;
+
+        const match = ingArray.find((ing: any) =>
+          (ing.id_ingrediente ?? ing.idIngrediente ?? ing.id) == idIng
+        );
+
+        const nombre   = match?.nombre ?? item.nombre ?? item.ingrediente?.nombre ?? `ING-${idIng}`;
+        const unidad   = match?.unidadMedida ?? match?.unidad_medida ?? item.unidadMedida ?? item.ingrediente?.unidadMedida ?? 'und';
+        const costo    = Number(match?.costoUnitario ?? match?.costo_unitario ?? 0);
+        const stock    = Number(item.cantidad ?? item.cantidad_actual ?? item.cantidadActual ?? 0);
+        const min      = Number(item.cantidad_minima ?? item.cantidadMinima ?? 0);
+        const idInv    = item.id_inventario ?? item.idInventario ?? idIng ?? 0;
+        const idSuc    = item.id_sucursal ?? item.idSucursal ?? item.sucursal?.id_sucursal ?? 1;
+
+        this.inventarioSucursal.push({ ...item, id_ingrediente: idIng, nombre, unidadMedida: unidad });
+
+        this.productos.push({
+          id: idInv,
+          emoji: '📦',
+          name: nombre,
+          sku: `ING-${idIng ?? '00'}`,
+          stock,
+          min,
+          max: min > 0 ? min * 5 : 100,
+          unit: unidad,
+          costo,
+          costoStr: costo ? `$${costo.toLocaleString('es-CO')}` : '$0',
+          ubicacion: `Bodega · Sucursal ${idSuc}`
+        });
+      });
+
+      this.showToast(`${this.productos.length} registros cargados`, 'var(--green)');
     });
   }
 
@@ -336,15 +267,15 @@ export class InventarioComponent implements OnInit, OnDestroy {
     this.toastColor = color;
     this.showToastMsg = true;
     if (this.toastTimeout) clearTimeout(this.toastTimeout);
-    this.toastTimeout = setTimeout(() => {
-      this.showToastMsg = false;
-    }, 3000);
+    this.toastTimeout = setTimeout(() => { this.showToastMsg = false; }, 3000);
   }
 
-  // Estadísticas rápidas
-  get totalActivos() { return this.productos.filter(p => p.stock > 0).length; }
-  get valorTotal() { return '$0'; /* Calculado basado en costo x stock en ambiente real */ }
-  get stockCritico() { return this.productos.filter(p => p.stock > 0 && p.stock <= p.min * 0.5).length; }
-  get stockBajo() { return this.productos.filter(p => p.stock > p.min * 0.5 && p.stock <= p.min).length; }
-  get sinStock() { return this.productos.filter(p => p.stock === 0).length; }
+  get totalActivos()  { return this.productos.filter(p => p.stock > 0).length; }
+  get valorTotal()    {
+    const total = this.productos.reduce((s, p) => s + p.costo * p.stock, 0);
+    return total > 0 ? `$${total.toLocaleString('es-CO')}` : '$0';
+  }
+  get stockCritico()  { return this.productos.filter(p => p.stock > 0 && p.stock <= p.min * 0.5).length; }
+  get stockBajo()     { return this.productos.filter(p => p.stock > p.min * 0.5 && p.stock <= p.min).length; }
+  get sinStock()      { return this.productos.filter(p => p.stock === 0).length; }
 }

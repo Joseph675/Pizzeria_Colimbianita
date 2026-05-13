@@ -245,3 +245,10 @@ select.form-input option { background:#1a1a18; color:var(--white); }
 .toast { position:fixed; bottom:1.5rem; right:1.5rem; z-index:999; padding:.65rem 1.1rem; border-radius:.8rem; background:#1d1d1b; border:1px solid var(--border); font-size:.78rem; color:var(--white); box-shadow:0 8px 24px rgba(0,0,0,.5); display:flex; align-items:center; gap:.55rem; transform:translateY(20px); opacity:0; pointer-events: none; transition:all .28s cubic-bezier(.4,0,.2,1); }
 .toast.show { transform:translateY(0); opacity:1; }
 .toast .t-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+
+/* loading */
+.loading-overlay { position:fixed; inset:0; z-index:200; background:rgba(15,15,13,.85); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1rem; backdrop-filter:blur(4px); }
+.loading-spinner { width:40px; height:40px; border:3px solid rgba(255,255,255,.1); border-top-color:var(--gold); border-radius:50%; animation:spin .7s linear infinite; }
+.loading-text { font-size:.85rem; color:var(--muted); letter-spacing:.06em; }
+@keyframes spin { to { transform:rotate(360deg); } }
+.toast .t-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }

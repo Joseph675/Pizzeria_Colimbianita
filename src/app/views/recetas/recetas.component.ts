@@ -98,9 +98,18 @@ export class RecetasComponent implements OnInit {
     // Productos
     const prodArr = Array.isArray(productos) ? productos : (productos?.data ?? productos?.content ?? []);
     prodArr.forEach((p: any) => {
+      const catRaw = typeof p.categoria === 'string' ? p.categoria
+                   : typeof p.categoria === 'object' && p.categoria !== null ? (p.categoria.nombre ?? '')
+                   : (p.cat ?? '');
+      const catNorm = catRaw.toLowerCase().trim();
+      let cat = 'otras';
+      if (catNorm.includes('pizza'))                                   cat = 'pizzas';
+      else if (catNorm.includes('hambur') || catNorm.includes('burger')) cat = 'hamburguesas';
+      else if (catNorm.includes('perro') || catNorm.includes('salchi')) cat = 'perros';
+      else if (catNorm.includes('bebida'))                              cat = 'bebidas';
       this.DB.productos.push({
         id: String(p.idProducto ?? p.id_producto ?? p.id),
-        cat: p.categoria ?? p.cat ?? 'todas',
+        cat,
         emoji: p.emoji ?? '🍕',
         nombre: p.nombre ?? `Producto`
       });
@@ -174,20 +183,20 @@ export class RecetasComponent implements OnInit {
   }
 
   private parseRecetaRow(r: any): any {
-    // Soporta tanto la vista plana (/detalle) como el endpoint con objeto anidado
-    const ing = r.ingrediente ?? {};
+    // /detalle devuelve estructura plana: r.ingrediente es string (nombre), r.costoIngrediente es el costo de línea
+    const ingNombre = typeof r.ingrediente === 'string' ? r.ingrediente : (r.ingrediente?.nombre ?? 'Desconocido');
     return {
       id_receta:          r.idReceta ?? r.id_receta ?? r.id,
-      id_presentacion:    String(r.idPresentacion ?? r.presentacion?.idPresentacion ?? ''),
-      id_ingrediente:     String(r.idIngrediente ?? ing.idIngrediente ?? ing.id_ingrediente ?? ''),
-      cantidad_necesaria: r.cantidadNecesaria ?? r.cantidad_necesaria ?? 0,
-      costoLineaDB:       r.costoLinea ?? null,
+      id_presentacion:    String(r.idPresentacion ?? ''),
+      id_ingrediente:     String(r.idIngrediente ?? ''),
+      cantidad_necesaria: r.cantidadNecesaria ?? 0,
+      costoLineaDB:       r.costoIngrediente ?? null,
       ingData: {
-        nombre: r.nombre ?? ing.nombre ?? 'Desconocido',
-        costo:  r.costoUnitario ?? ing.costoUnitario ?? ing.costo_unitario ?? 0,
-        unidad: r.unidadMedida ?? ing.unidadMedida ?? ing.unidad_medida ?? 'und',
-        emoji:  r.emoji ?? ing.emoji ?? '📦',
-        sku:    `ING-${r.idIngrediente ?? ing.idIngrediente ?? ''}`
+        nombre: ingNombre,
+        costo:  r.costoUnitario ?? 0,
+        unidad: r.unidadMedida ?? 'und',
+        emoji:  '📦',
+        sku:    `ING-${r.idIngrediente ?? ''}`
       }
     };
   }
