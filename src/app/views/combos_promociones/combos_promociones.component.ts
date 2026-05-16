@@ -348,16 +348,22 @@ export class CombosyPromocionesComponent implements OnInit {
       });
     } else {
       // POST - Crear
-      this.http.post<any>('http://178.105.36.117:8080/api/combos', payload).subscribe({
+      const payloadCompleto = {
+        nombre: this.nuevoCombo.nombre,
+        descripcion: this.nuevoCombo.descripcion,
+        precioFijo: this.nuevoCombo.precioFijo,
+        diasAplica: 'TODOS',
+        items: this.nuevoCombo.detalles.map((d: any) => ({
+          idPresentacion: d.presentacion.idPresentacion || d.presentacion.id_presentacion,
+          cantidad: d.cantidad
+        }))
+      };
+
+      this.http.post<any>('http://178.105.36.117:8080/api/combos/crear-completo', payloadCompleto).subscribe({
         next: (res) => {
-          const newComboId = res.idCombo || res.id_combo;
-          if (newComboId) {
-            this.sincronizarDetallesCombo(newComboId);
-          } else {
-            this.addToast('Combo creado, pero hubo un problema al guardar los productos.', 'warning');
-            this.cargarCombos();
-            this.closeModal();
-          }
+          this.addToast('Combo guardado correctamente mediante Stored Procedure', 'success');
+          this.cargarCombos();
+          this.closeModal();
         },
         error: (err) => {
           console.error(err);

@@ -308,3 +308,41 @@
     .kpi-grid { grid-template-columns: 1fr; }
   }
 }
+
+/* ═══ MODO CLARO (LIGHT THEME) OVERRIDES - LAYOUT Y SIDEBAR ═══ */
+::ng-deep [data-coreui-theme="light"] body {
+  background: #F3F4F7 !important;
+  color: #2C2C2C !important;
+}
+
+/* Oculta la imagen de fondo oscuro de las pizzas */
+::ng-deep [data-coreui-theme="light"] .bg {
+  display: none !important;
+}
+
+::ng-deep [data-coreui-theme="light"] .sidebar {
+  background: #FFFFFF;
+  border-right: 1px solid rgba(0,0,0,0.08);
+}
+
+::ng-deep [data-coreui-theme="light"] .side-label {
+  color: rgba(0,0,0,0.4);
+}
+
+::ng-deep [data-coreui-theme="light"] .side-link {
+  color: rgba(0,0,0,0.6);
+}
+
+::ng-deep [data-coreui-theme="light"] .side-link:hover {
+  color: #2C2C2C;
+  background: #F8F9FA;
+}
+
+::ng-deep [data-coreui-theme="light"] .side-link.active {
+  color: #B8860B; /* Dorado más oscuro para resaltar sobre fondo blanco */
+  background: rgba(245,200,66,0.15);
+}
+
+::ng-deep [data-coreui-theme="light"] .sidebar-footer {
+  border-top-color: rgba(0,0,0,0.08);
+}

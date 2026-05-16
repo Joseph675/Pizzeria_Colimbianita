@@ -1,0 +1,103 @@
+<div class="card mb-4 shadow-sm">
+  <div class="card-header bg-dark text-white">
+    <h5 class="mb-0">Crear Nuevo Combo / Promoción</h5>
+  </div>
+  
+  <div class="card-body">
+    <form [formGroup]="comboForm" (ngSubmit)="guardarPromocion()">
+      
+      <!-- Cabecera del Combo -->
+      <div class="row mb-3">
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Nombre del Combo *</label>
+          <input type="text" class="form-control" formControlName="nombre" placeholder="Ej. Combo Familiar Supremo">
+          <div class="text-danger small mt-1" *ngIf="comboForm.get('nombre')?.invalid && comboForm.get('nombre')?.touched">
+            El nombre es requerido.
+          </div>
+        </div>
+        
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Precio Fijo *</label>
+          <div class="input-group">
+            <span class="input-group-text">$</span>
+            <input type="number" class="form-control" formControlName="precioFijo" placeholder="Ej. 45000">
+          </div>
+          <div class="text-danger small mt-1" *ngIf="comboForm.get('precioFijo')?.invalid && comboForm.get('precioFijo')?.touched">
+            Ingresa un precio válido (mayor a 0).
+          </div>
+        </div>
+
+        <div class="col-md-12 mb-3">
+          <label class="form-label">Descripción</label>
+          <textarea class="form-control" formControlName="descripcion" rows="2" placeholder="Detalles del combo..."></textarea>
+        </div>
+
+        <div class="col-md-4 mb-3">
+          <label class="form-label">Días que Aplica *</label>
+          <select class="form-select" formControlName="diasAplica">
+            <option value="TODOS">Todos los días</option>
+            <option value="LUNES,MARTES,MIERCOLES,JUEVES">Lunes a Jueves</option>
+            <option value="VIERNES,SABADO,DOMINGO">Viernes a Domingo</option>
+            <option value="SABADO,DOMINGO">Fines de Semana</option>
+          </select>
+        </div>
+
+        <div class="col-md-4 mb-3">
+          <label class="form-label">Fecha Inicio (Opcional)</label>
+          <input type="date" class="form-control" formControlName="fechaInicio">
+        </div>
+
+        <div class="col-md-4 mb-3">
+          <label class="form-label">Fecha Fin (Opcional)</label>
+          <input type="date" class="form-control" formControlName="fechaFin">
+        </div>
+      </div>
+
+      <hr class="mb-4">
+
+      <!-- Detalles del Combo (FormArray) -->
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="mb-0">Productos Incluidos</h6>
+        <button type="button" class="btn btn-outline-primary btn-sm" (click)="agregarProducto()">
+          + Añadir Producto al Combo
+        </button>
+      </div>
+      
+      <div class="alert alert-primary py-2 small" style="background-color: #eef2ff; border-color: #c7d2fe; color: #3730a3;">
+        <strong>💡 Tip Pizzería:</strong> Para opciones genéricas, crea un producto en tu inventario llamado <em>"Pizza Mediana a Elección"</em> y selecciónalo en la lista. ¡Así no tienes que crear un combo por cada sabor!
+      </div>
+
+      <div formArrayName="items">
+        <div class="alert alert-light text-center border text-muted" *ngIf="items.length === 0">
+          Aún no has añadido productos a esta promoción.
+        </div>
+
+        <div class="row align-items-center mb-2" *ngFor="let item of items.controls; let i = index" [formGroupName]="i">
+          <div class="col-md-7">
+            <select class="form-select" formControlName="idPresentacion">
+              <option value="" disabled>Seleccione un producto...</option>
+              <option *ngFor="let prod of presentacionesDisponibles" [value]="prod.idPresentacion || prod.id_presentacion">
+                {{ prod.producto?.nombre || 'Producto' }} - {{ prod.nombrePresentacion || prod.nombre_presentacion }}
+              </option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <input type="number" class="form-control" formControlName="cantidad" min="1" placeholder="Cantidad">
+          </div>
+          <div class="col-md-2 text-end">
+            <button type="button" class="btn btn-danger" (click)="removerProducto(i)" title="Eliminar ítem">🗑️</button>
+          </div>
+        </div>
+      </div>
+
+      <hr class="mt-4 mb-3">
+
+      <!-- Botón Final -->
+      <div class="text-end">
+        <button type="submit" class="btn btn-success fw-bold" [disabled]="comboForm.invalid || items.length === 0">
+          💾 Guardar Promoción
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

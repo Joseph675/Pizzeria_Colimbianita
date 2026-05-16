@@ -1,11 +1,26 @@
 <div class="pedidos-wrap">
-  <div class="page-header">
-    <h2 class="page-title">Historial de <em>Pedidos</em></h2>
-    <div class="stats">
-      <span>Mostrando {{ pedidosFiltrados.length }} de {{ pedidos.length }} pedidos</span>
+  <!-- HEADER PRINCIPAL Y PESTAÑAS -->
+  <div class="ph d-flex justify-content-between align-items-end mb-4 pb-0" style="border-bottom: 1px solid var(--border);">
+    <!-- Título a la izquierda -->
+    <div class="ph-left mb-2">
+      <div class="ph-title" style="font-family: 'Bebas Neue', sans-serif; font-size: 2rem; margin-bottom: 0;">Gestión de <em style="color: var(--gold); font-style: normal;">Pedidos</em></div>
+      <div class="ph-sub text-muted" *ngIf="vistaActual === 'PEDIDOS'" style="font-size: 0.85rem;">Mostrando {{ pedidosFiltrados.length }} de {{ pedidos.length }} pedidos</div>
+      <div class="ph-sub text-muted" *ngIf="vistaActual === 'HISTORIAL'" style="font-size: 0.85rem;">Registro de cambios de estado en la base de datos</div>
+    </div>
+
+    <!-- Pestañas a la derecha -->
+    <div class="tab-nav pb-0 border-0 m-0" style="display: flex; gap: 0.5rem;">
+      <button class="tab-btn" (click)="cambiarVista('PEDIDOS')" style="background: transparent; border: none; padding: 0.8rem 1.2rem; cursor: pointer; color: var(--muted); border-bottom: 2px solid transparent; font-weight: 500; transition: all 0.2s;" [style.color]="vistaActual === 'PEDIDOS' ? 'var(--gold)' : ''" [style.border-bottom-color]="vistaActual === 'PEDIDOS' ? 'var(--gold)' : 'transparent'">
+        🧾 Pedidos Activos
+      </button>
+      <button class="tab-btn" (click)="cambiarVista('HISTORIAL')" style="background: transparent; border: none; padding: 0.8rem 1.2rem; cursor: pointer; color: var(--muted); border-bottom: 2px solid transparent; font-weight: 500; transition: all 0.2s;" [style.color]="vistaActual === 'HISTORIAL' ? 'var(--gold)' : ''" [style.border-bottom-color]="vistaActual === 'HISTORIAL' ? 'var(--gold)' : 'transparent'">
+        🕒 Historial de Estados
+      </button>
     </div>
   </div>
 
+  <!-- VISTA: PEDIDOS ACTIVOS -->
+  <div *ngIf="vistaActual === 'PEDIDOS'">
   <!-- BARRA DE FILTROS -->
   <div class="filtros-bar">
     <div class="filtro-item">
@@ -108,6 +123,45 @@
     <div class="empty-icon">🧾</div>
     <p>No hay pedidos que coincidan con los filtros.</p>
   </div>
+  </div> <!-- FIN VISTA: PEDIDOS ACTIVOS -->
+
+  <!-- VISTA: HISTORIAL DE ESTADOS -->
+  <div *ngIf="vistaActual === 'HISTORIAL'">
+    <div style="background: rgba(13, 13, 13, 0.98); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-top: 1rem;">
+      
+      <div *ngIf="cargandoHistorial" class="text-center text-muted py-4">
+        Cargando historial de cambios...
+      </div>
+
+      <div class="table-responsive" *ngIf="!cargandoHistorial && historialEstados.length > 0">
+        <table class="table" style="color: white; width: 100%; border-collapse: collapse;">
+          <thead>
+            <tr style="border-bottom: 1px solid var(--border); color: #A0A0A0; font-size: 0.85rem; text-transform: uppercase;">
+              <th style="padding: 1rem 0.5rem; text-align: left;">ID Historial</th>
+              <th style="padding: 1rem 0.5rem; text-align: left;">Referencia Pedido</th>
+              <th style="padding: 1rem 0.5rem; text-align: center;">Estado Anterior</th>
+              <th style="padding: 1rem 0.5rem; text-align: center;">Estado Nuevo</th>
+              <th style="padding: 1rem 0.5rem; text-align: right;">Fecha de Cambio</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let h of historialEstados" style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+              <td style="padding: 1rem 0.5rem; color: var(--muted);">#{{ h.id_historial || h.idHistorial }}</td>
+              <td style="padding: 1rem 0.5rem; color: var(--gold); font-weight: bold;">Pedido #{{ h.pedido?.idPedido || h.pedido?.id_pedido || h.id_pedido || h.idPedido }}</td>
+              <td style="padding: 1rem 0.5rem; text-align: center;"><span style="background: rgba(255,255,255,0.1); padding: 4px 10px; border-radius: 12px; font-size: 0.75rem;">{{ h.estado_anterior || h.estadoAnterior || 'CREACIÓN' }}</span></td>
+              <td style="padding: 1rem 0.5rem; text-align: center;"><span style="background: rgba(245, 200, 66, 0.15); color: var(--gold); border: 1px solid rgba(245, 200, 66, 0.3); padding: 4px 10px; border-radius: 12px; font-size: 0.75rem;">{{ h.estado_nuevo || h.estadoNuevo }}</span></td>
+              <td style="padding: 1rem 0.5rem; text-align: right;">{{ (h.fecha_cambio || h.fechaCambio) | date:'medium' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div *ngIf="!cargandoHistorial && historialEstados.length === 0" class="text-center text-muted py-5">
+        <div style="font-size: 2rem; margin-bottom: 1rem;">📭</div>
+        <p>No se encontraron registros en el historial de estados.</p>
+      </div>
+    </div>
+  </div> <!-- FIN VISTA: HISTORIAL DE ESTADOS -->
 
   <!-- MODAL DE DETALLES AMPLIADOS -->
   <div class="modal-overlay" [class.open]="pedidoSeleccionado" (click)="cerrarDetalles()">

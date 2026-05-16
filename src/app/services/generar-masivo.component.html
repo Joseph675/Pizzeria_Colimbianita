@@ -1,0 +1,123 @@
+<div class="card mb-4 shadow-sm">
+  <div class="card-header bg-dark text-white">
+    <h5 class="mb-0">🚀 Generación Masiva de Combos</h5>
+  </div>
+
+  <div class="card-body">
+    <div class="alert alert-info py-2 small">
+      <strong>💡 Instrucción:</strong> Usa el comodín <code>{sabor}</code> en el "Nombre Base". El sistema generará automáticamente un combo por cada pizza seleccionada reemplazando esta palabra.
+    </div>
+
+    <form [formGroup]="formMasivo" (ngSubmit)="enviarGeneracionMasiva()">
+      
+      <!-- Sección 1: Datos Base del Combo -->
+      <div class="row mb-3">
+        <div class="col-md-8 mb-3">
+          <label class="form-label">Nombre Base (incluye {sabor}) *</label>
+          <input type="text" class="form-control" formControlName="nombreBase">
+          <div class="text-danger small" *ngIf="formMasivo.get('nombreBase')?.touched && !formMasivo.get('nombreBase')?.value?.includes('{sabor}')">
+            Recomendación: Incluye la etiqueta {sabor} para que los nombres varíen.
+          </div>
+        </div>
+        
+        <div class="col-md-4 mb-3">
+          <label class="form-label">Precio Fijo *</label>
+          <div class="input-group">
+            <span class="input-group-text">$</span>
+            <input type="number" class="form-control" formControlName="precioFijo">
+          </div>
+        </div>
+
+        <div class="col-md-12 mb-3">
+          <label class="form-label">Descripción general</label>
+          <textarea class="form-control" formControlName="descripcion" rows="2"></textarea>
+        </div>
+
+        <div class="col-md-4 mb-3">
+          <label class="form-label">Días que Aplica *</label>
+          <input type="text" class="form-control" formControlName="diasAplica" placeholder="Ej. LUN,MAR,MIE">
+        </div>
+
+        <!-- Usamos datetime-local para exportar el String ISO: YYYY-MM-DDTHH:mm -->
+        <div class="col-md-4 mb-3">
+          <label class="form-label">Fecha Inicio (Opcional)</label>
+          <input type="datetime-local" class="form-control" formControlName="fechaInicio">
+        </div>
+
+        <div class="col-md-4 mb-3">
+          <label class="form-label">Fecha Fin (Opcional)</label>
+          <input type="datetime-local" class="form-control" formControlName="fechaFin">
+        </div>
+      </div>
+
+      <hr>
+
+      <!-- Sección 2: Checkboxes para los productos variables (Pizzas) -->
+      <div class="mb-4">
+        <h6 class="mb-3 text-primary">🍕 1. Selecciona los sabores (Variables)</h6>
+        <div class="row">
+          <div class="col-md-4" *ngFor="let pizza of pizzasSimuladas">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" [value]="pizza.id" (change)="onCheckboxChange($event)" [id]="'pizza_' + pizza.id">
+              <label class="form-check-label text-muted" [for]="'pizza_' + pizza.id">
+                {{ pizza.nombre }}
+              </label>
+            </div>
+          </div>
+        </div>
+        <div class="text-danger small mt-2" *ngIf="idPresentacionesVariables.length === 0 && formMasivo.touched">
+          * Debes seleccionar al menos un sabor de pizza.
+        </div>
+      </div>
+
+      <hr>
+
+      <!-- Sección 3: Productos fijos (Gaseosas) -->
+      <div class="mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h6 class="mb-0 text-success">🥤 2. Productos Fijos Incluidos</h6>
+          <button type="button" class="btn btn-outline-success btn-sm" (click)="agregarItemFijo()">
+            + Añadir Producto Fijo
+          </button>
+        </div>
+
+        <div class="alert alert-light border text-center text-muted" *ngIf="itemsFijos.length === 0">
+          No has agregado productos fijos (Ej. Gaseosa).
+        </div>
+
+        <div formArrayName="itemsFijos">
+          <div class="row align-items-center mb-2" *ngFor="let item of itemsFijos.controls; let i = index" [formGroupName]="i">
+            
+            <div class="col-md-7">
+              <select class="form-select" formControlName="idPresentacion">
+                <option value="" disabled>Seleccione un producto...</option>
+                <option *ngFor="let fijo of productosFijosSimulados" [value]="fijo.id">
+                  {{ fijo.nombre }}
+                </option>
+              </select>
+            </div>
+
+            <div class="col-md-3">
+              <input type="number" class="form-control" formControlName="cantidad" min="1" placeholder="Cant.">
+            </div>
+            
+            <div class="col-md-2 text-end">
+              <button type="button" class="btn btn-danger" (click)="removerItemFijo(i)" title="Remover">🗑️</button>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <hr class="mt-4 mb-3">
+
+      <!-- Botón Submit -->
+      <div class="text-end">
+        <button type="submit" class="btn btn-primary fw-bold" [disabled]="formMasivo.invalid || isLoading || idPresentacionesVariables.length === 0 || itemsFijos.length === 0">
+          <span *ngIf="!isLoading">⚡ Generar Combos Automáticamente</span>
+          <span *ngIf="isLoading">⏳ Generando...</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

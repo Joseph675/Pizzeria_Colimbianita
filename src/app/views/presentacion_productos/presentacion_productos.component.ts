@@ -1,6 +1,6 @@
 ﻿import { Component, OnInit, signal  } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { NgForOf, NgIf, NgClass, CurrencyPipe } from '@angular/common';
+import { NgForOf, NgIf, NgClass, CurrencyPipe, DatePipe } from '@angular/common';
 import {
   CardBodyComponent,
   CardComponent,
@@ -41,7 +41,7 @@ import { ToastSampleIconComponent } from './toast-sample-icon.component';
   templateUrl: 'presentacion_productos.component.html',
   styleUrls: ['presentacion_productos.component.scss'],
   standalone: true,
-  imports: [ToastSampleIconComponent, NgIf, NgForOf, NgClass, CurrencyPipe, CardBodyComponent, CardComponent, CardHeaderComponent, ColComponent, RowComponent, WidgetStatFComponent, TemplateIdDirective, ButtonDirective, ButtonCloseDirective, ModalBodyComponent, ModalComponent, ModalFooterComponent, ModalHeaderComponent, ModalTitleDirective, ModalToggleDirective, FormControlDirective, FormDirective, FormLabelDirective, FormCheckLabelDirective, FormCheckInputDirective, FormCheckComponent, CardFooterComponent, CardGroupComponent, CardImgDirective, CardTextDirective, CardTitleDirective, FormsModule, ReactiveFormsModule, ProgressComponent, ToastBodyComponent, ToastComponent, ToasterComponent, ToastHeaderComponent]
+  imports: [ToastSampleIconComponent, NgIf, NgForOf, NgClass, CurrencyPipe, DatePipe, CardBodyComponent, CardComponent, CardHeaderComponent, ColComponent, RowComponent, WidgetStatFComponent, TemplateIdDirective, ButtonDirective, ButtonCloseDirective, ModalBodyComponent, ModalComponent, ModalFooterComponent, ModalHeaderComponent, ModalTitleDirective, ModalToggleDirective, FormControlDirective, FormDirective, FormLabelDirective, FormCheckLabelDirective, FormCheckInputDirective, FormCheckComponent, CardFooterComponent, CardGroupComponent, CardImgDirective, CardTextDirective, CardTitleDirective, FormsModule, ReactiveFormsModule, ProgressComponent, ToastBodyComponent, ToastComponent, ToasterComponent, ToastHeaderComponent]
 })
 export class PresentacionesComponent implements OnInit {
   myForm!: FormGroup;
@@ -81,6 +81,10 @@ export class PresentacionesComponent implements OnInit {
   public productosCargaError: string | null = null;
   public viewMode: 'table' | 'cards' = 'table';
 
+  public vistaActual: 'PRESENTACIONES' | 'HISTORIAL' = 'PRESENTACIONES';
+  public historialPrecios: any[] = [];
+  public historialCargaError: string | null = null;
+
   public showNuevaPresentacionModal: boolean = false;
   public showEditarPresentacionModal: boolean = false;
   public showEliminarPresentacionModal: boolean = false;
@@ -119,6 +123,23 @@ export class PresentacionesComponent implements OnInit {
     this.percentage.set($event * 25);
   }
 
+  cambiarVista(vista: 'PRESENTACIONES' | 'HISTORIAL'): void {
+    this.vistaActual = vista;
+    if (vista === 'HISTORIAL') {
+      this.loadHistorialPrecios();
+    }
+  }
+
+  loadHistorialPrecios(): void {
+    this.historialCargaError = null;
+    this.http.get<any[]>('http://178.105.36.117:8080/api/historial-precios').subscribe({
+      next: (data) => this.historialPrecios = data || [],
+      error: (error) => {
+        console.error('Error al cargar historial de precios:', error);
+        this.historialCargaError = 'No se pudo cargar el historial de precios. Verifica que el endpoint exista en Spring Boot.';
+      }
+    });
+  }
 
   
 

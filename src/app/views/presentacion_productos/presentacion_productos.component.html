@@ -1,11 +1,30 @@
 <div class="presentaciones-wrap">
 
-<c-card-body>
-  <c-row>
-    <div class="ph-left mb-3">
+  <!-- HEADER PRINCIPAL Y PESTAÑAS (En la misma línea) -->
+  <div class="ph d-flex justify-content-between align-items-end mb-4 pb-0" style="border-bottom: 1px solid var(--border);">
+    
+    <!-- Título a la izquierda -->
+    <div class="ph-left mb-2">
       <div class="ph-title">Mis <em>Presentaciones</em></div>
-      <div class="ph-sub">{{totalPresentaciones}} presentaciones registradas</div>
+      <div class="ph-sub" *ngIf="vistaActual === 'PRESENTACIONES'">{{totalPresentaciones}} presentaciones registradas</div>
+      <div class="ph-sub" *ngIf="vistaActual === 'HISTORIAL'">Registro y cambios de precios en la base de datos</div>
     </div>
+
+    <!-- Pestañas a la derecha -->
+    <div class="tab-nav pb-0 border-0 m-0">
+      <button class="tab-btn" [class.active]="vistaActual === 'PRESENTACIONES'" (click)="cambiarVista('PRESENTACIONES')">
+        📦 Mis Presentaciones
+      </button>
+      <button class="tab-btn" [class.active]="vistaActual === 'HISTORIAL'" (click)="cambiarVista('HISTORIAL')">
+        🕒 Historial de Precios
+      </button>
+    </div>
+  </div>
+
+  <!-- VISTA: MIS PRESENTACIONES -->
+  <div *ngIf="vistaActual === 'PRESENTACIONES'">
+    <c-card-body class="pt-0">
+      <c-row>
 
     <div class="col-md-3">
       <input id="search" type="text" class="form-control" placeholder="🔍 Buscar Presentación" 
@@ -185,9 +204,56 @@
         </div>
       </c-card-body>
     </c-card>
-  </c-col>
-</c-row>
-<!-- Vista en tarjetas -->
+    </c-col>
+  </c-row>
+  </div> <!-- FIN VISTA: MIS PRESENTACIONES -->
+
+  <!-- VISTA: HISTORIAL DE PRECIOS -->
+  <div *ngIf="vistaActual === 'HISTORIAL'">
+    <c-row>
+      <c-col xs="12">
+        <c-card>
+          <c-card-header>
+            <strong>Historial de Cambios de Precio</strong>
+          </c-card-header>
+          <c-card-body>
+            <div *ngIf="historialCargaError" class="alert alert-danger" role="alert">
+              {{ historialCargaError }}
+            </div>
+
+            <div *ngIf="!historialCargaError && historialPrecios.length === 0" class="text-center text-muted py-4">
+              Cargando historial... o no hay cambios registrados aún en Oracle.
+            </div>
+
+            <div class="table-responsive" *ngIf="historialPrecios.length > 0">
+              <table class="table table-hover">
+                <thead>
+                  <tr>
+                    <th>ID Historial</th>
+                    <th>Presentación / Producto</th>
+                    <th>Precio Anterior</th>
+                    <th>Precio Nuevo</th>
+                    <th>Fecha de Cambio</th>
+                    <th>Usuario (BD)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let h of historialPrecios">
+                    <td class="text-muted">#{{ h.id_historial || h.idHistorial }}</td>
+                    <td class="val-text">{{ h.presentacion?.nombrePresentacion || h.presentacion?.nombre_presentacion || 'Presentación #' + (h.id_presentacion || h.idPresentacion) }}</td>
+                    <td style="color: #ffc107; font-weight: bold;">{{ (h.precio_anterior || h.precioAnterior) | currency }}</td>
+                    <td style="color: #198754; font-weight: bold;">{{ (h.precio_nuevo || h.precioNuevo) | currency }}</td>
+                    <td>{{ (h.fecha_cambio || h.fechaCambio) | date:'medium' }}</td>
+                    <td class="text-muted">{{ h.usuario_db || h.usuarioDb }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </c-card-body>
+        </c-card>
+      </c-col>
+    </c-row>
+  </div> <!-- FIN VISTA: HISTORIAL DE PRECIOS -->
 
 <!-- ---------------------------- -->
 

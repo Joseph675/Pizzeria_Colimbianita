@@ -4,6 +4,12 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+import {
+  ToasterComponent,
+  ToastComponent,
+  ToastBodyComponent,
+  ButtonCloseDirective
+} from '@coreui/angular';
 
 interface Producto {
   id: number;
@@ -34,7 +40,14 @@ interface InventarioSucursalItem {
 @Component({
   selector: 'app-inventario',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    ToasterComponent,
+    ToastComponent,
+    ToastBodyComponent,
+    ButtonCloseDirective
+  ],
   templateUrl: './inventario.component.html',
   styleUrls: ['./inventario.component.scss']
 })
@@ -55,14 +68,15 @@ export class InventarioComponent implements OnInit {
   editMinimo: number = 0;
   editTarget: Producto | null = null;
 
-  inventarioSucursal: InventarioSucursalItem[] = [];
+  showEliminarModal: boolean = false;
+  productoAEliminar: Producto | null = null;
 
-  toastMsg: string = '';
-  toastColor: string = 'var(--green)';
-  showToastMsg: boolean = false;
-  private toastTimeout: any;
+  toasts: { id: number; message: string; type: 'success' | 'danger' | 'warning' | 'info' }[] = [];
+  private nextToastId = 0;
 
   productos: Producto[] = [];
+
+  inventarioSucursal: InventarioSucursalItem[] = [];
 
   estadosFiltro = [
     { id: 'todas',    label: 'Todas',      color: '' },
@@ -168,10 +182,11 @@ export class InventarioComponent implements OnInit {
   guardarEdicion(): void {
     if (!this.editTarget) return;
     const id = this.editTarget.id;
-    const body = { cantidad: this.editCantidad, cantidadMinima: this.editMinimo };
-    this.http.put(`${this.apiUrl}/inventario-sucursal/${id}`, body)
+    const body = { cantidadActual: this.editCantidad, cantidadMinima: this.editMinimo };
+    console.log('Guardando cambios para ID', id, 'con cuerpo', body);
+    this.http.put(`${this.apiUrl}/inventarios/${id}`, body)
       .pipe(catchError(() => {
-        this.showToast('Error al guardar cambios', 'var(--red)');
+        this.addToast('Error al guardar cambios', 'danger');
         return of(null);
       }))
       .subscribe(res => {
@@ -180,16 +195,24 @@ export class InventarioComponent implements OnInit {
         if (prod) { prod.stock = this.editCantidad; prod.min = this.editMinimo; }
         const inv = this.inventarioSucursal.find(i => (i.id_inventario ?? i.idInventario) === id);
         if (inv) { inv['cantidad'] = this.editCantidad; inv['cantidad_minima'] = this.editMinimo; }
-        this.showToast('Inventario actualizado', 'var(--green)');
+        this.addToast('Inventario actualizado', 'success');
         this.cerrarModal();
       });
   }
 
   eliminarProducto(prod: Producto): void {
-    if (!confirm(`¿Eliminar "${prod.name}" del inventario?`)) return;
-    this.http.delete(`${this.apiUrl}/inventario-sucursal/${prod.id}`)
+    // Abre el modal y guarda temporalmente el producto a eliminar
+    this.productoAEliminar = prod;
+    this.showEliminarModal = true;
+  }
+
+  confirmarEliminar(): void {
+    if (!this.productoAEliminar) return;
+    const prod = this.productoAEliminar;
+    
+    this.http.delete(`${this.apiUrl}/inventarios/${prod.id}`)
       .pipe(catchError(() => {
-        this.showToast('Error al eliminar', 'var(--red)');
+        this.addToast('Error al eliminar', 'danger');
         return of(null);
       }))
       .subscribe(res => {
@@ -197,19 +220,25 @@ export class InventarioComponent implements OnInit {
         this.productos = this.productos.filter(p => p.id !== prod.id);
         this.inventarioSucursal = this.inventarioSucursal.filter(i => (i.id_inventario ?? i.idInventario) !== prod.id);
         if (this.selectedProducto?.id === prod.id) this.selectedProducto = null;
-        this.showToast(`"${prod.name}" eliminado`, 'var(--red)');
+        this.addToast(`"${prod.name}" eliminado`, 'danger');
+        this.cerrarModalEliminar();
       });
+  }
+
+  cerrarModalEliminar(): void {
+    this.showEliminarModal = false;
+    this.productoAEliminar = null;
   }
 
   private cargarInventarioSucursal(): void {
     forkJoin({
       ingredientes: this.http.get<any>(`${this.apiUrl}/ingredientes`).pipe(
-        catchError(() => { this.showToast('Error al cargar ingredientes', 'var(--red)'); return of([]); })
+        catchError(() => { this.addToast('Error al cargar ingredientes', 'danger'); return of([]); })
       ),
-      inventario: this.http.get<any>(`${this.apiUrl}/inventario-sucursal`).pipe(
-        catchError(() => this.http.get<any>(`${this.apiUrl}/inventario`)),
+      inventario: this.http.get<any>(`${this.apiUrl}/inventarios`).pipe(
         catchError(() => this.http.get<any>(`${this.apiUrl}/inventarios`)),
-        catchError(() => { this.showToast('Error al cargar inventario', 'var(--red)'); return of([]); })
+        catchError(() => this.http.get<any>(`${this.apiUrl}/inventarios`)),
+        catchError(() => { this.addToast('Error al cargar inventario', 'danger'); return of([]); })
       )
     }).subscribe(({ ingredientes, inventario }) => {
       const invArray: any[] = Array.isArray(inventario) ? inventario : (inventario?.data ?? inventario?.content ?? []);
@@ -221,7 +250,7 @@ export class InventarioComponent implements OnInit {
       this.isLoading = false;
 
       if (!invArray.length) {
-        this.showToast('El inventario está vacío', 'var(--orange)');
+        this.addToast('El inventario está vacío', 'warning');
         return;
       }
 
@@ -258,16 +287,18 @@ export class InventarioComponent implements OnInit {
         });
       });
 
-      this.showToast(`${this.productos.length} registros cargados`, 'var(--green)');
+      this.addToast(`${this.productos.length} registros cargados`, 'success');
     });
   }
 
-  showToast(msg: string, color: string = 'var(--green)') {
-    this.toastMsg = msg;
-    this.toastColor = color;
-    this.showToastMsg = true;
-    if (this.toastTimeout) clearTimeout(this.toastTimeout);
-    this.toastTimeout = setTimeout(() => { this.showToastMsg = false; }, 3000);
+  addToast(message: string, type: 'success' | 'danger' | 'warning' | 'info' = 'success', duration = 3000) {
+    const id = this.nextToastId++;
+    this.toasts.push({ id, message, type });
+    setTimeout(() => this.removeToast(id), duration);
+  }
+
+  removeToast(id: number) {
+    this.toasts = this.toasts.filter((t) => t.id !== id);
   }
 
   get totalActivos()  { return this.productos.filter(p => p.stock > 0).length; }

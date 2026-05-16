@@ -31,6 +31,11 @@ export class PedidosComponent implements OnInit, OnDestroy {
   public filtroEstado: string = 'TODOS';
   public filtroTipo: string = 'TODOS';
 
+  // Variables para Pestañas e Historial
+  public vistaActual: 'PEDIDOS' | 'HISTORIAL' = 'PEDIDOS';
+  public historialEstados: any[] = [];
+  public cargandoHistorial: boolean = false;
+
   // Variables para el proceso de Cobro
   public showCobrarModal: boolean = false;
   public metodoPago: string = 'EFECTIVO';
@@ -101,6 +106,30 @@ export class PedidosComponent implements OnInit, OnDestroy {
     });
   }
 
+  cambiarVista(vista: 'PEDIDOS' | 'HISTORIAL'): void {
+    this.vistaActual = vista;
+    if (vista === 'HISTORIAL') {
+      this.cargarHistorialEstados();
+    }
+  }
+
+  cargarHistorialEstados(): void {
+    this.cargandoHistorial = true;
+    // Asegúrate de que esta URL coincida exactamente con tu @RequestMapping de Spring Boot
+    this.http.get<any[]>('http://178.105.36.117:8080/api/historial-estados-pedido').subscribe({
+      next: (data) => {
+        // Ordenar del más reciente al más antiguo
+        this.historialEstados = (data || []).sort((a, b) => (b.id_historial || b.idHistorial) - (a.id_historial || a.idHistorial));
+        this.cargandoHistorial = false;
+      },
+      error: (err) => {
+        console.error('Error al cargar el historial:', err);
+        this.addToast('Error al cargar el historial de estados', 'danger');
+        this.cargandoHistorial = false;
+      }
+    });
+  }
+
   cargarPedidos(esPolling: boolean = false): void {
     // Solo activamos el estado "cargando" si NO es una petición automática de fondo
     if (!esPolling) {
@@ -123,11 +152,11 @@ export class PedidosComponent implements OnInit, OnDestroy {
           this.ultimoIdPedido = maxIdActual;
         }
 
-        // Ordenamos los pedidos para que los más recientes (mayor ID) salgan primero
+        // Ordenamos los pedidos para que los más antiguos (menor ID) salgan primero
         this.pedidos = pedidosRecibidos.sort((a, b) => {
            const idA = a.idPedido || a.id_pedido || 0;
            const idB = b.idPedido || b.id_pedido || 0;
-           return idB - idA; // Orden descendente
+           return idA - idB; // Orden ascendente
         });
 
         // Aplicamos los filtros actuales a la nueva data

@@ -106,7 +106,7 @@
             </div>
           </div>
           <div class="dp-actions">
-            <button class="dp-btn primary" (click)="abrirEditar(selectedProducto!)">
+            <button class="dp-btn primary" (click)="$event.stopPropagation(); abrirEditar(selectedProducto!)">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
               Editar inventario
             </button>
@@ -126,7 +126,7 @@
 
 <!-- ═══════════════ MODAL ═══════════════ -->
 <div class="modal-overlay" [class.open]="showModal" (click)="cerrarModal()">
-  <div class="modal" (click)="$event.stopPropagation()">
+  <div class="custom-modal" (click)="$event.stopPropagation()">
     <div class="modal-header">
       <div class="modal-title" [innerHTML]="getModalTitle()"></div>
       <div class="modal-close" (click)="cerrarModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>
@@ -157,8 +157,41 @@
   </div>
 </div>
 
-<!-- TOAST -->
-<div class="toast" [class.show]="showToastMsg">
-  <div class="t-dot" [style.background]="toastColor"></div>
-  <span>{{ toastMsg }}</span>
+<!-- ═══════════════ MODAL ELIMINAR ═══════════════ -->
+<div class="modal-overlay" [class.open]="showEliminarModal" (click)="cerrarModalEliminar()">
+  <div class="custom-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title">Eliminar <span>Producto</span></div>
+      <div class="modal-close" (click)="cerrarModalEliminar()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>
+    </div>
+    
+    <div class="modal-body" style="text-align: center;">
+      <div style="margin-bottom:1rem; padding: 1rem; background: rgba(232, 52, 42, 0.08); border: 1px solid rgba(232, 52, 42, 0.2); border-radius: 8px; color: var(--red);">
+        <strong style="font-size: 1.5rem;">⚠️</strong>
+      </div>
+      <p style="font-size: 0.95rem; margin-bottom: 0.5rem;">¿Estás seguro de que deseas eliminar <strong>{{ productoAEliminar?.name }}</strong> del inventario?</p>
+      <p style="font-size: 0.8rem; color: var(--muted);">Esta acción no se puede deshacer.</p>
+    </div>
+
+    <div class="modal-footer">
+      <button class="modal-btn cancel" (click)="cerrarModalEliminar()">Cancelar</button>
+      <button class="modal-btn confirm" style="background: var(--red); box-shadow: 0 3px 10px rgba(232,52,42,.3);" (click)="confirmarEliminar()">Sí, eliminar</button>
+    </div>
+  </div>
 </div>
+
+<!-- TOAST (Estilo unificado de Clientes) -->
+<c-toaster [placement]="'top-end'" class="p-3" position="fixed" style="z-index: 1070;">
+  <c-toast *ngFor="let toast of toasts" [autohide]="true" [fade]="true" [visible]="true" [color]="toast.type"
+    class="text-white border-0 shadow-lg" style="min-width: 280px; margin-bottom: 12px; border-radius: 8px;">
+    <div class="d-flex justify-content-between align-items-center w-100">
+      <c-toast-body class="fw-semibold d-flex align-items-center gap-2">
+        <span class="material-icons" style="font-size: 20px;">
+          {{ toast.type === 'success' ? 'check_circle' : (toast.type === 'danger' ? 'error_outline' : (toast.type === 'warning' ? 'warning' : 'info')) }}
+        </span>
+        {{ toast.message }}
+      </c-toast-body>
+      <button cButtonClose white class="me-2 m-auto" (click)="removeToast(toast.id)"></button>
+    </div>
+  </c-toast>
+</c-toaster>

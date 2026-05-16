@@ -272,3 +272,24 @@
   .main-grid { grid-template-columns: 1fr; }
   .main-grid-full { grid-template-columns: 1fr; }
 }
+
+/* ═══ MODO CLARO (LIGHT THEME) OVERRIDES ═══ */
+:host-context([data-coreui-theme="light"]) {
+  --white: #2C2C2C;
+  --dark: #FFFFFF;
+  --panel: #FFFFFF;
+  --panel-hover: #F8F9FA;
+  --border: rgba(0, 0, 0, 0.08);
+  --border-gold: rgba(245, 200, 66, 0.4);
+  --muted: rgba(0, 0, 0, 0.55);
+  --muted2: rgba(0, 0, 0, 0.35);
+
+  .btn-sm.ghost { background: #FFFFFF; color: #2C2C2C; }
+  .btn-sm.ghost:hover { background: #F8F9FA; }
+  .mesa-mini { background: #FFFFFF; color: #2C2C2C; }
+  .mesa-mini:hover { background: #F8F9FA; }
+  .ped-row:hover, .combo-row:hover, .client-row:hover, .act-row:hover { background: #F8F9FA; }
+  .caja-item { background: #FFFFFF; }
+  .caja-total-row { background: rgba(245,200,66,0.1); }
+  .act-text { color: #2C2C2C; }
+}
