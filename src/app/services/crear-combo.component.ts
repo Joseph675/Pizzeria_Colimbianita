@@ -57,7 +57,7 @@ export class CrearComboComponent implements OnInit {
 
   cargarPresentaciones(): void {
     // Cargar las presentaciones reales desde tu API
-    this.http.get<any[]>('http://178.105.36.117:8080/api/presentaciones').subscribe({
+    this.http.get<any[]>('http://212.56.33.183:8080/api/presentaciones').subscribe({
       next: (data) => this.presentacionesDisponibles = data || [],
       error: (err) => console.error('Error cargando presentaciones:', err)
     });

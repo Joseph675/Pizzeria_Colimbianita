@@ -60,7 +60,7 @@ export class MesasComponent implements OnInit {
 
   // ----- OBTENER MESAS (GET) -----
   obtenerMesas(): void {
-    this.http.get<Mesa[]>('http://178.105.36.117:8080/api/mesas').subscribe({
+    this.http.get<Mesa[]>('http://212.56.33.183:8080/api/mesas').subscribe({
       next: (data) => {
         // Ordenamos las mesas por su número para que se vean organizadas
         this.mesas = data.sort((a, b) => (a.numeroMesa || 0) - (b.numeroMesa || 0));
@@ -142,7 +142,7 @@ export class MesasComponent implements OnInit {
 
     console.log('Creando nueva mesa:', nuevaMesa);
 
-    this.http.post('http://178.105.36.117:8080/api/mesas', nuevaMesa).subscribe({
+    this.http.post('http://212.56.33.183:8080/api/mesas', nuevaMesa).subscribe({
       next: (res: any) => {
         console.log('Mesa creada correctamente', res);
         this.addToast('Mesa creada con éxito', 'success');
@@ -189,7 +189,7 @@ export class MesasComponent implements OnInit {
       estado: this.selectedMesa.estado || 'LIBRE'
     };
 
-    this.http.put(`http://178.105.36.117:8080/api/mesas/${mesaId}`, updatedMesa).subscribe({
+    this.http.put(`http://212.56.33.183:8080/api/mesas/${mesaId}`, updatedMesa).subscribe({
       next: () => {
         this.addToast('Mesa actualizada con éxito', 'success');
         this.closeEditarMesaModal();
@@ -217,7 +217,7 @@ export class MesasComponent implements OnInit {
         estado: 'LIBRE'
       };
 
-      this.http.put(`http://178.105.36.117:8080/api/mesas/${mesaId}`, updatedMesa).subscribe({
+      this.http.put(`http://212.56.33.183:8080/api/mesas/${mesaId}`, updatedMesa).subscribe({
         next: () => {
           this.obtenerMesas();
         },
@@ -245,7 +245,7 @@ export class MesasComponent implements OnInit {
       return;
     }
 
-    this.http.delete(`http://178.105.36.117:8080/api/mesas/${mesaId}`).subscribe({
+    this.http.delete(`http://212.56.33.183:8080/api/mesas/${mesaId}`).subscribe({
       next: () => {
         this.addToast('Mesa eliminada correctamente', 'success');
         this.closeEliminarMesaModal();

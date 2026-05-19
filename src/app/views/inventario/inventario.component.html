@@ -14,6 +14,10 @@
       <div class="ih-top">
         <div class="ih-title">Control de <span>Inventario</span></div>
         <div class="ih-spacer"></div>
+        <button class="btn-primary" (click)="abrirAgregar()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:14px;height:14px;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Agregar
+        </button>
       </div>
       <div class="ih-controls">
         <div class="search-box">
@@ -176,6 +180,43 @@
     <div class="modal-footer">
       <button class="modal-btn cancel" (click)="cerrarModalEliminar()">Cancelar</button>
       <button class="modal-btn confirm" style="background: var(--red); box-shadow: 0 3px 10px rgba(232,52,42,.3);" (click)="confirmarEliminar()">Sí, eliminar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ MODAL AGREGAR ═══════════════ -->
+<div class="modal-overlay" [class.open]="showAgregarModal" (click)="cerrarAgregar()">
+  <div class="custom-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title">Agregar <span>Inventario</span></div>
+      <div class="modal-close" (click)="cerrarAgregar()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>
+    </div>
+
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-col">
+          <label class="form-label">Ingrediente</label>
+          <select class="form-input" [(ngModel)]="nuevoIngredienteId">
+            <option [ngValue]="null">Seleccionar ingrediente…</option>
+            <option *ngFor="let ing of ingredientesDisponibles" [ngValue]="ing.id">{{ ing.nombre }}</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-col">
+          <label class="form-label">Cantidad actual</label>
+          <input class="form-input" type="number" min="0" [(ngModel)]="nuevaCantidad"/>
+        </div>
+        <div class="form-col">
+          <label class="form-label">Cantidad mínima</label>
+          <input class="form-input" type="number" min="0" [(ngModel)]="nuevaCantidadMinima"/>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="modal-btn cancel" (click)="cerrarAgregar()">Cancelar</button>
+      <button class="modal-btn confirm" style="background:var(--green);box-shadow:0 3px 10px rgba(46,204,113,.25);" (click)="guardarNuevo()" [disabled]="nuevoIngredienteId === null">Agregar</button>
     </div>
   </div>
 </div>

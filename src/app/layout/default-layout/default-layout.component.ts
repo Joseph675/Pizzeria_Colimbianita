@@ -1,9 +1,11 @@
-import { RouterLink, RouterOutlet, Router } from '@angular/router';
+import { RouterLink, RouterOutlet, Router, NavigationEnd } from '@angular/router';
 import { NgScrollbar } from 'ngx-scrollbar';
 import { AuthService } from '../../services/auth.service';
 import { INavData } from '@coreui/angular';
 import { IconDirective } from '@coreui/icons-angular';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
+import { Subscription } from 'rxjs';
+import { filter } from 'rxjs/operators';
 
 import {
   ContainerComponent,
@@ -52,8 +54,17 @@ function isOverflown(element: HTMLElement) {
     ShadowOnScrollDirective
   ]
 })
-export class DefaultLayoutComponent implements OnInit{
+export class DefaultLayoutComponent implements OnInit, OnDestroy {
   public navItems = [...navItems];
+  public sidebarOpen = false;
+  public isMobile = window.innerWidth <= 900;
+  private routerSub?: Subscription;
+
+  @HostListener('window:resize')
+  onResize() {
+    this.isMobile = window.innerWidth <= 900;
+    if (!this.isMobile) this.sidebarOpen = false;
+  }
 
   constructor(private authService: AuthService, private router: Router) {}
 
@@ -63,13 +74,26 @@ export class DefaultLayoutComponent implements OnInit{
 
     // Filtrar el menú según el tipo de usuario
     this.navItems = navItems.filter((item) => {
-      // Si no tiene la propiedad `allowedFor`, mostrarlo para todos
-      if (!item.allowedFor) {
-        return true;
-      }
-      // Mostrar solo si el tipo de usuario está en `allowedFor`
+      if (!item.allowedFor) return true;
       return item.allowedFor.includes(userType);
     });
+
+    // Cierra el sidebar al navegar (útil en móvil)
+    this.routerSub = this.router.events
+      .pipe(filter(e => e instanceof NavigationEnd))
+      .subscribe(() => this.closeSidebar());
+  }
+
+  ngOnDestroy(): void {
+    this.routerSub?.unsubscribe();
+  }
+
+  toggleSidebar(): void {
+    this.sidebarOpen = !this.sidebarOpen;
+  }
+
+  closeSidebar(): void {
+    this.sidebarOpen = false;
   }
 
   logout() {

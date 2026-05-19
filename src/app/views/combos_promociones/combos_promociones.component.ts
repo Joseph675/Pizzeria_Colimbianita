@@ -62,10 +62,10 @@ export class CombosyPromocionesComponent implements OnInit {
   // ==========================================
 
   cargarCombos(): void {
-    this.http.get<any[]>('http://178.105.36.117:8080/api/combos').subscribe({
+    this.http.get<any[]>('http://212.56.33.183:8080/api/combos').subscribe({
       next: (combosData) => {
         // Intentamos obtener los detalles por separado por si el backend no los trae anidados
-        this.http.get<any[]>('http://178.105.36.117:8080/api/detalles-combo').subscribe({
+        this.http.get<any[]>('http://212.56.33.183:8080/api/detalles-combo').subscribe({
           next: (detallesData) => {
             this.procesarCombos(combosData || [], detallesData || []);
           },
@@ -78,7 +78,6 @@ export class CombosyPromocionesComponent implements OnInit {
       error: (err) => {
         console.error('Error al cargar los combos:', err);
         this.isLoadingCombos = false;
-        this.cargarCombosDePrueba(); 
         this.aplicarFiltros();
       }
     });
@@ -131,16 +130,12 @@ export class CombosyPromocionesComponent implements OnInit {
     });
 
     this.isLoadingCombos = false;
-
-    if (this.combos.length === 0) {
-      this.cargarCombosDePrueba();
-    }
     this.aplicarFiltros();
   }
 
   cargarPresentaciones(): void {
     this.isLoadingCombos = true;
-    this.http.get<any[]>('http://178.105.36.117:8080/api/presentaciones').subscribe({
+    this.http.get<any[]>('http://212.56.33.183:8080/api/presentaciones').subscribe({
       next: (data) => {
         // Guardamos TODAS las presentaciones (incluso inactivas) para poder mapear los nombres 
         // de productos en combos viejos que aún los incluyan
@@ -203,7 +198,7 @@ export class CombosyPromocionesComponent implements OnInit {
         estado: nuevoEstado
       };
       
-      this.http.put(`http://178.105.36.117:8080/api/combos/${item.idCombo}`, payload).subscribe({
+      this.http.put(`http://212.56.33.183:8080/api/combos/${item.idCombo}`, payload).subscribe({
         next: () => console.log('Estado actualizado correctamente'),
         error: (err) => console.error('Error actualizando estado', err)
       });
@@ -222,7 +217,7 @@ export class CombosyPromocionesComponent implements OnInit {
 
   confirmarEliminacion(): void {
     if (this.selectedCard && this.selectedCard.idCombo) {
-      this.http.delete(`http://178.105.36.117:8080/api/combos/${this.selectedCard.idCombo}`).subscribe({
+      this.http.delete(`http://212.56.33.183:8080/api/combos/${this.selectedCard.idCombo}`).subscribe({
         next: () => {
           this.addToast('Combo eliminado con éxito', 'success');
           this.cargarCombos();
@@ -337,7 +332,7 @@ export class CombosyPromocionesComponent implements OnInit {
     
     if (this.selectedCard && this.selectedCard.idCombo) {
       // PUT - Editar
-      this.http.put<any>(`http://178.105.36.117:8080/api/combos/${this.selectedCard.idCombo}`, payload).subscribe({
+      this.http.put<any>(`http://212.56.33.183:8080/api/combos/${this.selectedCard.idCombo}`, payload).subscribe({
         next: () => {
           this.sincronizarDetallesCombo(this.selectedCard.idCombo);
         },
@@ -359,7 +354,7 @@ export class CombosyPromocionesComponent implements OnInit {
         }))
       };
 
-      this.http.post<any>('http://178.105.36.117:8080/api/combos/crear-completo', payloadCompleto).subscribe({
+      this.http.post<any>('http://212.56.33.183:8080/api/combos/crear-completo', payloadCompleto).subscribe({
         next: (res) => {
           this.addToast('Combo guardado correctamente mediante Stored Procedure', 'success');
           this.cargarCombos();
@@ -399,7 +394,7 @@ export class CombosyPromocionesComponent implements OnInit {
           cantidad: d.cantidad
         };
 
-        this.http.post('http://178.105.36.117:8080/api/detalles-combo', payloadDetalle).subscribe({
+        this.http.post('http://212.56.33.183:8080/api/detalles-combo', payloadDetalle).subscribe({
           next: () => { completados++; if (completados === detallesNuevos.length) this.finalizarGuardado(conErrores); },
           error: (err) => { console.error('Error insertando detalle:', err); conErrores = true; completados++; if (completados === detallesNuevos.length) this.finalizarGuardado(conErrores); }
         });
@@ -409,7 +404,7 @@ export class CombosyPromocionesComponent implements OnInit {
     if (idsAEliminar.length > 0) {
       let eliminados = 0;
       idsAEliminar.forEach((id: any) => {
-        this.http.delete(`http://178.105.36.117:8080/api/detalles-combo/${id}`).subscribe({
+        this.http.delete(`http://212.56.33.183:8080/api/detalles-combo/${id}`).subscribe({
           next: () => { eliminados++; if (eliminados === idsAEliminar.length) ejecutarInserciones(); },
           error: () => { eliminados++; if (eliminados === idsAEliminar.length) ejecutarInserciones(); }
         });
@@ -428,23 +423,4 @@ export class CombosyPromocionesComponent implements OnInit {
     this.closeModal();
   }
 
-  // ==========================================
-  // DATOS MOCK DE FALLBACK (Para ver el diseño mientras conectas la DB)
-  // ==========================================
-  cargarCombosDePrueba(): void {
-    this.combos = [
-      {
-        id: 'c1', estado: 1, bannerBg: 'linear-gradient(135deg,rgba(232,52,42,.2),rgba(245,200,66,.1))', emoji: '🍕🍔🥤',
-        etiqueta: '🔥 Más vendido', nombre: 'Familiar Supremo', descripcion: 'Pizza grande a elección + 2 burgers dobles + 4 gaseosas.',
-        precio_normal: 98600, precio_combo: 79900,
-        items: [ { cantidad: 1, nombre: 'Pizza Grande' }, { cantidad: 2, nombre: 'Burger Doble' }, { cantidad: 4, nombre: 'Gaseosa 350ml' } ]
-      },
-      {
-        id: 'c2', estado: 1, bannerBg: 'linear-gradient(135deg,rgba(46,204,113,.15),rgba(52,152,219,.1))', emoji: '🌭🍟🥤',
-        etiqueta: '✨ Nuevo', nombre: 'Combo Hot Snack', descripcion: 'Hot dog ranchero + papas medianas + gaseosa 350ml.',
-        precio_normal: 28800, precio_combo: 23900,
-        items: [ { cantidad: 1, nombre: 'Hot Dog Ranchero' }, { cantidad: 1, nombre: 'Papas Medianas' }, { cantidad: 1, nombre: 'Gaseosa 350ml' } ]
-      }
-    ];
-  }
 }

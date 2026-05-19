@@ -134,7 +134,7 @@ export class PosComponent implements OnInit {
   }
 
   loadOrderForEdit(orderId: number): void {
-    this.http.get<any>(`http://178.105.36.117:8080/api/pedidos/${orderId}`).subscribe({
+    this.http.get<any>(`http://212.56.33.183:8080/api/pedidos/${orderId}`).subscribe({
       next: (pedido) => {
         if (!pedido || !pedido.detalles) {
           this.addToast('No se pudo cargar el pedido para editar o no tiene detalles.', 'danger');
@@ -196,7 +196,7 @@ export class PosComponent implements OnInit {
   }
 
   loadClientes(): void {
-    this.http.get<any[]>('http://178.105.36.117:8080/api/clientes').subscribe({
+    this.http.get<any[]>('http://212.56.33.183:8080/api/clientes').subscribe({
       next: (data) => {
         // Traemos solo clientes activos
         this.clientesRegistrados = (data || []).filter(c => c.estado === 1);
@@ -229,7 +229,7 @@ export class PosComponent implements OnInit {
     }
 
     // 2. Actualizar en segundo plano
-    this.http.get<any[]>('http://178.105.36.117:8080/api/mesas').subscribe({
+    this.http.get<any[]>('http://212.56.33.183:8080/api/mesas').subscribe({
       next: (data) => {
         this.todasLasMesas = data || []; // Guardamos TODAS las mesas sin importar su estado
         localStorage.setItem('pos_mesas', JSON.stringify(this.todasLasMesas));
@@ -271,7 +271,7 @@ export class PosComponent implements OnInit {
 
     // 2. Conectar a Alemania en segundo plano para actualizar los datos silenciosamente
     this.http
-      .get<any[]>('http://178.105.36.117:8080/api/presentaciones')
+      .get<any[]>('http://212.56.33.183:8080/api/presentaciones')
       .subscribe({
         next: (data) => {
           const validData = data || [];
@@ -434,7 +434,7 @@ export class PosComponent implements OnInit {
       this.addToast('El celular y los nombres son obligatorios.', 'warning');
       return;
     }
-    this.http.post('http://178.105.36.117:8080/api/clientes', this.nuevoCliente).subscribe({
+    this.http.post('http://212.56.33.183:8080/api/clientes', this.nuevoCliente).subscribe({
       next: (res: any) => {
         this.loadClientes(); // Refrescamos lista maestra
         this.selectCliente(res); // Seleccionamos directamente el que acabamos de crear
@@ -659,14 +659,14 @@ export class PosComponent implements OnInit {
       // Ejecutamos las eliminaciones pendientes hacia el endpoint DELETE
       if (this.deletedDetalles.length > 0) {
         this.deletedDetalles.forEach(idDetalle => {
-          this.http.delete(`http://178.105.36.117:8080/api/detalles-pedido/${idDetalle}`).subscribe({
+          this.http.delete(`http://212.56.33.183:8080/api/detalles-pedido/${idDetalle}`).subscribe({
             next: () => console.log(`Detalle ${idDetalle} eliminado correctamente de la base de datos.`),
             error: (err) => console.error(`Error al eliminar detalle ${idDetalle}:`, err)
           });
         });
       }
 
-      this.http.put(`http://178.105.36.117:8080/api/pedidos/${this.editOrderId}`, updatePayload).subscribe({
+      this.http.put(`http://212.56.33.183:8080/api/pedidos/${this.editOrderId}`, updatePayload).subscribe({
           next: (res) => {
               this.showSuccessModal = true;
               this.loadMesas(); // Recargamos mesas por si se liberó o cambió una
@@ -680,7 +680,7 @@ export class PosComponent implements OnInit {
     } else {
       // --- MODO CREACIÓN: Creamos un nuevo pedido con POST (Lógica existente) ---
       console.log('Creando nuevo pedido en Spring Boot:', payload);
-      this.http.post('http://178.105.36.117:8080/api/pedidos/crear', payload).subscribe({
+      this.http.post('http://212.56.33.183:8080/api/pedidos/crear', payload).subscribe({
         next: (res) => {
           this.showSuccessModal = true; // Abre el modal de éxito animado
           this.loadMesas(); // Recargamos las mesas libres (la seleccionada desaparecerá porque pasó a OCUPADA)

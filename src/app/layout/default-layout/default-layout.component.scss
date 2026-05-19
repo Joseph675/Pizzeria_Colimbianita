@@ -298,8 +298,32 @@
   .table-wrap tbody tr { transition: background .15s; }
   .table-wrap tbody tr:hover { background: rgba(255,255,255,.04); }
 
+  /* Backdrop móvil */
+  .sidebar-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 999;
+    background: rgba(0,0,0,.55);
+    backdrop-filter: blur(3px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .28s;
+    &.show { opacity: 1; pointer-events: all; }
+  }
+
   @media (max-width: 900px) {
-    .sidebar { display: none; }
+    .sidebar {
+      transform: translateX(-100%);
+      transition: transform 0.3s ease;
+      z-index: 1000; /* Asegurar que la barra lateral esté por encima del backdrop (z-index 999) */
+      animation: none; /* Desactivar la animación inicial que sobrescribe el transform */
+    }
+    .sidebar.show {
+      transform: translateX(0);
+      box-shadow: 6px 0 40px rgba(0,0,0,.8);
+    }
+    .sidebar-backdrop { display: block; }
     .main { margin-left: 0; }
     .kpi-grid { grid-template-columns: 1fr 1fr; }
     .tb-metrics { display: none; }

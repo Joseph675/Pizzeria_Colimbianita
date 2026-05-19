@@ -1,12 +1,19 @@
 <div class="bg"></div>
 <div class="grain"></div>
 
+<!-- Backdrop móvil -->
+<div class="sidebar-backdrop" [class.show]="sidebarOpen" (click)="closeSidebar()"></div>
+
 <!-- ══════ TOP NAVBAR ══════ -->
-<!-- Delegamos el Topbar a tu componente default-header para preservar la lógica del dropdown y cierre de sesión -->
-<app-default-header></app-default-header>
+<app-default-header (toggleSidebar)="toggleSidebar()"></app-default-header>
 
 <!-- ══════ SIDEBAR ══════ -->
-<aside class="sidebar">
+<aside class="sidebar"
+  [style.transform]="isMobile ? (sidebarOpen ? 'translateX(0)' : 'translateX(-100%)') : null"
+  [style.transition]="isMobile ? 'transform .28s cubic-bezier(.4,0,.2,1)' : null"
+  [style.z-index]="isMobile ? '99999' : null"
+  [style.animation]="isMobile ? 'none' : null"
+  [style.box-shadow]="isMobile && sidebarOpen ? '6px 0 40px rgba(0,0,0,.8)' : null">
   
   <!-- El sidebar dinamico renderizado desde _nav.ts -->
   <app-custom-sidebar-nav [navItems]="navItems"></app-custom-sidebar-nav>

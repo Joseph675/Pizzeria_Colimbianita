@@ -1,5 +1,5 @@
 import { NgTemplateOutlet, NgIf, NgFor } from '@angular/common';
-import { Component, computed, inject, input, OnInit, OnDestroy, HostListener, ElementRef, ChangeDetectorRef } from '@angular/core';
+import { Component, computed, inject, input, OnInit, OnDestroy, HostListener, ElementRef, ChangeDetectorRef, Output, EventEmitter } from '@angular/core';
 import { RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { Subscription, timer } from 'rxjs';
@@ -82,6 +82,12 @@ export class DefaultHeaderComponent extends HeaderComponent implements OnInit, O
 
   sidebarId = input('sidebar1');
 
+  @Output() toggleSidebar = new EventEmitter<void>();
+
+  onToggleSidebar() {
+    this.toggleSidebar.emit();
+  }
+
   logout() {
     this.authService.logout();
     this.router.navigate(['/login']);
@@ -98,7 +104,7 @@ export class DefaultHeaderComponent extends HeaderComponent implements OnInit, O
   iniciarPollingAlertas() {
     this.pollingSubscription = timer(0, 15000).pipe(
       // switchMap cancela la petición anterior si hay un retraso en la red
-      switchMap(() => this.http.get<any[]>('http://178.105.36.117:8080/api/alertas/no-leidas'))
+      switchMap(() => this.http.get<any[]>('http://212.56.33.183:8080/api/alertas/no-leidas'))
     ).subscribe({
       next: (alertas) => {
         this.alertasNoLeidas = alertas || [];
@@ -113,7 +119,7 @@ export class DefaultHeaderComponent extends HeaderComponent implements OnInit, O
   }
 
   marcarComoLeidas() {
-    this.http.put('http://178.105.36.117:8080/api/alertas/marcar-leidas', {}).subscribe({
+    this.http.put('http://212.56.33.183:8080/api/alertas/marcar-leidas', {}).subscribe({
       next: () => {
         this.alertasNoLeidas = []; // Limpiamos la campanita localmente
         this.showNotifications = false; // Cerramos el panel

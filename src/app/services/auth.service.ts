@@ -6,7 +6,7 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = 'http://178.105.36.117:8080/api/auth'; // URL del endpoint de autenticación
+  private apiUrl = 'http://212.56.33.183:8080/api/auth'; // URL del endpoint de autenticación
 
   constructor(private http: HttpClient) {}
 

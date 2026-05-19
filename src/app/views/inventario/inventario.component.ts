@@ -52,7 +52,7 @@ interface InventarioSucursalItem {
   styleUrls: ['./inventario.component.scss']
 })
 export class InventarioComponent implements OnInit {
-  private apiUrl = 'http://178.105.36.117:8080/api';
+  private apiUrl = 'http://212.56.33.183:8080/api';
 
   isLoading: boolean = true;
 
@@ -70,6 +70,13 @@ export class InventarioComponent implements OnInit {
 
   showEliminarModal: boolean = false;
   productoAEliminar: Producto | null = null;
+
+  showAgregarModal: boolean = false;
+  nuevoIngredienteId: number | null = null;
+  nuevaCantidad: number = 0;
+  nuevaCantidadMinima: number = 0;
+  private todoIngredientes: any[] = [];
+  private idSucursalActual: number = 1;
 
   toasts: { id: number; message: string; type: 'success' | 'danger' | 'warning' | 'info' }[] = [];
   private nextToastId = 0;
@@ -230,6 +237,43 @@ export class InventarioComponent implements OnInit {
     this.productoAEliminar = null;
   }
 
+  get ingredientesDisponibles(): any[] {
+    const idsEnInventario = new Set(this.inventarioSucursal.map(i => i.id_ingrediente));
+    return this.todoIngredientes.filter(ing => !idsEnInventario.has(ing.id));
+  }
+
+  abrirAgregar(): void {
+    this.nuevoIngredienteId = null;
+    this.nuevaCantidad = 0;
+    this.nuevaCantidadMinima = 0;
+    this.showAgregarModal = true;
+  }
+
+  cerrarAgregar(): void {
+    this.showAgregarModal = false;
+  }
+
+  guardarNuevo(): void {
+    if (this.nuevoIngredienteId === null) return;
+    const body = {
+      idSucursal: this.idSucursalActual,
+      idIngrediente: this.nuevoIngredienteId,
+      cantidadActual: this.nuevaCantidad,
+      cantidadMinima: this.nuevaCantidadMinima
+    };
+    this.http.post<any>(`${this.apiUrl}/inventarios`, body)
+      .pipe(catchError(() => {
+        this.addToast('Error al agregar inventario', 'danger');
+        return of(null);
+      }))
+      .subscribe(res => {
+        if (res === null) return;
+        this.addToast('Inventario agregado', 'success');
+        this.cerrarAgregar();
+        this.cargarInventarioSucursal();
+      });
+  }
+
   private cargarInventarioSucursal(): void {
     forkJoin({
       ingredientes: this.http.get<any>(`${this.apiUrl}/ingredientes`).pipe(
@@ -246,6 +290,10 @@ export class InventarioComponent implements OnInit {
 
       this.inventarioSucursal = [];
       this.productos = [];
+      this.todoIngredientes = ingArray.map((ing: any) => ({
+        id: ing.id_ingrediente ?? ing.idIngrediente ?? ing.id,
+        nombre: ing.nombre ?? `ING-${ing.id_ingrediente ?? ing.id}`
+      }));
 
       this.isLoading = false;
 
@@ -269,6 +317,7 @@ export class InventarioComponent implements OnInit {
         const min      = Number(item.cantidad_minima ?? item.cantidadMinima ?? 0);
         const idInv    = item.id_inventario ?? item.idInventario ?? idIng ?? 0;
         const idSuc    = item.id_sucursal ?? item.idSucursal ?? item.sucursal?.id_sucursal ?? 1;
+        this.idSucursalActual = idSuc;
 
         this.inventarioSucursal.push({ ...item, id_ingrediente: idIng, nombre, unidadMedida: unidad });
 

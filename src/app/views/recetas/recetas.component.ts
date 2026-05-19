@@ -13,7 +13,7 @@ import { catchError } from 'rxjs/operators';
   styleUrl: './recetas.component.scss'
 })
 export class RecetasComponent implements OnInit {
-  private apiUrl = 'http://178.105.36.117:8080/api';
+  private apiUrl = 'http://212.56.33.183:8080/api';
 
   // Caché de sesión para datos base (productos, presentaciones, ingredientes)
   private static baseCache: { productos: any[]; presentaciones: any; ingredientes: any } | null = null;

@@ -113,7 +113,7 @@ export class IngredientesComponent implements OnInit {
 
 
   cargarIngredientes(): void {
-    this.http.get<any>('http://178.105.36.117:8080/api/ingredientes').subscribe(
+    this.http.get<any>('http://212.56.33.183:8080/api/ingredientes').subscribe(
       (data) => {
         // Extraer de forma segura el array por si el backend lo envuelve (ej. { data: [...] } o { content: [...] })
         const arraySeguro = Array.isArray(data) ? data : (data?.data || data?.content || []);
@@ -150,7 +150,7 @@ export class IngredientesComponent implements OnInit {
         costoUnitario: formValues.costoUnitario
       };
 
-      this.http.post('http://178.105.36.117:8080/api/ingredientes', payload).subscribe(
+      this.http.post('http://212.56.33.183:8080/api/ingredientes', payload).subscribe(
         (response) => {
           console.log('Ingrediente creado exitosamente:', response);
           this.addToast('Ingrediente registrado exitosamente!', 'success');
@@ -177,7 +177,7 @@ export class IngredientesComponent implements OnInit {
         costoUnitario: formValues.costoUnitario
       };
 
-      this.http.put(`http://178.105.36.117:8080/api/ingredientes/${this.selectedIngrediente.idIngrediente || this.selectedIngrediente.id_ingrediente}`, payload).subscribe(
+      this.http.put(`http://212.56.33.183:8080/api/ingredientes/${this.selectedIngrediente.idIngrediente || this.selectedIngrediente.id_ingrediente}`, payload).subscribe(
         (response) => {
           console.log('Ingrediente actualizado exitosamente:', response);
           this.addToast('Ingrediente actualizado exitosamente!', 'success');
@@ -251,7 +251,7 @@ export class IngredientesComponent implements OnInit {
       return;
     }
 
-    this.http.delete(`http://178.105.36.117:8080/api/ingredientes/${ingredienteId}`).subscribe(
+    this.http.delete(`http://212.56.33.183:8080/api/ingredientes/${ingredienteId}`).subscribe(
       (response) => {
         this.addToast('Ingrediente eliminado permanentemente', 'success');
         this.cargarIngredientes();

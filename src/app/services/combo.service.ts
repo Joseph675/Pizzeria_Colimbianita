@@ -38,7 +38,7 @@ export class ComboService {
 
   crearComboCompleto(payload: ComboPayload): Observable<any> {
     // Apunta al endpoint expuesto en tu controlador Spring Boot
-    return this.http.post('http://178.105.36.117:8080/api/combos/crear-completo', payload);
+    return this.http.post('http://212.56.33.183:8080/api/combos/crear-completo', payload);
   }
 
   generarCombosMasivos(payload: ComboMasivoRequestDto): Observable<any> {

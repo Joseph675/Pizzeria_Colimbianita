@@ -99,7 +99,7 @@ export class CategoriasComponent implements OnInit {
   loadproductos(): void {
     this.productosCargaError = null;
     this.http
-      .get<{ id_producto: number; id_categoria: number; nombre: string; descripcion?: string; imagenUrl?: string; categoria: { idCategoria: number; nombre: string }; estado?: number }[]>('http://178.105.36.117:8080/api/productos')
+      .get<{ id_producto: number; id_categoria: number; nombre: string; descripcion?: string; imagenUrl?: string; categoria: { idCategoria: number; nombre: string }; estado?: number }[]>('http://212.56.33.183:8080/api/productos')
       .subscribe(
         (data) => {
           // Ordenar productos por ID de manera ascendente para mantener orden consistente
@@ -122,7 +122,7 @@ export class CategoriasComponent implements OnInit {
   loadcategorias(): void {
     this.categoriasCargaError = null;
     this.http
-      .get<{ idCategoria: number; nombre: string }[]>('http://178.105.36.117:8080/api/categorias')
+      .get<{ idCategoria: number; nombre: string }[]>('http://212.56.33.183:8080/api/categorias')
       .subscribe(
         (data) => {
           this.categorias = (data || []).sort((a, b) => a.nombre.localeCompare(b.nombre));
@@ -169,7 +169,7 @@ export class CategoriasComponent implements OnInit {
         imagenUrl: formValues.imagenUrl
       };
 
-      this.http.post('http://178.105.36.117:8080/api/productos', payload).subscribe(
+      this.http.post('http://212.56.33.183:8080/api/productos', payload).subscribe(
         (response) => {
           console.log('Producto creado exitosamente:', response);
           this.toastType = 'success';
@@ -214,7 +214,7 @@ export class CategoriasComponent implements OnInit {
         nombre: formValues.nombre,
       };
 
-      this.http.post('http://178.105.36.117:8080/api/categorias', payload).subscribe(
+      this.http.post('http://212.56.33.183:8080/api/categorias', payload).subscribe(
         (response) => {
           console.log('Categoría creada exitosamente:', response);
           this.toastType = 'success';

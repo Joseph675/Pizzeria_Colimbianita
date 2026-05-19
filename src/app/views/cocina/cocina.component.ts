@@ -158,7 +158,7 @@ export class CocinaComponent implements OnInit, OnDestroy {
   cargarPedidos(esPolling: boolean = false): void {
     if (!esPolling) this.cargando = true;
 
-    this.http.get<any[]>('http://178.105.36.117:8080/api/pedidos').subscribe({
+    this.http.get<any[]>('http://212.56.33.183:8080/api/pedidos').subscribe({
       next: (data) => {
         const pedidosRecibidos = data || [];
         
@@ -263,7 +263,7 @@ export class CocinaComponent implements OnInit, OnDestroy {
       this.pedidoSeleccionado.estado = nuevoEstadoVisual as any;
     }
 
-    this.http.put(`http://178.105.36.117:8080/api/pedidos/${pedido.id}`, payload).subscribe({
+    this.http.put(`http://212.56.33.183:8080/api/pedidos/${pedido.id}`, payload).subscribe({
       next: () => {
         this.cargarPedidos(true); // Se refresca en segundo plano para estar en sintonía
       },
