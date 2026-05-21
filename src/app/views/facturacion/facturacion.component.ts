@@ -154,13 +154,16 @@ export class FacturacionComponent implements OnInit {
     this.totalTarjetas = 0;
 
     this.facturasFiltradas.forEach(f => {
-      const total = Number(f.total) || 0;
-      const metodo = (f.metodo_pago || f.metodoPago || '').toUpperCase();
+      this.totalVentas += Number(f.pedido?.total || f.total) || 0;
 
-      this.totalVentas += total;
-      if (metodo === 'EFECTIVO') this.totalEfectivo += total;
-      else if (metodo === 'NEQUI' || metodo === 'DAVIPLATA') this.totalTransferencias += total;
-      else if (metodo === 'TARJETA') this.totalTarjetas += total;
+      const pagos: any[] = f.pagos || [];
+      pagos.forEach(p => {
+        const metodo = (p.metodo_pago || p.metodoPago || '').toUpperCase();
+        const monto = Number(p.monto) || 0;
+        if (metodo === 'EFECTIVO') this.totalEfectivo += monto;
+        else if (metodo === 'NEQUI' || metodo === 'DAVIPLATA' || metodo === 'TRANSFERENCIA') this.totalTransferencias += monto;
+        else if (metodo === 'TARJETA') this.totalTarjetas += monto;
+      });
     });
   }
 
@@ -326,18 +329,23 @@ export class FacturacionComponent implements OnInit {
     
     const idTurno = turno.id_cierre || turno.idCierre;
     const base = turno.base_inicial || turno.baseInicial || 0;
-    let ventasEfectivo = turno.total_efectivo || turno.totalEfectivo || 0;
 
-    // Si la base de datos dice que hay 0 en efectivo, lo calculamos nosotros manualmente
-    // cruzando la información con las facturas cobradas en ese mismo turno
+    // Prioridad 1: usar el total_efectivo ya calculado en la BD (disponible tras backend fix)
+    let ventasEfectivo = Number(turno.total_efectivo || turno.totalEfectivo) || 0;
+
+    // Prioridad 2: calcular desde pagos embebidos en las facturas (disponible tras @OneToMany pagos en Factura)
     if (ventasEfectivo === 0) {
       ventasEfectivo = this.facturas
         .filter(f => {
           const fCierreId = f.cierreCaja?.idCierre || f.cierreCaja?.id_cierre || f.id_cierre || f.idCierre;
-          const metodo = (f.metodo_pago || f.metodoPago || '').toUpperCase();
-          return fCierreId === idTurno && metodo === 'EFECTIVO';
+          return fCierreId === idTurno;
         })
-        .reduce((sum, f) => sum + Number(f.total || 0), 0);
+        .reduce((sum, f) => {
+          const pagos: any[] = f.pagos || [];
+          return sum + pagos
+            .filter(p => (p.metodo_pago || p.metodoPago || '').toUpperCase() === 'EFECTIVO')
+            .reduce((s, p) => s + Number(p.monto || 0), 0);
+        }, 0);
     }
 
     this.ventasEfectivoCierre = ventasEfectivo;
@@ -362,28 +370,11 @@ export class FacturacionComponent implements OnInit {
 
   procesarCierre(): void {
     const idTurno = this.turnoSeleccionado.id_cierre || this.turnoSeleccionado.idCierre;
-    
-    // Calculamos todos los totales cruzando la información con las facturas
-    let totalEfectivo = 0;
-    let totalTarjetas = 0;
-    let totalTransferencias = 0;
 
-    this.facturas.forEach(f => {
-      const fCierreId = f.cierreCaja?.idCierre || f.cierreCaja?.id_cierre || f.id_cierre || f.idCierre;
-      if (fCierreId === idTurno) {
-        const metodo = (f.metodo_pago || f.metodoPago || '').toUpperCase();
-        const total = Number(f.total || 0);
-        if (metodo === 'EFECTIVO') totalEfectivo += total;
-        else if (metodo === 'TARJETA') totalTarjetas += total;
-        else if (metodo === 'NEQUI' || metodo === 'DAVIPLATA') totalTransferencias += total;
-      }
-    });
-
+    // Los totales por método los recalcula el backend desde la tabla pagos.
+    // Solo enviamos lo que el cajero declara y las observaciones.
     const payload = {
-      efectivoDeclarado: this.efectivoDeclarado, // CamelCase para Spring Boot
-      totalEfectivo: totalEfectivo,
-      totalTarjetas: totalTarjetas,
-      totalTransferencias: totalTransferencias,
+      efectivoDeclarado: this.efectivoDeclarado,
       diferencia: this.diferenciaCalculada,
       observaciones: this.observacionesCierre
     };

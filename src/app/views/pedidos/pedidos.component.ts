@@ -38,8 +38,10 @@ export class PedidosComponent implements OnInit, OnDestroy {
 
   // Variables para el proceso de Cobro
   public showCobrarModal: boolean = false;
-  public metodoPago: string = 'EFECTIVO';
   public montoRecibido: number = 0;
+  public valorAdicional: number = 0;
+  public notaAdicional: string = '';
+  public lineasPago: { metodoPago: string; monto: number }[] = [];
 
   public autoOpenMesaId: number | null = null;
 
@@ -322,79 +324,93 @@ export class PedidosComponent implements OnInit, OnDestroy {
 
   abrirModalCobrar(): void {
     this.showCobrarModal = true;
-    this.metodoPago = 'EFECTIVO';
-    this.montoRecibido = this.pedidoSeleccionado?.total || 0;
+    this.valorAdicional = 0;
+    this.notaAdicional = '';
+    const totalBase = this.pedidoSeleccionado?.total || 0;
+    this.lineasPago = [{ metodoPago: 'EFECTIVO', monto: totalBase }];
+    this.montoRecibido = totalBase;
   }
 
   cerrarModalCobrar(): void {
     this.showCobrarModal = false;
   }
 
+  agregarLineaPago(): void {
+    this.lineasPago.push({ metodoPago: 'EFECTIVO', monto: 0 });
+  }
+
+  eliminarLineaPago(index: number): void {
+    this.lineasPago.splice(index, 1);
+  }
+
+  get totalLineasPago(): number {
+    return this.lineasPago.reduce((sum, p) => sum + (p.monto || 0), 0);
+  }
+
+  get diferenciaPago(): number {
+    return ((this.pedidoSeleccionado?.total || 0) + this.valorAdicional) - this.totalLineasPago;
+  }
+
+  get tieneEfectivo(): boolean {
+    return this.lineasPago.some(p => p.metodoPago === 'EFECTIVO');
+  }
+
   get calcularCambio(): number {
-    const total = this.pedidoSeleccionado?.total || 0;
-    return this.montoRecibido > total ? this.montoRecibido - total : 0;
+    const totalEfectivo = this.lineasPago
+      .filter(p => p.metodoPago === 'EFECTIVO')
+      .reduce((sum, p) => sum + (p.monto || 0), 0);
+    return this.montoRecibido > totalEfectivo ? this.montoRecibido - totalEfectivo : 0;
   }
 
   procesarPago(): void {
     const user = this.authService.getUser();
-    const ID_USUARIO_VALIDO = user?.idUsuario || user?.id_usuario;
+    const idUsuario = user?.idUsuario || user?.id_usuario;
 
-    if (!ID_USUARIO_VALIDO) {
+    if (!idUsuario) {
       this.addToast('No se pudo identificar al cajero para emitir la factura.', 'danger');
       return;
     }
 
-    // 1. Consultamos si hay un turno de caja abierto dinámicamente
+    if (this.diferenciaPago > 0) {
+      this.addToast('El total de los pagos no cubre el valor del pedido.', 'warning');
+      return;
+    }
+
     this.http.get<any[]>('http://212.56.33.183:8080/api/cierres-caja').subscribe({
       next: (cierres) => {
         const turnoAbierto = cierres.find(c => c.estado === 'ABIERTA');
-        
+
         if (!turnoAbierto) {
           this.addToast('No hay ningún turno de caja abierto. Ve a "Facturación" y abre un turno.', 'warning', 4500);
           return;
         }
 
-        const ID_TURNO_ACTIVO = turnoAbierto.id_cierre || turnoAbierto.idCierre;
+        const idCierre = turnoAbierto.id_cierre || turnoAbierto.idCierre;
+        const idPedido = this.pedidoSeleccionado.id_pedido || this.pedidoSeleccionado.idPedido;
+        const totalConAdicional = (this.pedidoSeleccionado?.total || 0) + this.valorAdicional;
 
-        // 2. Armamos el JSON con el ID real del turno abierto
-        const payloadFactura = {
-          pedido: { idPedido: this.pedidoSeleccionado.id_pedido || this.pedidoSeleccionado.idPedido },
-          usuario: { idUsuario: ID_USUARIO_VALIDO },
-          cierreCaja: { idCierre: ID_TURNO_ACTIVO },
-          metodoPago: this.metodoPago,
+        const payload = {
+          idPedido,
           subtotal: this.pedidoSeleccionado.total,
-          total: this.pedidoSeleccionado.total
+          total: totalConAdicional,
+          valorAdicional: this.valorAdicional,
+          notaAdicional: this.notaAdicional,
+          idCierre,
+          idUsuario,
+          impuestos: 0,
+          pagos: this.lineasPago.map(p => ({ metodoPago: p.metodoPago, monto: p.monto }))
         };
 
-        // 3. Registramos la factura
-        this.http.post('http://212.56.33.183:8080/api/facturas', payloadFactura).subscribe({
+        this.http.post<any>('http://212.56.33.183:8080/api/cobrar', payload).subscribe({
           next: () => {
-            this.cambiarEstado(this.pedidoSeleccionado, 'PAGADO');
-            
-            // Liberar la mesa automáticamente en la base de datos
-            if (this.pedidoSeleccionado.mesa) {
-              let idMesa = this.pedidoSeleccionado.mesa?.idMesa || this.pedidoSeleccionado.mesa?.id_mesa || this.pedidoSeleccionado.idMesa || this.pedidoSeleccionado.id_mesa;
-              
-              if (!idMesa && (typeof this.pedidoSeleccionado.mesa === 'number' || typeof this.pedidoSeleccionado.mesa === 'string')) {
-                idMesa = this.pedidoSeleccionado.mesa;
-              }
-              
-              // Creamos un objeto base seguro por si la mesa venía como un número simple
-              const baseMesa = typeof this.pedidoSeleccionado.mesa === 'object' ? this.pedidoSeleccionado.mesa : { idMesa: idMesa, numeroMesa: idMesa, capacidad: 4, sucursal: { idSucursal: 1 } };
-              const mesaActualizada = { ...baseMesa, estado: 'LIBRE' };
-              
-              this.http.put(`http://212.56.33.183:8080/api/mesas/${idMesa}`, mesaActualizada).subscribe({
-                next: () => console.log(`Mesa #${idMesa} liberada exitosamente.`),
-                error: (err) => console.error(`Error al liberar la mesa #${idMesa}:`, err)
-              });
-            }
-
+            this.pedidoSeleccionado.estado = 'PAGADO';
             this.showCobrarModal = false;
+            this.cargarPedidos();
             setTimeout(() => this.imprimirTicket(), 500);
           },
           error: (err) => {
-            console.error('Error al registrar la factura:', err);
-            this.addToast('No se pudo generar la factura en la base de datos.', 'danger');
+            console.error('Error al procesar el cobro:', err);
+            this.addToast(err.error?.message || 'No se pudo procesar el cobro.', 'danger');
           }
         });
       },

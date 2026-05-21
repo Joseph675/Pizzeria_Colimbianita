@@ -256,25 +256,64 @@
       <div class="pm-body">
         <div style="text-align: center; margin-bottom: 1.5rem;">
           <div style="font-size: 0.9rem; color: #a0a0a0; text-transform: uppercase; letter-spacing: 0.1em;">Total a Pagar</div>
-          <div style="font-size: 2.5rem; font-weight: 800; color: #f6b93b;">{{ pedidoSeleccionado?.total | currency:'USD':'symbol':'1.0-0' }}</div>
+          <div style="font-size: 2.5rem; font-weight: 800; color: #f6b93b;">{{ ((pedidoSeleccionado?.total || 0) + valorAdicional) | currency:'USD':'symbol':'1.0-0' }}</div>
         </div>
 
         <div class="form-group mb-3">
-          <label style="color: #a0a0a0; font-size: 0.85rem; margin-bottom: 0.5rem; display: block;">Método de Pago</label>
-          <select [(ngModel)]="metodoPago" style="width: 100%; padding: 0.8rem; background: #121212; border: 1px solid #333; color: #fff; border-radius: 6px; font-size: 1rem;">
-            <option value="EFECTIVO">💵 Efectivo</option>
-            <option value="NEQUI">📱 Nequi</option>
-            <option value="DAVIPLATA">📱 Daviplata</option>
-            <option value="TARJETA">💳 Tarjeta</option>
-          </select>
+          <label style="color: #a0a0a0; font-size: 0.85rem; margin-bottom: 0.5rem; display: block;">Cargo Adicional (opcional, ej: domicilio)</label>
+          <input type="number" [(ngModel)]="valorAdicional" min="0" style="width: 100%; padding: 0.8rem; background: #121212; border: 1px solid #333; color: #fff; border-radius: 6px; font-size: 1rem; text-align: center;" placeholder="0" />
         </div>
 
-        <div class="form-group mb-3" *ngIf="metodoPago === 'EFECTIVO'">
-          <label style="color: #a0a0a0; font-size: 0.85rem; margin-bottom: 0.5rem; display: block;">Efectivo Recibido (Con cuánto pagan)</label>
+        <div class="form-group mb-3">
+          <label style="color: #a0a0a0; font-size: 0.85rem; margin-bottom: 0.5rem; display: block;">Descripción del Cargo (opcional)</label>
+          <input type="text" [(ngModel)]="notaAdicional" style="width: 100%; padding: 0.8rem; background: #121212; border: 1px solid #333; color: #fff; border-radius: 6px; font-size: 1rem;" placeholder="Ej: Domicilio" />
+        </div>
+
+        <!-- Líneas de pago dinámicas -->
+        <div style="margin-bottom: 1rem;">
+          <label style="color: #a0a0a0; font-size: 0.85rem; margin-bottom: 0.75rem; display: block; text-transform: uppercase; letter-spacing: 0.05em;">Métodos de Pago</label>
+
+          <div *ngFor="let pago of lineasPago; let i = index" style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem; align-items: center;">
+            <select [(ngModel)]="pago.metodoPago" style="flex: 1; padding: 0.7rem; background: #121212; border: 1px solid #333; color: #fff; border-radius: 6px; font-size: 0.95rem;">
+              <option value="EFECTIVO">💵 Efectivo</option>
+              <option value="NEQUI">📱 Nequi</option>
+              <option value="DAVIPLATA">📱 Daviplata</option>
+              <option value="TARJETA">💳 Tarjeta</option>
+              <option value="TRANSFERENCIA">🏦 Transferencia</option>
+            </select>
+            <input type="number" [(ngModel)]="pago.monto" min="0"
+              style="width: 130px; padding: 0.7rem; background: #121212; border: 1px solid #333; color: #fff; border-radius: 6px; font-size: 1rem; text-align: center;" />
+            <button *ngIf="lineasPago.length > 1" (click)="eliminarLineaPago(i)"
+              style="background: transparent; border: 1px solid #444; color: #a0a0a0; border-radius: 6px; width: 36px; height: 36px; cursor: pointer; flex-shrink: 0;">✖</button>
+          </div>
+
+          <button (click)="agregarLineaPago()"
+            style="width: 100%; padding: 0.6rem; background: transparent; border: 1px dashed #444; color: #a0a0a0; border-radius: 6px; cursor: pointer; font-size: 0.9rem; margin-top: 0.25rem;">
+            + Agregar método de pago
+          </button>
+        </div>
+
+        <!-- Indicador de diferencia -->
+        <div style="display: flex; justify-content: space-between; padding: 0.75rem 1rem; border-radius: 8px; margin-bottom: 1rem;"
+          [style.background]="diferenciaPago > 0 ? 'rgba(231,76,60,0.1)' : 'rgba(46,204,113,0.1)'"
+          [style.border]="diferenciaPago > 0 ? '1px solid #e74c3c' : '1px solid #2ecc71'">
+          <span style="font-size: 0.85rem; text-transform: uppercase;"
+            [style.color]="diferenciaPago > 0 ? '#e74c3c' : '#2ecc71'">
+            {{ diferenciaPago > 0 ? 'Falta por cubrir' : 'Total cubierto' }}
+          </span>
+          <span style="font-weight: bold;"
+            [style.color]="diferenciaPago > 0 ? '#e74c3c' : '#2ecc71'">
+            {{ (diferenciaPago > 0 ? diferenciaPago : totalLineasPago) | currency:'USD':'symbol':'1.0-0' }}
+          </span>
+        </div>
+
+        <!-- Cambio (solo si hay línea de efectivo) -->
+        <div class="form-group mb-3" *ngIf="tieneEfectivo">
+          <label style="color: #a0a0a0; font-size: 0.85rem; margin-bottom: 0.5rem; display: block;">Efectivo Recibido (con cuánto pagan)</label>
           <input type="number" [(ngModel)]="montoRecibido" style="width: 100%; padding: 0.8rem; background: #121212; border: 1px solid #333; color: #fff; border-radius: 6px; font-size: 1.2rem; font-weight: bold; text-align: center;" />
         </div>
 
-        <div class="alert-info" *ngIf="metodoPago === 'EFECTIVO'" style="background: rgba(46, 204, 113, 0.1); border: 1px solid #2ecc71; color: #2ecc71; padding: 1rem; border-radius: 8px; text-align: center; margin-top: 1rem;">
+        <div *ngIf="tieneEfectivo" style="background: rgba(46, 204, 113, 0.1); border: 1px solid #2ecc71; color: #2ecc71; padding: 1rem; border-radius: 8px; text-align: center; margin-top: 1rem;">
           <div style="font-size: 0.85rem; text-transform: uppercase;">Cambio a devolver</div>
           <div style="font-size: 1.8rem; font-weight: bold;">{{ calcularCambio | currency:'USD':'symbol':'1.0-0' }}</div>
         </div>
@@ -304,7 +343,7 @@
       <p><strong>Fecha:</strong> {{ (pedidoSeleccionado.fecha_hora || pedidoSeleccionado.fechaHora) | date:'dd/MM/yyyy HH:mm' }}</p>
       <p><strong>Tipo:</strong> {{ pedidoSeleccionado.tipo_pedido || pedidoSeleccionado.tipoPedido }} <span *ngIf="pedidoSeleccionado.mesa">(Mesa {{ pedidoSeleccionado.mesa?.numeroMesa || pedidoSeleccionado.mesa?.numero_mesa || pedidoSeleccionado.numeroMesa || pedidoSeleccionado.numero_mesa || pedidoSeleccionado.mesa?.idMesa || pedidoSeleccionado.mesa?.id_mesa || pedidoSeleccionado.idMesa || pedidoSeleccionado.id_mesa || pedidoSeleccionado.mesa }})</span></p>
       <p *ngIf="pedidoSeleccionado.cliente"><strong>Cliente:</strong> {{ pedidoSeleccionado.cliente.nombres || pedidoSeleccionado.cliente.nombre }}</p>
-      <p><strong>Método de Pago:</strong> {{ metodoPago }}</p>
+      <p><strong>Método de Pago:</strong> {{ lineasPago.length === 1 ? lineasPago[0].metodoPago : 'MIXTO' }}</p>
     </div>
 
     <table class="ticket-items">
@@ -329,15 +368,23 @@
         <span>Subtotal:</span>
         <span>{{ pedidoSeleccionado.total | currency:'USD':'symbol':'1.0-0' }}</span>
       </div>
+      <div class="t-row" *ngIf="valorAdicional > 0">
+        <span>{{ notaAdicional || 'Cargo adicional' }}:</span>
+        <span>{{ valorAdicional | currency:'USD':'symbol':'1.0-0' }}</span>
+      </div>
       <div class="t-row grand-total">
         <span>TOTAL:</span>
-        <span>{{ pedidoSeleccionado.total | currency:'USD':'symbol':'1.0-0' }}</span>
+        <span>{{ (pedidoSeleccionado.total + valorAdicional) | currency:'USD':'symbol':'1.0-0' }}</span>
       </div>
-      <div class="t-row" *ngIf="metodoPago === 'EFECTIVO'">
+      <div class="t-row" *ngFor="let pago of lineasPago">
+        <span>{{ pago.metodoPago }}:</span>
+        <span>{{ pago.monto | currency:'USD':'symbol':'1.0-0' }}</span>
+      </div>
+      <div class="t-row" *ngIf="tieneEfectivo">
         <span>Recibido:</span>
         <span>{{ montoRecibido | currency:'USD':'symbol':'1.0-0' }}</span>
       </div>
-      <div class="t-row" *ngIf="metodoPago === 'EFECTIVO'">
+      <div class="t-row" *ngIf="tieneEfectivo">
         <span>Cambio:</span>
         <span>{{ calcularCambio | currency:'USD':'symbol':'1.0-0' }}</span>
       </div>

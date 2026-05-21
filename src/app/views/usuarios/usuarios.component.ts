@@ -218,7 +218,7 @@ export class UsuariosComponent implements OnInit {
     console.log('Formulario válido:', this.myForm.value);
     if (this.myForm.valid && this.selectedUsuario) {
       const formValues = this.myForm.value;
-      const payload = {
+      const payload: any = {
         nombres: formValues.nombres,
         email: formValues.email,
         estado: formValues.estado,
@@ -229,6 +229,10 @@ export class UsuariosComponent implements OnInit {
           idSucursal: formValues.idSucursal
         }
       };
+
+      if (formValues.passwordHash && formValues.passwordHash.trim() !== '') {
+        payload.passwordHash = formValues.passwordHash;
+      }
 
       const usuarioId = this.selectedUsuario.idUsuario || this.selectedUsuario.id_usuario;
       this.http.put(`http://212.56.33.183:8080/api/usuarios/${usuarioId}`, payload).subscribe(

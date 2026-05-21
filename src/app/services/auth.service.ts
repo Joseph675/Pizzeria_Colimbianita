@@ -34,7 +34,20 @@ export class AuthService {
   // Método para verificar si el usuario está autenticado
   isAuthenticated(): boolean {
     const token = this.getToken();
-    return !!token; // Retorna true si el token existe, false si no
+    if (!token) return false;
+
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      if (payload.exp * 1000 < Date.now()) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        return false;
+      }
+    } catch {
+      return false;
+    }
+
+    return true;
   }
 
   // Método para guardar la información del usuario en localStorage

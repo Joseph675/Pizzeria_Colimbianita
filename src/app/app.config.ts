@@ -13,7 +13,7 @@ import { DropdownModule, SidebarModule } from '@coreui/angular';
 import { IconSetService } from '@coreui/icons-angular';
 import { routes } from './app.routes';
 
-import { provideHttpClient, HTTP_INTERCEPTORS } from '@angular/common/http';
+import { provideHttpClient, withInterceptorsFromDi, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { AuthInterceptor } from './interceptors/auth.interceptor';
 import { CaseTransformInterceptor } from './interceptors/case-transform.interceptor';
 
@@ -35,7 +35,7 @@ export const appConfig: ApplicationConfig = {
     IconSetService,
     provideAnimationsAsync(),
     // Registrar el interceptor HTTP basado en clases
-    provideHttpClient(),
+    provideHttpClient(withInterceptorsFromDi()),
     {
       provide: HTTP_INTERCEPTORS,
       useClass: CaseTransformInterceptor,

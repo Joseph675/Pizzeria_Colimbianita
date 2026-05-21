@@ -96,12 +96,21 @@
         <tbody>
           <tr *ngFor="let f of facturasFiltradas">
             <td class="text-gold fw-bold">#{{ f.id_factura || f.idFactura }}</td>
-            <td>Ped. #{{ f.id_pedido || f.idPedido }}</td>
+            <td>Ped. #{{ f.pedido?.idPedido || f.pedido?.id_pedido || f.id_pedido || f.idPedido }}</td>
             <td>{{ f.pedido?.cliente?.nombres || f.pedido?.cliente?.nombre || 'Consumidor Final' }}</td>
             <td>{{ (f.fecha_emision || f.fechaEmision) | date:'short' }}</td>
-            <td><span class="badge" [ngClass]="(f.metodo_pago || f.metodoPago | lowercase)">{{ f.metodo_pago || f.metodoPago }}</span></td>
+            <td>
+              <ng-container *ngIf="f.pagos && f.pagos.length > 1">
+                <span *ngFor="let p of f.pagos" class="badge" [ngClass]="(p.metodo_pago || p.metodoPago | lowercase)" style="margin-right: 2px; font-size: 0.7rem;">
+                  {{ p.metodo_pago || p.metodoPago }}
+                </span>
+              </ng-container>
+              <span *ngIf="!f.pagos || f.pagos.length <= 1" class="badge" [ngClass]="(f.pagos?.[0]?.metodo_pago || f.pagos?.[0]?.metodoPago || f.metodo_pago || f.metodoPago | lowercase)">
+                {{ f.pagos?.[0]?.metodo_pago || f.pagos?.[0]?.metodoPago || f.metodo_pago || f.metodoPago }}
+              </span>
+            </td>
             <td>{{ f.subtotal | currency:'USD':'symbol':'1.0-0' }}</td>
-            <td class="fw-bold">{{ f.total | currency:'USD':'symbol':'1.0-0' }}</td>
+            <td class="fw-bold">{{ (f.pedido?.total || f.total) | currency:'USD':'symbol':'1.0-0' }}</td>
             <td>
               <button class="btn-action primary" title="Reimprimir Ticket" (click)="reimprimirFactura(f)">🖨️</button>
               <button class="btn-action ghost" title="Ver Detalles" (click)="abrirDetalleFactura(f)">👁️</button>
@@ -206,23 +215,24 @@
 
   <!-- MODAL: DETALLES DE FACTURA -->
   <div class="modal-overlay" [class.open]="modalDetalleFactura" (click)="cerrarDetalleFactura()">
-    <div class="nm-modal" (click)="$event.stopPropagation()" style="max-width: 600px;">
+    <div class="nm-modal" (click)="$event.stopPropagation()" style="max-width: 620px;">
       <div class="nm-header">
         <div class="nm-title">Detalle Factura <em>#{{ facturaSeleccionada?.id_factura || facturaSeleccionada?.idFactura }}</em></div>
         <button class="modal-close" (click)="cerrarDetalleFactura()">✖</button>
       </div>
       <div class="nm-body">
+
         <!-- Cabecera Informativa -->
         <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; font-size: 0.9rem;">
-          <div><strong>Referencia Pedido:</strong> #{{ facturaSeleccionada?.pedido?.idPedido || facturaSeleccionada?.pedido?.id_pedido || facturaSeleccionada?.id_pedido }}</div>
+          <div><strong>Pedido Ref.:</strong> #{{ facturaSeleccionada?.pedido?.idPedido || facturaSeleccionada?.pedido?.id_pedido || facturaSeleccionada?.id_pedido }}</div>
           <div><strong>Fecha Emisión:</strong> {{ (facturaSeleccionada?.fecha_emision || facturaSeleccionada?.fechaEmision) | date:'short' }}</div>
           <div><strong>Cliente:</strong> {{ facturaSeleccionada?.pedido?.cliente?.nombres || facturaSeleccionada?.pedido?.cliente?.nombre || 'Consumidor Final' }}</div>
-          <div><strong>Método Pago:</strong> <span class="badge" [ngClass]="(facturaSeleccionada?.metodo_pago || facturaSeleccionada?.metodoPago | lowercase)">{{ facturaSeleccionada?.metodo_pago || facturaSeleccionada?.metodoPago }}</span></div>
+          <div><strong>Tipo:</strong> {{ facturaSeleccionada?.pedido?.tipo_pedido || facturaSeleccionada?.pedido?.tipoPedido || '---' }}</div>
         </div>
 
-        <!-- Tabla de Detalles -->
+        <!-- Tabla de Productos -->
         <h5 style="color: #a0a0a0; font-size: 0.9rem; text-transform: uppercase; margin-bottom: 0.5rem;">Productos Vendidos</h5>
-        <div class="table-container" style="max-height: 250px; overflow-y: auto;">
+        <div class="table-container" style="max-height: 220px; overflow-y: auto; margin-bottom: 1rem;">
           <table class="custom-table" style="font-size: 0.85rem;">
             <thead>
               <tr>
@@ -238,20 +248,74 @@
                 <td>
                   {{ det.presentacion?.producto?.nombre || 'Producto' }}
                   <br><small class="text-muted">{{ det.presentacion?.nombre_presentacion || det.presentacion?.nombrePresentacion }}</small>
+                  <div *ngIf="det.notas" style="font-size: 0.75rem; color: #d97706; font-style: italic;">✏️ {{ det.notas }}</div>
                 </td>
                 <td>{{ (det.precio_cobrado || det.precioCobrado) | currency:'USD':'symbol':'1.0-0' }}</td>
                 <td class="fw-bold">{{ ((det.precio_cobrado || det.precioCobrado) * (det.fraccion || 1)) | currency:'USD':'symbol':'1.0-0' }}</td>
               </tr>
               <tr *ngIf="!facturaSeleccionada?.pedido?.detalles || facturaSeleccionada?.pedido?.detalles.length === 0">
-                <td colspan="4" class="text-center text-muted py-3">No hay detalles disponibles para este pedido.</td>
+                <td colspan="4" class="text-center text-muted py-3">No hay detalles disponibles.</td>
               </tr>
             </tbody>
           </table>
         </div>
+
+        <!-- Resumen de Cobro -->
+        <div style="background: rgba(255,255,255,0.03); border: 1px solid #2a2a2a; border-radius: 8px; padding: 1rem; margin-bottom: 1rem;">
+          <h5 style="color: #a0a0a0; font-size: 0.9rem; text-transform: uppercase; margin-bottom: 0.75rem;">Resumen de Cobro</h5>
+
+          <!-- Subtotal productos -->
+          <div style="display: flex; justify-content: space-between; font-size: 0.9rem; padding: 0.3rem 0; border-bottom: 1px solid #2a2a2a;">
+            <span style="color: #a0a0a0;">Subtotal productos</span>
+            <span>{{ (facturaSeleccionada?.subtotal || facturaSeleccionada?.pedido?.total) | currency:'USD':'symbol':'1.0-0' }}</span>
+          </div>
+
+          <!-- Cargo adicional (si lo tiene) -->
+          <div *ngIf="(facturaSeleccionada?.pedido?.valor_adicional || facturaSeleccionada?.pedido?.valorAdicional) > 0"
+               style="display: flex; justify-content: space-between; font-size: 0.9rem; padding: 0.3rem 0; border-bottom: 1px solid #2a2a2a; color: #d97706;">
+            <span>{{ facturaSeleccionada?.pedido?.nota_adicional || facturaSeleccionada?.pedido?.notaAdicional || 'Cargo adicional' }}</span>
+            <span>+ {{ (facturaSeleccionada?.pedido?.valor_adicional || facturaSeleccionada?.pedido?.valorAdicional) | currency:'USD':'symbol':'1.0-0' }}</span>
+          </div>
+
+          <!-- Total -->
+          <div style="display: flex; justify-content: space-between; font-size: 1.1rem; font-weight: bold; padding-top: 0.5rem; color: #f6b93b;">
+            <span>TOTAL COBRADO</span>
+            <span>{{ (facturaSeleccionada?.pedido?.total || facturaSeleccionada?.total) | currency:'USD':'symbol':'1.0-0' }}</span>
+          </div>
+        </div>
+
+        <!-- Formas de Pago -->
+        <div style="background: rgba(255,255,255,0.03); border: 1px solid #2a2a2a; border-radius: 8px; padding: 1rem;">
+          <h5 style="color: #a0a0a0; font-size: 0.9rem; text-transform: uppercase; margin-bottom: 0.75rem;">Cómo Pagaron</h5>
+
+          <!-- Con pagos embebidos (disponible tras @OneToMany en Factura) -->
+          <ng-container *ngIf="facturaSeleccionada?.pagos && facturaSeleccionada?.pagos.length > 0">
+            <div *ngFor="let pago of facturaSeleccionada?.pagos"
+                 style="display: flex; justify-content: space-between; align-items: center; padding: 0.4rem 0; border-bottom: 1px solid #2a2a2a; font-size: 0.9rem;">
+              <span>
+                <span class="badge" [ngClass]="(pago.metodo_pago || pago.metodoPago | lowercase)" style="margin-right: 0.5rem;">
+                  {{ pago.metodo_pago || pago.metodoPago }}
+                </span>
+                <small *ngIf="pago.descripcion" class="text-muted">{{ pago.descripcion }}</small>
+              </span>
+              <span class="fw-bold">{{ pago.monto | currency:'USD':'symbol':'1.0-0' }}</span>
+            </div>
+          </ng-container>
+
+          <!-- Fallback: sin pagos embebidos aún -->
+          <ng-container *ngIf="!facturaSeleccionada?.pagos || facturaSeleccionada?.pagos.length === 0">
+            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; padding: 0.4rem 0;">
+              <span class="badge" [ngClass]="(facturaSeleccionada?.metodo_pago || facturaSeleccionada?.metodoPago | lowercase)">
+                {{ facturaSeleccionada?.metodo_pago || facturaSeleccionada?.metodoPago || 'Ver en detalle' }}
+              </span>
+              <span class="fw-bold">{{ facturaSeleccionada?.total | currency:'USD':'symbol':'1.0-0' }}</span>
+            </div>
+          </ng-container>
+        </div>
+
       </div>
-      <div class="nm-footer mt-2" style="justify-content: space-between; align-items: center; border-top: none; padding-top: 1rem;">
-        <h3 class="m-0 text-gold" style="font-size: 1.6rem;">Total: {{ facturaSeleccionada?.total | currency:'USD':'symbol':'1.0-0' }}</h3>
-        <button class="dp-btn ghost" (click)="cerrarDetalleFactura()">Cerrar Previsualización</button>
+      <div class="nm-footer mt-2" style="justify-content: flex-end;">
+        <button class="dp-btn ghost" (click)="cerrarDetalleFactura()">Cerrar</button>
       </div>
     </div>
   </div>
