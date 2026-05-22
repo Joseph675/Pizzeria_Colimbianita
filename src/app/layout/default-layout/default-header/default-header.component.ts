@@ -1,4 +1,4 @@
-import { NgTemplateOutlet, NgIf, NgFor } from '@angular/common';
+﻿import { NgTemplateOutlet, NgIf, NgFor } from '@angular/common';
 import { Component, computed, inject, input, OnInit, OnDestroy, HostListener, ElementRef, ChangeDetectorRef, Output, EventEmitter } from '@angular/core';
 import { RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
@@ -27,6 +27,7 @@ import {
 } from '@coreui/angular';
 
 import { IconDirective } from '@coreui/icons-angular';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-default-header',
@@ -104,7 +105,7 @@ export class DefaultHeaderComponent extends HeaderComponent implements OnInit, O
   iniciarPollingAlertas() {
     this.pollingSubscription = timer(0, 15000).pipe(
       // switchMap cancela la petición anterior si hay un retraso en la red
-      switchMap(() => this.http.get<any[]>('http://212.56.33.183:8080/api/alertas/no-leidas'))
+      switchMap(() => this.http.get<any[]>(`${environment.apiUrl}/api/alertas/no-leidas`))
     ).subscribe({
       next: (alertas) => {
         this.alertasNoLeidas = alertas || [];
@@ -119,7 +120,7 @@ export class DefaultHeaderComponent extends HeaderComponent implements OnInit, O
   }
 
   marcarComoLeidas() {
-    this.http.put('http://212.56.33.183:8080/api/alertas/marcar-leidas', {}).subscribe({
+    this.http.put(`${environment.apiUrl}/api/alertas/marcar-leidas`, {}).subscribe({
       next: () => {
         this.alertasNoLeidas = []; // Limpiamos la campanita localmente
         this.showNotifications = false; // Cerramos el panel

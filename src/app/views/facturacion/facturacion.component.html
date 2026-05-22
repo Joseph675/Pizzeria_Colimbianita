@@ -51,29 +51,36 @@
       <div class="stat-card grand-total">
         <div class="sc-icon">💰</div>
         <div class="sc-info">
-          <div class="sc-label">Total Ventas (Filtro)</div>
+          <div class="sc-label">Total Ventas</div>
           <div class="sc-val">{{ totalVentas | currency:'USD':'symbol':'1.0-0' }}</div>
+        </div>
+      </div>
+      <div class="stat-card gastos">
+        <div class="sc-icon">📤</div>
+        <div class="sc-info">
+          <div class="sc-label">Gastos Operativos</div>
+          <div class="sc-val text-danger">- {{ totalGastos | currency:'USD':'symbol':'1.0-0' }}</div>
+        </div>
+      </div>
+      <div class="stat-card utilidad" [ngClass]="utilidadNeta >= 0 ? 'utilidad-pos' : 'utilidad-neg'">
+        <div class="sc-icon">📊</div>
+        <div class="sc-info">
+          <div class="sc-label">Utilidad Neta</div>
+          <div class="sc-val" [ngClass]="utilidadNeta >= 0 ? 'text-success' : 'text-danger'">{{ utilidadNeta | currency:'USD':'symbol':'1.0-0' }}</div>
         </div>
       </div>
       <div class="stat-card efectivo">
         <div class="sc-icon">💵</div>
         <div class="sc-info">
-          <div class="sc-label">Efectivo</div>
+          <div class="sc-label">Efectivo en Caja</div>
           <div class="sc-val">{{ totalEfectivo | currency:'USD':'symbol':'1.0-0' }}</div>
         </div>
       </div>
       <div class="stat-card transferencias">
         <div class="sc-icon">📱</div>
         <div class="sc-info">
-          <div class="sc-label">Nequi / Daviplata</div>
+          <div class="sc-label">Nequi</div>
           <div class="sc-val">{{ totalTransferencias | currency:'USD':'symbol':'1.0-0' }}</div>
-        </div>
-      </div>
-      <div class="stat-card tarjetas">
-        <div class="sc-icon">💳</div>
-        <div class="sc-info">
-          <div class="sc-label">Tarjetas</div>
-          <div class="sc-val">{{ totalTarjetas | currency:'USD':'symbol':'1.0-0' }}</div>
         </div>
       </div>
     </div>
@@ -86,6 +93,7 @@
             <th>Nº Factura</th>
             <th>Pedido Ref.</th>
             <th>Cliente</th>
+            <th>Repartidor</th>
             <th>Fecha y Hora</th>
             <th>Método Pago</th>
             <th>Subtotal</th>
@@ -98,6 +106,12 @@
             <td class="text-gold fw-bold">#{{ f.id_factura || f.idFactura }}</td>
             <td>Ped. #{{ f.pedido?.idPedido || f.pedido?.id_pedido || f.id_pedido || f.idPedido }}</td>
             <td>{{ f.pedido?.cliente?.nombres || f.pedido?.cliente?.nombre || 'Consumidor Final' }}</td>
+            <td>
+              <ng-container *ngIf="f.pedido?.repartidor; else sinRepartidor">
+                <span class="badge" style="background: rgba(52,152,219,0.15); color: #3498db;">🛵 {{ f.pedido.repartidor.nombres || f.pedido.repartidor.nombre || f.pedido.repartidor.username }}</span>
+              </ng-container>
+              <ng-template #sinRepartidor><span class="text-muted">---</span></ng-template>
+            </td>
             <td>{{ (f.fecha_emision || f.fechaEmision) | date:'short' }}</td>
             <td>
               <ng-container *ngIf="f.pagos && f.pagos.length > 1">
@@ -118,7 +132,7 @@
             </td>
           </tr>
           <tr *ngIf="facturasFiltradas.length === 0">
-            <td colspan="8" class="text-center text-muted py-4">No se encontraron facturas para estos filtros.</td>
+            <td colspan="9" class="text-center text-muted py-4">No se encontraron facturas para estos filtros.</td>
           </tr>
         </tbody>
       </table>
@@ -228,6 +242,12 @@
           <div><strong>Fecha Emisión:</strong> {{ (facturaSeleccionada?.fecha_emision || facturaSeleccionada?.fechaEmision) | date:'short' }}</div>
           <div><strong>Cliente:</strong> {{ facturaSeleccionada?.pedido?.cliente?.nombres || facturaSeleccionada?.pedido?.cliente?.nombre || 'Consumidor Final' }}</div>
           <div><strong>Tipo:</strong> {{ facturaSeleccionada?.pedido?.tipo_pedido || facturaSeleccionada?.pedido?.tipoPedido || '---' }}</div>
+          <div *ngIf="facturaSeleccionada?.pedido?.repartidor" style="grid-column: 1 / -1;">
+            <strong>🛵 Repartidor:</strong>
+            <span style="margin-left: 0.4rem; color: #3498db;">
+              {{ facturaSeleccionada?.pedido?.repartidor?.nombres || facturaSeleccionada?.pedido?.repartidor?.nombre || facturaSeleccionada?.pedido?.repartidor?.username }}
+            </span>
+          </div>
         </div>
 
         <!-- Tabla de Productos -->

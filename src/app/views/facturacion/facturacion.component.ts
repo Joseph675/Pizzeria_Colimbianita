@@ -1,8 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { NgIf, NgForOf, NgClass, DatePipe, CurrencyPipe, LowerCasePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-facturacion',
@@ -31,6 +32,8 @@ export class FacturacionComponent implements OnInit {
   public totalEfectivo: number = 0;
   public totalTransferencias: number = 0;
   public totalTarjetas: number = 0;
+  public totalGastos: number = 0;
+  public utilidadNeta: number = 0;
 
   // Modales y Formularios
   public modalApertura: boolean = false;
@@ -107,7 +110,7 @@ export class FacturacionComponent implements OnInit {
     const startOfDay = `${this.filtroFecha}T00:00:00`;
     const endOfDay = `${this.filtroFecha}T23:59:59`;
 
-    this.http.get<any[]>(`http://212.56.33.183:8080/api/facturas/buscar?fechaInicio=${startOfDay}&fechaFin=${endOfDay}`).subscribe({
+    this.http.get<any[]>(`${environment.apiUrl}/api/facturas/buscar?fechaInicio=${startOfDay}&fechaFin=${endOfDay}`).subscribe({
       next: (data) => {
         this.facturas = data || [];
         this.aplicarFiltroFacturasLocal();
@@ -152,6 +155,7 @@ export class FacturacionComponent implements OnInit {
     this.totalEfectivo = 0;
     this.totalTransferencias = 0;
     this.totalTarjetas = 0;
+    this.totalGastos = 0;
 
     this.facturasFiltradas.forEach(f => {
       this.totalVentas += Number(f.pedido?.total || f.total) || 0;
@@ -165,6 +169,15 @@ export class FacturacionComponent implements OnInit {
         else if (metodo === 'TARJETA') this.totalTarjetas += monto;
       });
     });
+
+    this.totalGastos = this.gastos
+      .filter(g => {
+        const fecha = String(g.fecha_hora || g.fechaHora || '');
+        return fecha.substring(0, 10) === this.filtroFecha;
+      })
+      .reduce((sum, g) => sum + Number(g.monto || 0), 0);
+
+    this.utilidadNeta = this.totalVentas - this.totalGastos;
   }
 
   abrirModalAnularFactura(factura: any): void {
@@ -181,7 +194,7 @@ export class FacturacionComponent implements OnInit {
     if (!this.facturaAAnular) return;
     const id = this.facturaAAnular.id_factura || this.facturaAAnular.idFactura;
     
-    this.http.delete(`http://212.56.33.183:8080/api/facturas/${id}`).subscribe({
+    this.http.delete(`${environment.apiUrl}/api/facturas/${id}`).subscribe({
       next: () => {
         this.mostrarToast('Factura Anulada', 'La factura fue eliminada con éxito.', false);
         this.cargarFacturas();
@@ -273,7 +286,7 @@ export class FacturacionComponent implements OnInit {
   // === LÓGICA DE CIERRES DE CAJA (TURNOS) ===
 
   cargarCierres(): void {
-    this.http.get<any[]>('http://212.56.33.183:8080/api/cierres-caja').subscribe({
+    this.http.get<any[]>(`${environment.apiUrl}/api/cierres-caja`).subscribe({
       next: (data) => {
         this.cierres = (data || []).sort((a,b) => {
           const idA = a.idCierre || a.id_cierre || 0;
@@ -309,7 +322,7 @@ export class FacturacionComponent implements OnInit {
       baseInicial: this.nuevaBaseInicial
     };
 
-    this.http.post('http://212.56.33.183:8080/api/cierres-caja', payload).subscribe({
+    this.http.post(`${environment.apiUrl}/api/cierres-caja`, payload).subscribe({
       next: () => {
         this.mostrarToast('Turno Abierto', 'Caja abierta exitosamente.', false);
         this.modalApertura = false;
@@ -379,7 +392,7 @@ export class FacturacionComponent implements OnInit {
       observaciones: this.observacionesCierre
     };
 
-    this.http.put(`http://212.56.33.183:8080/api/cierres-caja/${idTurno}/cerrar`, payload).subscribe({
+    this.http.put(`${environment.apiUrl}/api/cierres-caja/${idTurno}/cerrar`, payload).subscribe({
       next: () => {
         this.mostrarToast('Turno Cerrado', 'La caja ha sido cerrada y calculada.', false);
         this.modalCierre = false;
@@ -501,7 +514,7 @@ export class FacturacionComponent implements OnInit {
   // === LÓGICA DE GASTOS DE CAJA ===
 
   cargarGastos(): void {
-    this.http.get<any[]>('http://212.56.33.183:8080/api/gastos-caja').subscribe({
+    this.http.get<any[]>(`${environment.apiUrl}/api/gastos-caja`).subscribe({
       next: (data) => {
         this.gastos = (data || []).sort((a,b) => {
           const idA = a.idGasto || a.id_gasto || 0;
@@ -544,7 +557,7 @@ export class FacturacionComponent implements OnInit {
       descripcion: this.nuevoGasto.descripcion.trim()
     };
 
-    this.http.post('http://212.56.33.183:8080/api/gastos-caja', payload).subscribe({
+    this.http.post(`${environment.apiUrl}/api/gastos-caja`, payload).subscribe({
       next: () => {
         this.mostrarToast('Gasto Registrado', 'El gasto fue guardado exitosamente.', false);
         this.cerrarModalGasto();

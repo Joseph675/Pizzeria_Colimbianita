@@ -1,9 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { ToastBodyComponent, ToastComponent, ToasterComponent, ToastHeaderComponent, ButtonCloseDirective } from '@coreui/angular';
+import { environment } from '../../../environments/environment';
 
 // Interfaz basada en la tabla de la base de datos
 export interface Mesa {
@@ -60,7 +61,7 @@ export class MesasComponent implements OnInit {
 
   // ----- OBTENER MESAS (GET) -----
   obtenerMesas(): void {
-    this.http.get<Mesa[]>('http://212.56.33.183:8080/api/mesas').subscribe({
+    this.http.get<Mesa[]>(`${environment.apiUrl}/api/mesas`).subscribe({
       next: (data) => {
         // Ordenamos las mesas por su número para que se vean organizadas
         this.mesas = data.sort((a, b) => (a.numeroMesa || 0) - (b.numeroMesa || 0));
@@ -142,7 +143,7 @@ export class MesasComponent implements OnInit {
 
     console.log('Creando nueva mesa:', nuevaMesa);
 
-    this.http.post('http://212.56.33.183:8080/api/mesas', nuevaMesa).subscribe({
+    this.http.post(`${environment.apiUrl}/api/mesas`, nuevaMesa).subscribe({
       next: (res: any) => {
         console.log('Mesa creada correctamente', res);
         this.addToast('Mesa creada con éxito', 'success');
@@ -189,7 +190,7 @@ export class MesasComponent implements OnInit {
       estado: this.selectedMesa.estado || 'LIBRE'
     };
 
-    this.http.put(`http://212.56.33.183:8080/api/mesas/${mesaId}`, updatedMesa).subscribe({
+    this.http.put(`${environment.apiUrl}/api/mesas/${mesaId}`, updatedMesa).subscribe({
       next: () => {
         this.addToast('Mesa actualizada con éxito', 'success');
         this.closeEditarMesaModal();
@@ -217,7 +218,7 @@ export class MesasComponent implements OnInit {
         estado: 'LIBRE'
       };
 
-      this.http.put(`http://212.56.33.183:8080/api/mesas/${mesaId}`, updatedMesa).subscribe({
+      this.http.put(`${environment.apiUrl}/api/mesas/${mesaId}`, updatedMesa).subscribe({
         next: () => {
           this.obtenerMesas();
         },
@@ -245,7 +246,7 @@ export class MesasComponent implements OnInit {
       return;
     }
 
-    this.http.delete(`http://212.56.33.183:8080/api/mesas/${mesaId}`).subscribe({
+    this.http.delete(`${environment.apiUrl}/api/mesas/${mesaId}`).subscribe({
       next: () => {
         this.addToast('Mesa eliminada correctamente', 'success');
         this.closeEliminarMesaModal();

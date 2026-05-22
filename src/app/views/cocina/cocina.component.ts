@@ -1,8 +1,9 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+﻿import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Subscription, interval } from 'rxjs';
 import { ToastBodyComponent, ToastComponent, ToasterComponent, ToastHeaderComponent, ButtonCloseDirective } from '@coreui/angular';
+import { environment } from '../../../environments/environment';
 
 interface PedidoItem {
   e: string;
@@ -158,7 +159,7 @@ export class CocinaComponent implements OnInit, OnDestroy {
   cargarPedidos(esPolling: boolean = false): void {
     if (!esPolling) this.cargando = true;
 
-    this.http.get<any[]>('http://212.56.33.183:8080/api/pedidos').subscribe({
+    this.http.get<any[]>(`${environment.apiUrl}/api/pedidos`).subscribe({
       next: (data) => {
         const pedidosRecibidos = data || [];
         
@@ -263,7 +264,7 @@ export class CocinaComponent implements OnInit, OnDestroy {
       this.pedidoSeleccionado.estado = nuevoEstadoVisual as any;
     }
 
-    this.http.put(`http://212.56.33.183:8080/api/pedidos/${pedido.id}`, payload).subscribe({
+    this.http.put(`${environment.apiUrl}/api/pedidos/${pedido.id}`, payload).subscribe({
       next: () => {
         this.cargarPedidos(true); // Se refresca en segundo plano para estar en sintonía
       },

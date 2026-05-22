@@ -36,6 +36,7 @@ import {
 } from '@coreui/angular';
 import { FormsModule, ReactiveFormsModule,FormGroup, FormBuilder,Validators} from '@angular/forms';
 import { ToastSampleIconComponent } from './toast-sample-icon.component';
+import { environment } from '../../../environments/environment';
 
 @Component({
   templateUrl: 'presentacion_productos.component.html',
@@ -132,7 +133,7 @@ export class PresentacionesComponent implements OnInit {
 
   loadHistorialPrecios(): void {
     this.historialCargaError = null;
-    this.http.get<any[]>('http://212.56.33.183:8080/api/historial-precios').subscribe({
+    this.http.get<any[]>(`${environment.apiUrl}/api/historial-precios`).subscribe({
       next: (data) => this.historialPrecios = data || [],
       error: (error) => {
         console.error('Error al cargar historial de precios:', error);
@@ -146,7 +147,7 @@ export class PresentacionesComponent implements OnInit {
   loadPresentaciones(): void {
     this.presentacionesCargaError = null;
     this.http
-      .get<any[]>('http://212.56.33.183:8080/api/presentaciones')
+      .get<any[]>(`${environment.apiUrl}/api/presentaciones`)
       .subscribe(
         (data) => {
           this.presentaciones = (data || []).sort((a, b) => {
@@ -167,7 +168,7 @@ export class PresentacionesComponent implements OnInit {
   loadProductos(): void {
     this.productosCargaError = null;
     this.http
-      .get<any[]>('http://212.56.33.183:8080/api/productos')
+      .get<any[]>(`${environment.apiUrl}/api/productos`)
       .subscribe(
         (data) => {
           this.productos = (data || []).filter(p => p.estado !== 0).sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
@@ -190,7 +191,7 @@ export class PresentacionesComponent implements OnInit {
         precio: Number(formValues.precio)
       };
 
-      this.http.post('http://212.56.33.183:8080/api/presentaciones', payload).subscribe(
+      this.http.post(`${environment.apiUrl}/api/presentaciones`, payload).subscribe(
         (response) => {
           this.addToast('Presentación registrada exitosamente!', 'success');
           this.loadPresentaciones();
@@ -218,7 +219,7 @@ export class PresentacionesComponent implements OnInit {
       };
 
       const id = this.selectedPresentacion.idPresentacion || this.selectedPresentacion.id_presentacion;
-      this.http.put(`http://212.56.33.183:8080/api/presentaciones/${id}`, payload).subscribe(
+      this.http.put(`${environment.apiUrl}/api/presentaciones/${id}`, payload).subscribe(
         (response) => {
           this.addToast('Presentación actualizada exitosamente!', 'success');
           this.loadPresentaciones();
@@ -245,7 +246,7 @@ export class PresentacionesComponent implements OnInit {
     };
 
     const id = presentacion.idPresentacion || presentacion.id_presentacion;
-    this.http.put(`http://212.56.33.183:8080/api/presentaciones/${id}`, payload).subscribe(
+    this.http.put(`${environment.apiUrl}/api/presentaciones/${id}`, payload).subscribe(
       (response) => {
         this.addToast('Presentación inactivada correctamente', 'success');
         this.loadPresentaciones();
@@ -267,7 +268,7 @@ export class PresentacionesComponent implements OnInit {
     };
 
     const id = presentacion.idPresentacion || presentacion.id_presentacion;
-    this.http.put(`http://212.56.33.183:8080/api/presentaciones/${id}`, payload).subscribe(
+    this.http.put(`${environment.apiUrl}/api/presentaciones/${id}`, payload).subscribe(
       (response) => {
         const mensaje = nuevoEstado === 1 ? 'Presentación activada correctamente' : 'Presentación desactivada correctamente';
         this.addToast(mensaje, 'success');
@@ -407,7 +408,7 @@ export class PresentacionesComponent implements OnInit {
       return;
     }
 
-    this.http.delete(`http://212.56.33.183:8080/api/presentaciones/${id}`).subscribe(
+    this.http.delete(`${environment.apiUrl}/api/presentaciones/${id}`).subscribe(
       (response) => {
         this.addToast('Presentación eliminada permanentemente', 'success');
         this.loadPresentaciones();

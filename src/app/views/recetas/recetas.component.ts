@@ -1,9 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-recetas',
@@ -13,7 +14,7 @@ import { catchError } from 'rxjs/operators';
   styleUrl: './recetas.component.scss'
 })
 export class RecetasComponent implements OnInit {
-  private apiUrl = 'http://212.56.33.183:8080/api';
+  private apiUrl = `${environment.apiUrl}/api`;
 
   // Caché de sesión para datos base (productos, presentaciones, ingredientes)
   private static baseCache: { productos: any[]; presentaciones: any; ingredientes: any } | null = null;

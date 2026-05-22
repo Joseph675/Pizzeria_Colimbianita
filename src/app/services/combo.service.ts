@@ -1,6 +1,7 @@
-import { Injectable } from '@angular/core';
+﻿import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface ItemCombo {
   idPresentacion: number;
@@ -38,7 +39,7 @@ export class ComboService {
 
   crearComboCompleto(payload: ComboPayload): Observable<any> {
     // Apunta al endpoint expuesto en tu controlador Spring Boot
-    return this.http.post('http://212.56.33.183:8080/api/combos/crear-completo', payload);
+    return this.http.post(`${environment.apiUrl}/api/combos/crear-completo`, payload);
   }
 
   generarCombosMasivos(payload: ComboMasivoRequestDto): Observable<any> {

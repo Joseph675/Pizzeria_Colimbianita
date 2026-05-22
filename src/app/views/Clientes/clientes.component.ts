@@ -36,6 +36,7 @@ import {
 } from '@coreui/angular';
 import { FormsModule, ReactiveFormsModule, FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { ToastSampleIconComponent } from './toast-sample-icon.component';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-clientes',
@@ -113,7 +114,7 @@ export class ClientesComponent implements OnInit {
   }
 
   cargarClientes(): void {
-    this.http.get<any[]>('http://212.56.33.183:8080/api/clientes').subscribe(
+    this.http.get<any[]>(`${environment.apiUrl}/api/clientes`).subscribe(
       (data) => {
         this.clientes = data || [];
         this.applyFilters();
@@ -153,7 +154,7 @@ export class ClientesComponent implements OnInit {
         estado: formValues.estado !== null && formValues.estado !== '' ? formValues.estado : 1
       };
 
-      this.http.post('http://212.56.33.183:8080/api/clientes', payload).subscribe(
+      this.http.post(`${environment.apiUrl}/api/clientes`, payload).subscribe(
         (response) => {
           console.log('Cliente creado exitosamente:', response);
           this.addToast('Cliente registrado exitosamente!', 'success');
@@ -183,7 +184,7 @@ export class ClientesComponent implements OnInit {
       };
 
       const clienteId = this.selectedCliente.idCliente || this.selectedCliente.id_cliente;
-      this.http.put(`http://212.56.33.183:8080/api/clientes/${clienteId}`, payload).subscribe(
+      this.http.put(`${environment.apiUrl}/api/clientes/${clienteId}`, payload).subscribe(
         (response) => {
           console.log('Cliente actualizado exitosamente:', response);
           this.addToast('Cliente actualizado exitosamente!', 'success');
@@ -258,7 +259,7 @@ export class ClientesComponent implements OnInit {
       return;
     }
 
-    this.http.delete(`http://212.56.33.183:8080/api/clientes/${clienteId}`).subscribe(
+    this.http.delete(`${environment.apiUrl}/api/clientes/${clienteId}`).subscribe(
       (response) => {
         this.addToast('Cliente eliminado permanentemente', 'success');
         this.cargarClientes();

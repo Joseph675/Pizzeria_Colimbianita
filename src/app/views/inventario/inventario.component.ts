@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -10,6 +10,7 @@ import {
   ToastBodyComponent,
   ButtonCloseDirective
 } from '@coreui/angular';
+import { environment } from '../../../environments/environment';
 
 interface Producto {
   id: number;
@@ -52,7 +53,7 @@ interface InventarioSucursalItem {
   styleUrls: ['./inventario.component.scss']
 })
 export class InventarioComponent implements OnInit {
-  private apiUrl = 'http://212.56.33.183:8080/api';
+  private apiUrl = `${environment.apiUrl}/api`;
 
   isLoading: boolean = true;
 

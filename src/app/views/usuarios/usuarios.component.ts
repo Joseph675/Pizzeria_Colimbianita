@@ -36,6 +36,7 @@ import {
 } from '@coreui/angular';
 import { FormsModule, ReactiveFormsModule, FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { ToastSampleIconComponent } from './toast-sample-icon.component';
+import { environment } from '../../../environments/environment';
 
 @Component({
   templateUrl: 'usuarios.component.html',
@@ -118,7 +119,7 @@ export class UsuariosComponent implements OnInit {
   }
 
   cargarUsuarios(): void {
-    this.http.get<any[]>('http://212.56.33.183:8080/api/usuarios').subscribe(
+    this.http.get<any[]>(`${environment.apiUrl}/api/usuarios`).subscribe(
       (data) => {
         this.usuarios = data || [];
         this.applyFilters();
@@ -133,7 +134,7 @@ export class UsuariosComponent implements OnInit {
   }
 
   cargarRol(): void {
-    this.http.get<{ idRol?: number; id_rol?: number; nombre: string; }[]>('http://212.56.33.183:8080/api/roles').subscribe(
+    this.http.get<{ idRol?: number; id_rol?: number; nombre: string; }[]>(`${environment.apiUrl}/api/roles`).subscribe(
       (data) => {
         this.roles = data || [];
         this.applyFilters();
@@ -148,7 +149,7 @@ export class UsuariosComponent implements OnInit {
   }
 
   cargarSucursales(): void {
-    this.http.get<{ idSucursal?: number; id_sucursal?: number; nombre: string; direccion: string; telefono: string; }[]>('http://212.56.33.183:8080/api/sucursales').subscribe(
+    this.http.get<{ idSucursal?: number; id_sucursal?: number; nombre: string; direccion: string; telefono: string; }[]>(`${environment.apiUrl}/api/sucursales`).subscribe(
       (data) => {
         this.sucursales = data || [];
         this.applyFilters();
@@ -196,7 +197,7 @@ export class UsuariosComponent implements OnInit {
         }
       };
 
-      this.http.post('http://212.56.33.183:8080/api/usuarios', payload).subscribe(
+      this.http.post(`${environment.apiUrl}/api/usuarios`, payload).subscribe(
         (response) => {
           console.log('Usuario creado exitosamente:', response);
           this.addToast('Usuario registrado exitosamente!', 'success');
@@ -235,7 +236,7 @@ export class UsuariosComponent implements OnInit {
       }
 
       const usuarioId = this.selectedUsuario.idUsuario || this.selectedUsuario.id_usuario;
-      this.http.put(`http://212.56.33.183:8080/api/usuarios/${usuarioId}`, payload).subscribe(
+      this.http.put(`${environment.apiUrl}/api/usuarios/${usuarioId}`, payload).subscribe(
         (response) => {
           console.log('Usuario actualizado exitosamente:', response);
           this.addToast('Usuario actualizado exitosamente!', 'success');
@@ -313,7 +314,7 @@ export class UsuariosComponent implements OnInit {
       return;
     }
 
-    this.http.delete(`http://212.56.33.183:8080/api/usuarios/${usuarioId}`).subscribe(
+    this.http.delete(`${environment.apiUrl}/api/usuarios/${usuarioId}`).subscribe(
       (response) => {
         this.addToast('Usuario eliminado permanentemente', 'success');
         this.cargarUsuarios();

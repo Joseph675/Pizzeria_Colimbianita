@@ -1,8 +1,9 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+﻿import { Component, OnInit, OnDestroy } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { Subscription, interval } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-dashboard',
@@ -50,7 +51,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   cargarDatosDashboard(silencioso = false): void {
     if (!silencioso) this.cargando = true;
     
-    const baseUrl = 'http://212.56.33.183:8080/api/dashboard';
+    const baseUrl = `${environment.apiUrl}/api/dashboard`;
     const idSucursal = 1; // Ajustar dinámicamente si tienes múltiples sucursales
 
     // Disparamos todas las peticiones a Spring Boot en paralelo

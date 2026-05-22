@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+﻿import { Component, OnInit, OnDestroy } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { NgIf, NgForOf, NgClass, DatePipe, CurrencyPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -6,6 +6,7 @@ import { Subscription, interval } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { ToastBodyComponent, ToastComponent, ToasterComponent, ToastHeaderComponent, ButtonCloseDirective } from '@coreui/angular';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-pedidos',
@@ -100,7 +101,7 @@ export class PedidosComponent implements OnInit, OnDestroy {
 
   cargarRepartidores(): void {
     // Cargamos los usuarios disponibles (Si tienes un endpoint o rol específico, ajústalo aquí)
-    this.http.get<any[]>('http://212.56.33.183:8080/api/usuarios').subscribe({
+    this.http.get<any[]>(`${environment.apiUrl}/api/usuarios`).subscribe({
       next: (data) => {
         this.repartidores = data || [];
       },
@@ -118,7 +119,7 @@ export class PedidosComponent implements OnInit, OnDestroy {
   cargarHistorialEstados(): void {
     this.cargandoHistorial = true;
     // Asegúrate de que esta URL coincida exactamente con tu @RequestMapping de Spring Boot
-    this.http.get<any[]>('http://212.56.33.183:8080/api/historial-estados-pedido').subscribe({
+    this.http.get<any[]>(`${environment.apiUrl}/api/historial-estados-pedido`).subscribe({
       next: (data) => {
         // Ordenar del más reciente al más antiguo
         this.historialEstados = (data || []).sort((a, b) => (b.id_historial || b.idHistorial) - (a.id_historial || a.idHistorial));
@@ -140,7 +141,7 @@ export class PedidosComponent implements OnInit, OnDestroy {
     
     // Se asume que el backend (Spring Boot) devuelve la lista de pedidos y, 
     // gracias a las relaciones, cada pedido incluye su lista de detalles
-    this.http.get<any[]>('http://212.56.33.183:8080/api/pedidos').subscribe({
+    this.http.get<any[]>(`${environment.apiUrl}/api/pedidos`).subscribe({
       next: (data) => {
         const pedidosRecibidos = data || [];
         
@@ -285,7 +286,7 @@ export class PedidosComponent implements OnInit, OnDestroy {
     
     // Petición PUT para actualizar el pedido.
     // Nota: Asegúrate de que el backend soporte PUT en este endpoint (o ajústalo a tu API).
-    this.http.put(`http://212.56.33.183:8080/api/pedidos/${id}`, pedido).subscribe({
+    this.http.put(`${environment.apiUrl}/api/pedidos/${id}`, pedido).subscribe({
       next: () => {
         console.log(`Estado del pedido #${id} actualizado a ${nuevoEstado}`);
       },
@@ -304,7 +305,7 @@ export class PedidosComponent implements OnInit, OnDestroy {
     // Preparamos el payload. Spring Boot espera el objeto anidado por la relación de la llave foránea
     const payload = { ...pedido, repartidor: { idUsuario: Number(idUsuario), id_usuario: Number(idUsuario) } };
 
-    this.http.put(`http://212.56.33.183:8080/api/pedidos/${idPedido}`, payload).subscribe({
+    this.http.put(`${environment.apiUrl}/api/pedidos/${idPedido}`, payload).subscribe({
       next: () => {
         this.addToast('Repartidor asignado con éxito.', 'success');
         // Actualizamos la interfaz visualmente sin recargar la página
@@ -376,7 +377,7 @@ export class PedidosComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.http.get<any[]>('http://212.56.33.183:8080/api/cierres-caja').subscribe({
+    this.http.get<any[]>(`${environment.apiUrl}/api/cierres-caja`).subscribe({
       next: (cierres) => {
         const turnoAbierto = cierres.find(c => c.estado === 'ABIERTA');
 
@@ -401,7 +402,7 @@ export class PedidosComponent implements OnInit, OnDestroy {
           pagos: this.lineasPago.map(p => ({ metodoPago: p.metodoPago, monto: p.monto }))
         };
 
-        this.http.post<any>('http://212.56.33.183:8080/api/cobrar', payload).subscribe({
+        this.http.post<any>(`${environment.apiUrl}/api/cobrar`, payload).subscribe({
           next: () => {
             this.pedidoSeleccionado.estado = 'PAGADO';
             this.showCobrarModal = false;

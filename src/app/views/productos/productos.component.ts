@@ -36,6 +36,7 @@ import {
 } from '@coreui/angular';
 import { FormsModule, ReactiveFormsModule,FormGroup, FormBuilder,Validators} from '@angular/forms';
 import { ToastSampleIconComponent } from './toast-sample-icon.component';
+import { environment } from '../../../environments/environment';
 
 @Component({
   templateUrl: 'productos.component.html',
@@ -143,7 +144,7 @@ export class ProductosComponent implements OnInit {
   loadproductos(): void {
     this.productosCargaError = null;
     this.http
-      .get<{ id_producto: number; id_categoria: number; nombre: string; descripcion?: string; imagenUrl?: string; categoria: { idCategoria: number; nombre: string }; estado?: number }[]>('http://212.56.33.183:8080/api/productos')
+      .get<{ id_producto: number; id_categoria: number; nombre: string; descripcion?: string; imagenUrl?: string; categoria: { idCategoria: number; nombre: string }; estado?: number }[]>(`${environment.apiUrl}/api/productos`)
       .subscribe(
         (data) => {
           // Ordenar productos por ID de manera ascendente para mantener orden consistente
@@ -166,7 +167,7 @@ export class ProductosComponent implements OnInit {
   loadcategorias(): void {
     this.categoriasCargaError = null;
     this.http
-      .get<{ idCategoria: number; nombre: string }[]>('http://212.56.33.183:8080/api/categorias')
+      .get<{ idCategoria: number; nombre: string }[]>(`${environment.apiUrl}/api/categorias`)
       .subscribe(
         (data) => {
           this.categorias = (data || []).sort((a, b) => a.nombre.localeCompare(b.nombre));
@@ -193,7 +194,7 @@ export class ProductosComponent implements OnInit {
         imagenUrl: formValues.imagenUrl
       };
 
-      this.http.post('http://212.56.33.183:8080/api/productos', payload).subscribe(
+      this.http.post(`${environment.apiUrl}/api/productos`, payload).subscribe(
         (response) => {
           console.log('Producto creado exitosamente:', response);
           this.addToast('Producto registrado exitosamente!', 'success');
@@ -226,7 +227,7 @@ export class ProductosComponent implements OnInit {
         estado: this.selectedProducto.estado ?? 1 // Mantener estado actual
       };
 
-      this.http.put(`http://212.56.33.183:8080/api/productos/${this.selectedProducto.idProducto || this.selectedProducto.id_producto}`, payload).subscribe(
+      this.http.put(`${environment.apiUrl}/api/productos/${this.selectedProducto.idProducto || this.selectedProducto.id_producto}`, payload).subscribe(
         (response) => {
           console.log('Producto actualizado exitosamente:', response);
           this.addToast('Producto actualizado exitosamente!', 'success');
@@ -258,7 +259,7 @@ export class ProductosComponent implements OnInit {
     console.log('Payload para inactivar producto:', payload);
     console.log('Producto original:', producto);
 
-    this.http.put(`http://212.56.33.183:8080/api/productos/${producto.idProducto || producto.id_producto}`, payload).subscribe(
+    this.http.put(`${environment.apiUrl}/api/productos/${producto.idProducto || producto.id_producto}`, payload).subscribe(
       (response) => {
         console.log('Producto inactivado exitosamente:', response);
         this.addToast('Producto inactivado correctamente', 'success');
@@ -282,7 +283,7 @@ export class ProductosComponent implements OnInit {
       estado: nuevoEstado
     };
 
-    this.http.put(`http://212.56.33.183:8080/api/productos/${producto.idProducto || producto.id_producto}`, payload).subscribe(
+    this.http.put(`${environment.apiUrl}/api/productos/${producto.idProducto || producto.id_producto}`, payload).subscribe(
       (response) => {
         const mensaje = nuevoEstado === 1 ? 'Producto activado correctamente' : 'Producto desactivado correctamente';
         this.addToast(mensaje, 'success');
@@ -400,7 +401,7 @@ export class ProductosComponent implements OnInit {
       return;
     }
 
-    this.http.delete(`http://212.56.33.183:8080/api/productos/${productoId}`).subscribe(
+    this.http.delete(`${environment.apiUrl}/api/productos/${productoId}`).subscribe(
       (response) => {
         console.log('Producto eliminado exitosamente:', response);
         this.addToast('Producto eliminado permanentemente', 'success');

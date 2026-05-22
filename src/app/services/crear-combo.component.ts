@@ -1,8 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormArray, Validators, ReactiveFormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { ComboService, ComboPayload } from './combo.service';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-crear-combo',
@@ -57,7 +58,7 @@ export class CrearComboComponent implements OnInit {
 
   cargarPresentaciones(): void {
     // Cargar las presentaciones reales desde tu API
-    this.http.get<any[]>('http://212.56.33.183:8080/api/presentaciones').subscribe({
+    this.http.get<any[]>(`${environment.apiUrl}/api/presentaciones`).subscribe({
       next: (data) => this.presentacionesDisponibles = data || [],
       error: (err) => console.error('Error cargando presentaciones:', err)
     });

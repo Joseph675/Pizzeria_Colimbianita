@@ -1,12 +1,13 @@
-import { Injectable } from '@angular/core';
+﻿import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = 'http://212.56.33.183:8080/api/auth'; // URL del endpoint de autenticación
+  private apiUrl = `${environment.apiUrl}/api/auth`; // URL del endpoint de autenticación
 
   constructor(private http: HttpClient) {}
 

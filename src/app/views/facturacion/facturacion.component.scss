@@ -74,7 +74,7 @@
 /* === WIDGETS DASHBOARD === */
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 1.5rem;
   margin-bottom: 2rem;
 
@@ -97,6 +97,9 @@
     &.efectivo .sc-icon { background: rgba(46, 204, 113, 0.15); color: #2ecc71; }
     &.transferencias .sc-icon { background: rgba(155, 89, 182, 0.15); color: #9b59b6; }
     &.tarjetas .sc-icon { background: rgba(52, 152, 219, 0.15); color: #3498db; }
+    &.gastos .sc-icon { background: rgba(231, 76, 60, 0.15); color: #e74c3c; }
+    &.utilidad .sc-icon { background: rgba(26, 188, 156, 0.15); color: #1abc9c; }
+    &.utilidad-neg .sc-icon { background: rgba(231, 76, 60, 0.15); color: #e74c3c; }
   }
 }
 

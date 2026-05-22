@@ -1,8 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { ToastBodyComponent, ToastComponent, ToasterComponent, ToastHeaderComponent, ButtonCloseDirective } from '@coreui/angular';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-combos_promociones',
@@ -62,10 +63,10 @@ export class CombosyPromocionesComponent implements OnInit {
   // ==========================================
 
   cargarCombos(): void {
-    this.http.get<any[]>('http://212.56.33.183:8080/api/combos').subscribe({
+    this.http.get<any[]>(`${environment.apiUrl}/api/combos`).subscribe({
       next: (combosData) => {
         // Intentamos obtener los detalles por separado por si el backend no los trae anidados
-        this.http.get<any[]>('http://212.56.33.183:8080/api/detalles-combo').subscribe({
+        this.http.get<any[]>(`${environment.apiUrl}/api/detalles-combo`).subscribe({
           next: (detallesData) => {
             this.procesarCombos(combosData || [], detallesData || []);
           },
@@ -135,7 +136,7 @@ export class CombosyPromocionesComponent implements OnInit {
 
   cargarPresentaciones(): void {
     this.isLoadingCombos = true;
-    this.http.get<any[]>('http://212.56.33.183:8080/api/presentaciones').subscribe({
+    this.http.get<any[]>(`${environment.apiUrl}/api/presentaciones`).subscribe({
       next: (data) => {
         // Guardamos TODAS las presentaciones (incluso inactivas) para poder mapear los nombres 
         // de productos en combos viejos que aún los incluyan
@@ -198,7 +199,7 @@ export class CombosyPromocionesComponent implements OnInit {
         estado: nuevoEstado
       };
       
-      this.http.put(`http://212.56.33.183:8080/api/combos/${item.idCombo}`, payload).subscribe({
+      this.http.put(`${environment.apiUrl}/api/combos/${item.idCombo}`, payload).subscribe({
         next: () => console.log('Estado actualizado correctamente'),
         error: (err) => console.error('Error actualizando estado', err)
       });
@@ -217,7 +218,7 @@ export class CombosyPromocionesComponent implements OnInit {
 
   confirmarEliminacion(): void {
     if (this.selectedCard && this.selectedCard.idCombo) {
-      this.http.delete(`http://212.56.33.183:8080/api/combos/${this.selectedCard.idCombo}`).subscribe({
+      this.http.delete(`${environment.apiUrl}/api/combos/${this.selectedCard.idCombo}`).subscribe({
         next: () => {
           this.addToast('Combo eliminado con éxito', 'success');
           this.cargarCombos();
@@ -332,7 +333,7 @@ export class CombosyPromocionesComponent implements OnInit {
     
     if (this.selectedCard && this.selectedCard.idCombo) {
       // PUT - Editar
-      this.http.put<any>(`http://212.56.33.183:8080/api/combos/${this.selectedCard.idCombo}`, payload).subscribe({
+      this.http.put<any>(`${environment.apiUrl}/api/combos/${this.selectedCard.idCombo}`, payload).subscribe({
         next: () => {
           this.sincronizarDetallesCombo(this.selectedCard.idCombo);
         },
@@ -354,7 +355,7 @@ export class CombosyPromocionesComponent implements OnInit {
         }))
       };
 
-      this.http.post<any>('http://212.56.33.183:8080/api/combos/crear-completo', payloadCompleto).subscribe({
+      this.http.post<any>(`${environment.apiUrl}/api/combos/crear-completo`, payloadCompleto).subscribe({
         next: (res) => {
           this.addToast('Combo guardado correctamente mediante Stored Procedure', 'success');
           this.cargarCombos();
@@ -394,7 +395,7 @@ export class CombosyPromocionesComponent implements OnInit {
           cantidad: d.cantidad
         };
 
-        this.http.post('http://212.56.33.183:8080/api/detalles-combo', payloadDetalle).subscribe({
+        this.http.post(`${environment.apiUrl}/api/detalles-combo`, payloadDetalle).subscribe({
           next: () => { completados++; if (completados === detallesNuevos.length) this.finalizarGuardado(conErrores); },
           error: (err) => { console.error('Error insertando detalle:', err); conErrores = true; completados++; if (completados === detallesNuevos.length) this.finalizarGuardado(conErrores); }
         });
@@ -404,7 +405,7 @@ export class CombosyPromocionesComponent implements OnInit {
     if (idsAEliminar.length > 0) {
       let eliminados = 0;
       idsAEliminar.forEach((id: any) => {
-        this.http.delete(`http://212.56.33.183:8080/api/detalles-combo/${id}`).subscribe({
+        this.http.delete(`${environment.apiUrl}/api/detalles-combo/${id}`).subscribe({
           next: () => { eliminados++; if (eliminados === idsAEliminar.length) ejecutarInserciones(); },
           error: () => { eliminados++; if (eliminados === idsAEliminar.length) ejecutarInserciones(); }
         });
