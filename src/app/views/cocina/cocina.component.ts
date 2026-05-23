@@ -172,11 +172,11 @@ export class CocinaComponent implements OnInit, OnDestroy {
           this.ultimoIdPedido = maxIdActual;
         }
 
-        // Solo pedidos de hoy
+        // Solo pedidos de hoy — excluir pedidos sin fecha o con fecha de días anteriores
         const hoy = new Date().toDateString();
         const pedidosDeHoy = pedidosRecibidos.filter(p => {
           const fecha = p.fecha_hora || p.fechaHora || p.fecha || p.fechaCreacion;
-          return fecha ? new Date(fecha).toDateString() === hoy : true;
+          return fecha ? new Date(fecha).toDateString() === hoy : false;
         });
 
         // Ventas del día: suma de pedidos cobrados (excluye cancelados)

@@ -210,17 +210,18 @@ export class PedidosComponent implements OnInit, OnDestroy {
       const tipoPedido = (p.tipo_pedido || p.tipoPedido || '').toUpperCase();
       const coincideTipo = this.filtroTipo === 'TODOS' || tipoPedido.includes(this.filtroTipo);
 
-      // Filtro por Fecha
-      let coincideFecha = true;
-      if (this.filtroFecha) {
-        const fechaObjeto = new Date(p.fecha_hora || p.fechaHora);
-        // Formateamos a YYYY-MM-DD usando la zona horaria local
-        const anio = fechaObjeto.getFullYear();
-        const mes = String(fechaObjeto.getMonth() + 1).padStart(2, '0');
-        const dia = String(fechaObjeto.getDate()).padStart(2, '0');
-        const strFechaPedido = `${anio}-${mes}-${dia}`;
-        
-        coincideFecha = strFechaPedido === this.filtroFecha;
+      // Filtro por Fecha — si no hay fecha seleccionada, usar hoy (nunca mostrar todos los días)
+      const fechaFiltro = this.filtroFecha || this.fechaHoy;
+      let coincideFecha = false; // por defecto excluir pedidos sin fecha válida
+      const fechaRaw = p.fecha_hora || p.fechaHora;
+      if (fechaRaw) {
+        const fechaObjeto = new Date(fechaRaw);
+        if (!isNaN(fechaObjeto.getTime())) {
+          const anio = fechaObjeto.getFullYear();
+          const mes = String(fechaObjeto.getMonth() + 1).padStart(2, '0');
+          const dia = String(fechaObjeto.getDate()).padStart(2, '0');
+          coincideFecha = `${anio}-${mes}-${dia}` === fechaFiltro;
+        }
       }
 
       return coincideEstado && coincideTipo && coincideFecha;
