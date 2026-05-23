@@ -27,7 +27,7 @@
 
   <!-- STATS -->
   <div class="stats-bar">
-    <div class="stat-chip"><span class="sc-num gold">$624.300</span><span class="sc-lbl" style="margin-left:.5rem;">Ventas del turno</span></div>
+    <div class="stat-chip"><span class="sc-num gold">{{ ventasDia | currency:'USD':'symbol':'1.0-0' }}</span><span class="sc-lbl" style="margin-left:.5rem;">Ventas del día</span></div>
     <div class="stat-chip"><span class="sc-num blue" style="margin-right:.3rem;">{{countByEstado('nuevo')}}</span><span class="sc-lbl">Nuevos</span></div>
     <div class="stat-chip"><span class="sc-num orange" style="margin-right:.3rem;">{{countByEstado('en-preparacion')}}</span><span class="sc-lbl">En cocina</span></div>
     <div class="stat-chip"><span class="sc-num green" style="margin-right:.3rem;">{{countByEstado('listo')}}</span><span class="sc-lbl">Listos p/ entregar</span></div>

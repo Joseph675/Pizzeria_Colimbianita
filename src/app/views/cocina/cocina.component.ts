@@ -46,6 +46,7 @@ export class CocinaComponent implements OnInit, OnDestroy {
   filtro: string = 'todos';
   pedidoSeleccionado: Pedido | null = null;
 
+  public ventasDia: number = 0;
   public cargando: boolean = false;
   public mostrarNotificacion: boolean = false;
   private pollingSubscription?: Subscription;
@@ -171,8 +172,20 @@ export class CocinaComponent implements OnInit, OnDestroy {
           this.ultimoIdPedido = maxIdActual;
         }
 
+        // Solo pedidos de hoy
+        const hoy = new Date().toDateString();
+        const pedidosDeHoy = pedidosRecibidos.filter(p => {
+          const fecha = p.fecha_hora || p.fechaHora || p.fecha || p.fechaCreacion;
+          return fecha ? new Date(fecha).toDateString() === hoy : true;
+        });
+
+        // Ventas del día: suma de pedidos cobrados (excluye cancelados)
+        this.ventasDia = pedidosDeHoy
+          .filter(p => (p.estado || '').toLowerCase() !== 'cancelado')
+          .reduce((sum, p) => sum + (Number(p.total) || 0), 0);
+
         // Formatear desde el backend a los campos estéticos que espera la vista
-        this.pedidos = pedidosRecibidos
+        this.pedidos = pedidosDeHoy
           .map(p => this.mapearPedidoVisual(p))
           .sort((a, b) => b.id - a.id);
 

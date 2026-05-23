@@ -1,4 +1,4 @@
-﻿import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -76,6 +76,8 @@ export class InventarioComponent implements OnInit {
   nuevoIngredienteId: number | null = null;
   nuevaCantidad: number = 0;
   nuevaCantidadMinima: number = 0;
+  @ViewChild('tableWrap') tableWrapRef!: ElementRef;
+
   private todoIngredientes: any[] = [];
   private idSucursalActual: number = 1;
 
@@ -100,7 +102,9 @@ export class InventarioComponent implements OnInit {
     this.cargarInventarioSucursal();
   }
 
-  get productosFiltrados(): Producto[] {
+  productosFiltrados: Producto[] = [];
+
+  recalcularFiltros(): void {
     let filtered = this.productos;
 
     if (this.filtroEstado !== 'todas') {
@@ -114,12 +118,13 @@ export class InventarioComponent implements OnInit {
       );
     }
 
-    return [...filtered].sort((a, b) => {
+    this.productosFiltrados = [...filtered].sort((a, b) => {
       if (this.ordenActual === 'stock_asc')  return a.stock - b.stock;
       if (this.ordenActual === 'stock_desc') return b.stock - a.stock;
       if (this.ordenActual === 'costo')      return b.costo - a.costo;
       return a.name.localeCompare(b.name);
     });
+    if (this.tableWrapRef) this.tableWrapRef.nativeElement.scrollTop = 0;
   }
 
   getStockColor(prod: Producto): string {
@@ -137,9 +142,11 @@ export class InventarioComponent implements OnInit {
   }
 
   getStockStatusTag(prod: Producto): string {
-    if (prod.stock === 0)             return 'out';
-    if (prod.stock <= prod.min * 0.5) return 'critical';
-    if (prod.stock <= prod.min)       return 'low';
+    if (prod.stock === 0) return 'out';
+    // When no minimum is configured (min=0), derive a sensible threshold from max
+    const effectiveMin = prod.min > 0 ? prod.min : Math.max(1, Math.floor(prod.max * 0.15));
+    if (prod.stock <= effectiveMin * 0.5) return 'critical';
+    if (prod.stock <= effectiveMin)       return 'low';
     return 'ok';
   }
 
@@ -157,6 +164,7 @@ export class InventarioComponent implements OnInit {
 
   filtrarEstado(id: string) {
     this.filtroEstado = id;
+    this.recalcularFiltros();
   }
 
   seleccionar(prod: Producto) {
@@ -204,6 +212,8 @@ export class InventarioComponent implements OnInit {
         const inv = this.inventarioSucursal.find(i => (i.id_inventario ?? i.idInventario) === id);
         if (inv) { inv['cantidad'] = this.editCantidad; inv['cantidad_minima'] = this.editMinimo; }
         this.addToast('Inventario actualizado', 'success');
+        this.filtroEstado = 'todas';
+        this.recalcularFiltros();
         this.cerrarModal();
       });
   }
@@ -337,6 +347,7 @@ export class InventarioComponent implements OnInit {
         });
       });
 
+      this.recalcularFiltros();
       this.addToast(`${this.productos.length} registros cargados`, 'success');
     });
   }

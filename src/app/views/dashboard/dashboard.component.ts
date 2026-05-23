@@ -1,4 +1,4 @@
-﻿import { Component, OnInit, OnDestroy } from '@angular/core';
+﻿import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { Subscription, interval } from 'rxjs';
@@ -15,9 +15,11 @@ import { environment } from '../../../environments/environment';
 export class DashboardComponent implements OnInit, OnDestroy {
 
   public cargando: boolean = true;
-  public fechaActual = new Date();
-  public usuarioNombre = 'Admin'; 
+  public fechaFiltro: string = new Date().toISOString().split('T')[0];
+  public usuarioNombre = 'Admin';
   private autoRefreshSub?: Subscription;
+
+  @ViewChild('datePicker') datePickerRef!: ElementRef<HTMLInputElement>;
 
   // Variables para almacenar la respuesta de los Endpoints
   public ventasDia: any = {};
@@ -52,17 +54,17 @@ export class DashboardComponent implements OnInit, OnDestroy {
     if (!silencioso) this.cargando = true;
     
     const baseUrl = `${environment.apiUrl}/api/dashboard`;
-    const idSucursal = 1; // Ajustar dinámicamente si tienes múltiples sucursales
+    const idSucursal = 1;
+    const fecha = this.fechaFiltro;
 
-    // Disparamos todas las peticiones a Spring Boot en paralelo
     Promise.all([
-      this.http.get<any>(`${baseUrl}/ventas-dia?idSucursal=${idSucursal}`).toPromise().catch(() => ({})),
+      this.http.get<any>(`${baseUrl}/ventas-dia?idSucursal=${idSucursal}&fecha=${fecha}`).toPromise().catch(() => ({})),
       this.http.get<any[]>(`${baseUrl}/mesas?idSucursal=${idSucursal}`).toPromise().catch(() => []),
-      this.http.get<any[]>(`${baseUrl}/pedidos-activos?idSucursal=${idSucursal}`).toPromise().catch(() => []),
-      this.http.get<any[]>(`${baseUrl}/top-productos?idSucursal=${idSucursal}`).toPromise().catch(() => []),
+      this.http.get<any[]>(`${baseUrl}/pedidos-activos?idSucursal=${idSucursal}&fecha=${fecha}`).toPromise().catch(() => []),
+      this.http.get<any[]>(`${baseUrl}/top-productos?idSucursal=${idSucursal}&fecha=${fecha}`).toPromise().catch(() => []),
       this.http.get<any[]>(`${baseUrl}/alertas-inventario?idSucursal=${idSucursal}`).toPromise().catch(() => []),
-      this.http.get<any>(`${baseUrl}/caja-activa?idSucursal=${idSucursal}`).toPromise().catch(() => ({})),
-      this.http.get<any[]>(`${baseUrl}/clientes-ranking?idSucursal=${idSucursal}`).toPromise().catch(() => [])
+      this.http.get<any>(`${baseUrl}/caja-activa?idSucursal=${idSucursal}&fecha=${fecha}`).toPromise().catch(() => ({})),
+      this.http.get<any[]>(`${baseUrl}/clientes-ranking?idSucursal=${idSucursal}&fecha=${fecha}`).toPromise().catch(() => [])
     ]).then(([ventas, mesas, pedidos, top, alertas, caja, clientes]) => {
       // Extraemos el primer objeto del arreglo
       this.ventasDia = (ventas && ventas.length > 0) ? ventas[0] : {};
@@ -78,6 +80,41 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
       this.cargando = false;
     });
+  }
+
+  hoyStr(): string {
+    return new Date().toISOString().split('T')[0];
+  }
+
+  esFechaHoy(): boolean {
+    return this.fechaFiltro === this.hoyStr();
+  }
+
+  get fechaDisplay(): Date {
+    const [y, m, d] = this.fechaFiltro.split('-').map(Number);
+    return new Date(y, m - 1, d);
+  }
+
+  abrirSelector(): void {
+    const el = this.datePickerRef.nativeElement;
+    if (typeof (el as any).showPicker === 'function') {
+      (el as any).showPicker();
+    } else {
+      el.click();
+    }
+  }
+
+  irAHoy(): void {
+    this.fechaFiltro = this.hoyStr();
+    this.cargarDatosDashboard();
+  }
+
+  cambiarFecha(event: Event): void {
+    const val = (event.target as HTMLInputElement).value;
+    if (val) {
+      this.fechaFiltro = val;
+      this.cargarDatosDashboard();
+    }
   }
 
   // Utilidades para el HTML

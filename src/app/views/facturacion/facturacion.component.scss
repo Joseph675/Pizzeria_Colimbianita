@@ -108,10 +108,13 @@
   background: #1e1e1e;
   border: 1px solid #333;
   border-radius: 12px;
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
 }
 .custom-table {
   width: 100%; border-collapse: collapse;
+  min-width: 700px;
   thead th {
     background: #151515; color: #a0a0a0; font-size: 0.85rem; text-transform: uppercase;
     letter-spacing: 0.05em; padding: 1rem 1.5rem; text-align: left; border-bottom: 1px solid #333;
@@ -263,48 +266,3 @@
 .m-0 { margin: 0; }
 .text-center { text-align: center; }
 .py-4 { padding-top: 1.5rem; padding-bottom: 1.5rem; }
-
-/* ═══ MODO CLARO (LIGHT THEME) OVERRIDES ═══ */
-::ng-deep [data-coreui-theme="light"] {
-  .facturacion-wrap { background: #F3F4F7 !important; color: #2C2C2C !important; }
-  .page-header .page-title { color: #2C2C2C !important; }
-  .tab-nav { background: #FFFFFF !important; border-color: rgba(0,0,0,0.08) !important; }
-  .tab-nav .tab-btn { color: rgba(0,0,0,0.55) !important; }
-  .tab-nav .tab-btn.active { background: #F8F9FA !important; color: #B8860B !important; box-shadow: none !important; }
-  .tab-nav .tab-btn:hover:not(.active) { color: #2C2C2C !important; }
-  
-  .filtros-bar { background: #FFFFFF !important; border-color: rgba(0,0,0,0.08) !important; }
-  .filtros-bar .filtro-item label { color: rgba(0,0,0,0.55) !important; }
-  .filtros-bar .filtro-item input, .filtros-bar .filtro-item select { background: #F8F9FA !important; border-color: rgba(0,0,0,0.15) !important; color: #2C2C2C !important; }
-  
-  .stats-grid .stat-card { background: #FFFFFF !important; border-color: rgba(0,0,0,0.08) !important; }
-  .stats-grid .stat-card .sc-icon { background: rgba(0,0,0,0.03) !important; }
-  .stats-grid .stat-card .sc-info .sc-label { color: rgba(0,0,0,0.55) !important; }
-  .stats-grid .stat-card .sc-info .sc-val { color: #2C2C2C !important; }
-
-  .table-container { background: #FFFFFF !important; border-color: rgba(0,0,0,0.08) !important; }
-  .custom-table thead th { background: #F8F9FA !important; color: rgba(0,0,0,0.55) !important; border-bottom-color: rgba(0,0,0,0.08) !important; }
-  .custom-table tbody td { color: #2C2C2C !important; border-bottom-color: rgba(0,0,0,0.04) !important; }
-  .custom-table tbody tr:hover td { background: rgba(0,0,0,0.02) !important; }
-
-  .text-muted { color: rgba(0,0,0,0.55) !important; }
-  .text-white { color: #2C2C2C !important; }
-
-  .nm-modal { background: #FFFFFF !important; border-color: rgba(0,0,0,0.08) !important; }
-  .nm-header { border-bottom-color: rgba(0,0,0,0.08) !important; }
-  .nm-header .nm-title { color: #2C2C2C !important; }
-  .nm-header .modal-close { color: rgba(0,0,0,0.55) !important; }
-  .nm-body .form-group label { color: rgba(0,0,0,0.55) !important; }
-  .nm-body .nm-input, .nm-body .nm-select { background: #F8F9FA !important; border-color: rgba(0,0,0,0.15) !important; color: #2C2C2C !important; }
-  
-  .denominaciones-grid .denominacion-item { background: rgba(0,0,0,0.02) !important; border-color: rgba(0,0,0,0.05) !important; }
-  .denominaciones-grid .denominacion-item .den-valor { color: rgba(0,0,0,0.55) !important; }
-  .denominaciones-grid .denominacion-item .den-total { color: #B8860B !important; }
-  
-  .totales-cierre-box { background: #F8F9FA !important; border-color: rgba(0,0,0,0.08) !important; }
-  .totales-cierre-box .t-row { color: #2C2C2C !important; }
-  .totales-cierre-box .t-diff { border-top-color: rgba(0,0,0,0.08) !important; }
-  
-  .nm-footer { border-top-color: rgba(0,0,0,0.08) !important; }
-  .nm-footer .dp-btn.ghost { background: transparent !important; color: rgba(0,0,0,0.55) !important; border-color: rgba(0,0,0,0.08) !important; }
-}

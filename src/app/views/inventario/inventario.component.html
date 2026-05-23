@@ -22,13 +22,13 @@
       <div class="ih-controls">
         <div class="search-box">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <input type="text" placeholder="Buscar producto, SKU…" [(ngModel)]="searchTerm"/>
+          <input type="text" placeholder="Buscar producto, SKU…" [(ngModel)]="searchTerm" (ngModelChange)="recalcularFiltros()"/>
         </div>
         <div class="cat-btn" *ngFor="let e of estadosFiltro" [class.active]="filtroEstado === e.id" (click)="filtrarEstado(e.id)">
           <div class="cdot" *ngIf="e.color" [style.background]="e.color"></div>{{ e.label }}
         </div>
         <div class="ih-spacer"></div>
-        <select class="sort-select" [(ngModel)]="ordenActual">
+        <select class="sort-select" [(ngModel)]="ordenActual" (ngModelChange)="recalcularFiltros()">
           <option value="nombre">Ordenar: Nombre</option>
           <option value="stock_asc">Stock: menor a mayor</option>
           <option value="stock_desc">Stock: mayor a menor</option>
@@ -48,7 +48,7 @@
 
     <!-- BODY -->
     <div class="inv-body">
-      <div class="table-wrap">
+      <div class="table-wrap" #tableWrap>
         
         <table class="inv-table">
           <thead>
@@ -70,6 +70,11 @@
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg>
                   </div>
                 </div>
+              </td>
+            </tr>
+            <tr *ngIf="productosFiltrados.length === 0 && !isLoading">
+              <td colspan="6" style="text-align:center; padding:2.5rem 1rem; color:rgba(247,244,238,.3); font-size:.82rem;">
+                No hay productos en esta categoría
               </td>
             </tr>
           </tbody>
