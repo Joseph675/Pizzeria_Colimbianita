@@ -501,6 +501,62 @@
   span[style*="color: #ccc"] { color: #6B6357 !important; }
 
   option[style*="color: black"] { color: #1A1A1A !important; }
+
+  // ── 17. LOGIN — siempre oscuro, tiene su propio fondo con imagen ──
+  // Anula todos los overrides de tarjetas y formularios dentro del login
+  .login-container {
+    color: #F7F4EE !important;
+
+    .card {
+      background: rgba(13, 13, 13, 0.72) !important;
+      border-color: rgba(245, 200, 66, 0.18) !important;
+      box-shadow: 0 32px 80px rgba(0,0,0,0.6) !important;
+      color: #F7F4EE !important;
+    }
+    .card-header {
+      background: transparent !important;
+      border: none !important;
+      color: #F7F4EE !important;
+    }
+    .card-eyebrow { color: #F5C842 !important; }
+    .card-title   { color: #F7F4EE !important; }
+    .card-title em { color: #F5C842 !important; }
+
+    .tabs { background: rgba(255,255,255,0.05) !important; border: none !important; }
+    .tab-btn {
+      background: #F5C842 !important;
+      color: #0D0D0D !important;
+      border: none !important;
+    }
+
+    label {
+      color: rgba(247, 244, 238, 0.45) !important;
+    }
+
+    input[type="email"],
+    input[type="password"] {
+      background: rgba(255,255,255,0.06) !important;
+      border-color: rgba(255,255,255,0.1) !important;
+      color: #F7F4EE !important;
+    }
+    input[type="email"]::placeholder,
+    input[type="password"]::placeholder {
+      color: rgba(247,244,238,0.2) !important;
+    }
+    input[type="email"]:focus,
+    input[type="password"]:focus {
+      border-color: rgba(245,200,66,0.5) !important;
+      background: rgba(255,255,255,0.09) !important;
+    }
+
+    .remember { color: rgba(247, 244, 238, 0.45) !important; }
+    .forgot   { color: #F5C842 !important; }
+
+    .btn-primary {
+      background: #E8342A !important;
+      color: #ffffff !important;
+    }
+  }
 }
 
 // When CoreUI sets the theme attribute directly on <body> (not <html>)

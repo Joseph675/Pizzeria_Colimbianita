@@ -2,7 +2,12 @@
   "permissions": {
     "allow": [
       "Bash(grep -E '\\\\.\\(ts|tsx\\)$')",
-      "Bash(awk -F: '{print $1}')"
+      "Bash(awk -F: '{print $1}')",
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\Kevin\\\\Documents\\\\GitHub\\\\Pizzeria_Colimbianita\" -Directory)",
+      "Bash(Select-Object Name)",
+      "Bash(ls -la \"c:/Users/Kevin/Documents/GitHub\" | grep -i colombianita)",
+      "Read(//c/Users/Kevin/Documents/GitHub/**)",
+      "Read(//c/Users/Kevin/Documents/GitHub/Colombianita_Java_Oracle/**)"
     ]
   }
 }
