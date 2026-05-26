@@ -17,6 +17,10 @@
         {{ fechaDisplay | date:'d MMM yyyy' }}
       </button>
       <input #datePicker type="date" [value]="fechaFiltro" [max]="hoyStr()" (change)="cambiarFecha($event)" style="position:absolute;width:0;height:0;opacity:0;pointer-events:none;" />
+      <button class="btn-bot" [class.active]="botActivo === 1" [class.inactive]="botActivo === 0" (click)="toggleBot()" [disabled]="cargandoBot">
+        <span class="bot-dot"></span>
+        {{ botActivo === 1 ? 'Desactivar Bot' : 'Activar Bot' }}
+      </button>
       <button class="btn-sm ghost" (click)="cargarDatosDashboard()" title="Actualizar">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
       </button>
@@ -297,4 +301,11 @@
       
     </div>
   </ng-container>
+
+  <!-- TOASTS -->
+  <div class="toast-container">
+    <div class="toast-item" *ngFor="let toast of toasts" [ngClass]="toast.type">
+      {{ toast.message }}
+    </div>
+  </div>
 </div>

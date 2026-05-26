@@ -31,13 +31,18 @@ export class DashboardComponent implements OnInit, OnDestroy {
   public alertasInventario: any[] = [];
   public cajaActiva: any = {};
   public clientesRanking: any[] = [];
+  public botActivo: number = 1;
+  public cargandoBot: boolean = false;
+  public toasts: { id: number; message: string; type: 'success' | 'danger' }[] = [];
+  private nextToastId = 0;
 
   constructor(private http: HttpClient, private authService: AuthService) {
   }
 
   ngOnInit(): void {
-    const user = this.authService.getUser(); 
+    const user = this.authService.getUser();
     this.usuarioNombre = user.nombres || 'Admin';
+    this.cargarConfiguracion();
     this.cargarDatosDashboard();
     
     // Refrescar automáticamente cada 30 segundos
@@ -127,5 +132,40 @@ export class DashboardComponent implements OnInit, OnDestroy {
   getPorcentajeStock(actual: number, maximo: number): number {
     if (!maximo || maximo === 0) return 100;
     return Math.min(100, Math.round((actual / maximo) * 100));
+  }
+
+  cargarConfiguracion(): void {
+    this.http.get<any>(`${environment.apiUrl}/api/configuracion`).subscribe({
+      next: (config) => this.botActivo = config.botGlobalActivo ?? 1,
+      error: () => {}
+    });
+  }
+
+  toggleBot(): void {
+    if (this.cargandoBot) return;
+    this.cargandoBot = true;
+    const nuevoEstado = this.botActivo === 1 ? 0 : 1;
+    this.http.put<any>(`${environment.apiUrl}/api/configuracion`, { botGlobalActivo: nuevoEstado }).subscribe({
+      next: (config) => {
+        this.botActivo = config.botGlobalActivo ?? nuevoEstado;
+        this.cargandoBot = false;
+        const activo = this.botActivo === 1;
+        this.addToast(activo ? '🤖 Bot activado correctamente' : '🤖 Bot desactivado', activo ? 'success' : 'danger');
+      },
+      error: () => {
+        this.cargandoBot = false;
+        this.addToast('Error al cambiar el estado del bot', 'danger');
+      }
+    });
+  }
+
+  addToast(message: string, type: 'success' | 'danger' = 'success', duration = 3000): void {
+    const id = this.nextToastId++;
+    this.toasts.push({ id, message, type });
+    setTimeout(() => this.removeToast(id), duration);
+  }
+
+  removeToast(id: number): void {
+    this.toasts = this.toasts.filter(t => t.id !== id);
   }
 }
