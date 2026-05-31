@@ -75,7 +75,7 @@
     padding: .58rem 1.2rem;
     font-size: .82rem;
     font-weight: 400;
-    color: var(--muted);
+    color: #fff;
     text-decoration: none;
     cursor: pointer;
     position: relative;
@@ -120,7 +120,7 @@
     border-top: 1px solid rgba(255,255,255,.06);
     padding: 1rem 1.2rem 0;
   }
-  .side-link.danger { color: rgba(232,52,42,.6); }
+  .side-link.danger { color: rgba(232,52,42,.6);font-size: .82rem; }
   .side-link.danger:hover { color: var(--red); background: rgba(232,52,42,.08); }
 
   /* ════════════════════════════════

@@ -1,339 +1,278 @@
 <div class="productos-wrap">
 
-<c-card-body>
-  <c-row>
-    <div class="col-md-3">
-      <input id="search" type="text" class="form-control" placeholder="🔍 Buscar Producto" 
+  <!-- ── Page Header ── -->
+  <div class="page-header">
+    <div class="page-header__info">
+      <h2 class="page-title">Productos</h2>
+      <p class="page-subtitle">Gestiona el catálogo de la pizzería</p>
+    </div>
+    <button class="btn-nuevo" (click)="openNuevoProductoModal()">
+      <span class="material-icons">add</span>
+      Nuevo Producto
+    </button>
+  </div>
+
+  <!-- ── Stats ── -->
+  <div class="stats-row">
+    <div class="stat-card stat-card--total">
+      <div class="stat-card__icon"><span class="material-icons">restaurant</span></div>
+      <div class="stat-card__body">
+        <span class="stat-value">{{ totalProductos }}</span>
+        <span class="stat-label">Total</span>
+      </div>
+    </div>
+    <div class="stat-card stat-card--active">
+      <div class="stat-card__icon"><span class="material-icons">check_circle</span></div>
+      <div class="stat-card__body">
+        <span class="stat-value">{{ totalActivos }}</span>
+        <span class="stat-label">Disponibles</span>
+      </div>
+    </div>
+    <div class="stat-card stat-card--inactive">
+      <div class="stat-card__icon"><span class="material-icons">cancel</span></div>
+      <div class="stat-card__body">
+        <span class="stat-value">{{ totalInactivos }}</span>
+        <span class="stat-label">No disponibles</span>
+      </div>
+    </div>
+    <div class="stat-card stat-card--cat">
+      <div class="stat-card__icon"><span class="material-icons">category</span></div>
+      <div class="stat-card__body">
+        <span class="stat-value">{{ totalCategorias }}</span>
+        <span class="stat-label">Categorías</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Filters Bar ── -->
+  <div class="filters-bar">
+    <div class="search-wrap">
+      <span class="material-icons search-icon">search</span>
+      <input type="text" class="filter-input" placeholder="Buscar producto..."
         [value]="searchTerm" (input)="onSearch($any($event.target).value)" />
     </div>
+    <select class="filter-select" [value]="selectedCategoriaId" (change)="onCategoryChange($any($event.target).value)">
+      <option value="all">Todas las categorías</option>
+      <option *ngFor="let categoria of categorias" [value]="categoria.idCategoria">{{ categoria.nombre }}</option>
+    </select>
+    <select class="filter-select" [value]="selectedEstado" (change)="onEstadoChange($any($event.target).value)">
+      <option value="all">Todos los estados</option>
+      <option value="active">Activos</option>
+      <option value="inactive">Inactivos</option>
+    </select>
+  </div>
 
-    <div class="col-md-3">
-      <select class="form-select" [value]="selectedCategoriaId" (change)="onCategoryChange($any($event.target).value)">
-        <option value="all">Todas las categorías</option>
-        <option *ngFor="let categoria of categorias" [value]="categoria.idCategoria">{{ categoria.nombre }}</option>
-      </select>
+  <!-- ── Products Section ── -->
+  <div class="products-section">
+    <div class="section-header">
+      <h3 class="section-title">Lista de productos</h3>
+      <div class="view-toggle">
+        <button class="view-btn" [class.active]="viewMode === 'table'" (click)="setView('table')" title="Vista tabla">
+          <span class="material-icons">view_list</span>
+        </button>
+        <button class="view-btn" [class.active]="viewMode === 'cards'" (click)="setView('cards')" title="Vista tarjetas">
+          <span class="material-icons">grid_view</span>
+        </button>
+      </div>
     </div>
 
-    <div class="col-md-3">
-      <select class="form-select" [value]="selectedEstado" (change)="onEstadoChange($any($event.target).value)">
-        <option value="all">Todos</option>
-        <option value="active">Activos</option>
-        <option value="inactive">Inactivos</option>
-      </select>
+    <div *ngIf="productosCargaError" class="alert-error">
+      <span class="material-icons">error_outline</span>
+      {{ productosCargaError }}
     </div>
 
-    <!-- Añadimos z-index y position relative para forzar el botón hacia el frente -->
-    <div class="col-md-3 d-flex justify-content-end" style="position: relative; z-index: 50;">
-      <button cButton color="primary" shape="rounded-pill" (click)="openNuevoProductoModal()">+ Nuevo Producto</button>
+    <div *ngIf="!productosCargaError && productos.length === 0" class="empty-state">
+      <span class="material-icons empty-icon">restaurant_menu</span>
+      <p>No se encontraron productos.</p>
     </div>
-  </c-row>
 
-  <c-row class="mt-4">
-    <c-col xs="3" xs="3">
-      <c-widget-stat-f [title]="'Total'" class="mb-3"
-        style="height: 70px; display: flex; align-items: left; justify-content: center" [value]="totalProductos">
-        <ng-template cTemplateId="widgetIconTemplate">
-          <span style="font-size: 2.5em; color: black;" class="material-icons">restaurant</span>
+    <div *ngIf="productos.length > 0">
 
-        </ng-template>
-      </c-widget-stat-f>
-    </c-col>
-
-    <c-col xs="3" xs="3">
-      <c-widget-stat-f [title]="'Disponibles'" class="mb-3"
-        style="height: 70px; display: flex; align-items: left; justify-content: center" [value]="totalActivos">
-        <ng-template cTemplateId="widgetIconTemplate">
-          <span style="font-size: 2.5em; color: black;" class="material-icons">check_box</span>
-
-        </ng-template>
-      </c-widget-stat-f>
-    </c-col>
-
-    <c-col xs="3" xs="3">
-      <c-widget-stat-f [title]="'No disponibles'" class="mb-3"
-        style="height: 70px; display: flex; align-items: left; justify-content: center" [value]="totalInactivos">
-        <ng-template cTemplateId="widgetIconTemplate">
-          <span style="font-size: 2.5em; color: black;" class="material-icons">block</span>
-
-        </ng-template>
-      </c-widget-stat-f>
-    </c-col>
-
-    <c-col xs="3" xs="3">
-      <c-widget-stat-f [title]="'Categorias'" class="mb-3"
-        style="height: 70px; display: flex; align-items: left; justify-content: center" [value]="totalCategorias">
-        <ng-template cTemplateId="widgetIconTemplate">
-          <span style="font-size: 2.5em; color: black;" class="material-icons">category</span>
-
-        </ng-template>
-      </c-widget-stat-f>
-    </c-col>
-  </c-row>
-
-
-</c-card-body>
-
-<c-row class="mt-4">
-  <c-col xs="12">
-    <c-card>
-      <c-card-header class="d-flex justify-content-between align-items-center">
-        <div>
-          <strong>Lista de productos</strong>
-        </div>
-        <div>
-          <div class="btn-group btn-group-sm" role="group" aria-label="Ver opciones">
-            <button type="button" class="btn btn-outline-primary" [class.active]="viewMode === 'table'"
-              (click)="setView('table')">
-              Lista
-            </button>
-            <button type="button" class="btn btn-outline-primary" [class.active]="viewMode === 'cards'"
-              (click)="setView('cards')">
-              Tarjetas
-            </button>
-          </div>
-        </div>
-      </c-card-header>
-      <c-card-body>
-        <div *ngIf="productosCargaError" class="alert alert-danger" role="alert">
-          {{ productosCargaError }}
-        </div>
-
-        <div *ngIf="!productosCargaError && productos.length === 0" class="text-center text-muted">
-          Cargando productos... o no se encontraron productos en el servidor.
-        </div>
-
-        <div *ngIf="productos.length > 0">
-
-          <!-- ---------------------------- -->
-
-          <!-- Vista en tabla -->
-          <div *ngIf="viewMode === 'table'" class="table-responsive">
-            <table class="table table-hover">
-              <thead>
-                <tr>
-                  <th>Categoria</th>
-                  <th>Nombre</th>
-                  <th>Descripción</th>
-                  <th>Imagen</th>
-                  <th>Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let producto of productosFiltrados" [ngClass]="{'opacity-50 text-muted': producto.estado === 0}">
-                  <td>{{ producto.categoria.nombre }}</td>
-                  <td>{{ producto.nombre }}</td>
-                  <td>{{ producto.descripcion || '—' }}</td>
-                  <td>
-                    <img [src]="producto.imagenUrl" [alt]="producto.nombre"
-                      style="max-width: 100px; max-height: 100px;" />
-                  </td>
-                  <td>
-                    <button class="btn btn-sm btn-outline-primary me-2" title="Editar"
-                      (click)="openEditProductModal(producto)">
-                      ✏️
-                    </button>
-                    <button class="btn btn-sm btn-outline-danger" title="Inactivar"
-                      (click)="inactivarProducto(producto)">
-                      🗑️
-                    </button>
-                    <span *ngIf="producto.estado === 0" class="badge bg-warning ms-2">Inactivo</span>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          <!-- Vista en tabla -->
-
-          <!-- ---------------------------- -->
-
-          <!-- Vista en tarjetas -->
-
-          <div *ngIf="viewMode === 'cards'" class="row">
-            <div class="col-12 col-md-6 col-lg-4 mb-4" *ngFor="let producto of productosFiltrados">
-
-              <c-card [ngClass]="{'opacity-50': producto.estado === 0}">
-                <div style="position: relative;">
-                  <img style="border-bottom:1px solid black; width: 100%; display: block;" cCardImg="top"
-                    *ngIf="producto.imagenUrl" [src]="producto.imagenUrl" [alt]="producto.nombre">
-                  <div style="position: absolute; top: 10px; right: 10px;">
-                    <c-form-check [switch]="true">
-                      <input cFormCheckInput type="checkbox" [checked]="producto.estado === 1"
-                        (change)="toggleProductoEstado(producto)" />
-                    </c-form-check>
-                  </div>
+      <!-- ── Table View ── -->
+      <div *ngIf="viewMode === 'table'" class="table-wrap">
+        <table class="products-table">
+          <thead>
+            <tr>
+              <th></th>
+              <th>Nombre</th>
+              <th>Categoría</th>
+              <th>Descripción</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let producto of productosFiltrados" [class.row-inactive]="producto.estado === 0">
+              <td>
+                <div class="product-thumb">
+                  <img *ngIf="producto.imagenUrl" [src]="producto.imagenUrl" [alt]="producto.nombre" />
+                  <span *ngIf="!producto.imagenUrl" class="material-icons thumb-ph">image_not_supported</span>
                 </div>
-                <c-card-body>
-
-                  <small class="text-muted"><span class="badge bg-warning">{{ producto.categoria.nombre}}</span></small>
-                  <h5 cCardTitle>{{ producto.nombre }}</h5>
-
-                  <p cCardText>
-                    {{ producto.descripcion || '—' }}
-                  </p>
-                </c-card-body>
-                <c-card-footer class="d-flex justify-content-end gap-2">
-
-                  <button cButton color="primary" variant="outline"
-                    (click)="openEditProductModal(producto)" class="d-flex align-items-center justify-content-center">
-
+              </td>
+              <td class="cell-name">{{ producto.nombre }}</td>
+              <td><span class="cat-badge">{{ producto.categoria.nombre }}</span></td>
+              <td class="cell-desc">{{ producto.descripcion || '—' }}</td>
+              <td>
+                <span class="status-pill" [class.status-pill--on]="producto.estado === 1" [class.status-pill--off]="producto.estado === 0">
+                  <span class="status-dot"></span>
+                  {{ producto.estado === 1 ? 'Activo' : 'Inactivo' }}
+                </span>
+              </td>
+              <td>
+                <div class="action-group">
+                  <button class="action-btn action-btn--edit" title="Editar" (click)="openEditProductModal(producto)">
                     <span class="material-icons">edit</span>
-
                   </button>
-
-                  <button cButton color="danger" variant="outline"
-                    (click)="openDeleteProductModal(producto)" class="d-flex align-items-center justify-content-center">
-
+                  <button class="action-btn action-btn--del" title="Eliminar" (click)="openDeleteProductModal(producto)">
                     <span class="material-icons">delete</span>
-
                   </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
-                </c-card-footer>
-              </c-card>
-
-
+      <!-- ── Cards View ── -->
+      <div *ngIf="viewMode === 'cards'" class="cards-grid">
+        <div class="product-card" *ngFor="let producto of productosFiltrados" [class.product-card--inactive]="producto.estado === 0">
+          <div class="pcard-img">
+            <img *ngIf="producto.imagenUrl" [src]="producto.imagenUrl" [alt]="producto.nombre" />
+            <div *ngIf="!producto.imagenUrl" class="pcard-img-ph">
+              <span class="material-icons">image_not_supported</span>
+            </div>
+            <span class="pcard-cat">{{ producto.categoria.nombre }}</span>
+            <div class="pcard-toggle">
+              <c-form-check [switch]="true">
+                <input cFormCheckInput type="checkbox" [checked]="producto.estado === 1"
+                  (change)="toggleProductoEstado(producto)" />
+              </c-form-check>
             </div>
           </div>
+          <div class="pcard-body">
+            <h4 class="pcard-name">{{ producto.nombre }}</h4>
+            <p class="pcard-desc">{{ producto.descripcion || '—' }}</p>
+          </div>
+          <div class="pcard-footer">
+            <button class="action-btn action-btn--edit" (click)="openEditProductModal(producto)">
+              <span class="material-icons">edit</span>
+            </button>
+            <button class="action-btn action-btn--del" (click)="openDeleteProductModal(producto)">
+              <span class="material-icons">delete</span>
+            </button>
+          </div>
         </div>
-      </c-card-body>
-    </c-card>
-  </c-col>
-</c-row>
-<!-- Vista en tarjetas -->
+      </div>
 
-<!-- ---------------------------- -->
-
-<!-- ---------------------------- -->
-
-<!-- Modal para nuevo producto -->
-<div class="modal-overlay" [class.open]="showNuevoProductoModal" [style.pointer-events]="showNuevoProductoModal ? 'auto' : 'none'" (click)="closeNuevoProductoModal()">
-  <div class="nm-modal" (click)="$event.stopPropagation()" [style.top]="modalTop">
-    <div class="nm-header">
-      <div class="nm-title">Nuevo <em>Producto</em></div>
-      <button class="modal-close" type="button" (click)="closeNuevoProductoModal()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </button>
     </div>
-    
-    <form [formGroup]="myForm" (ngSubmit)="crearProducto()">
+  </div>
+
+  <!-- ── Modal: Nuevo Producto ── -->
+  <div class="modal-overlay" [class.open]="showNuevoProductoModal" [style.pointer-events]="showNuevoProductoModal ? 'auto' : 'none'" (click)="closeNuevoProductoModal()">
+    <div class="nm-modal" (click)="$event.stopPropagation()" [style.top]="modalTop">
+      <div class="nm-header">
+        <div class="nm-title">Nuevo <em>Producto</em></div>
+        <button class="modal-close" type="button" (click)="closeNuevoProductoModal()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <form [formGroup]="myForm" (ngSubmit)="crearProducto()">
+        <div class="nm-body">
+          <div class="form-group mb-3">
+            <label>Categoría</label>
+            <select class="nm-input" formControlName="idCategoria">
+              <option value="">Seleccione una categoría</option>
+              <option *ngFor="let categoria of categorias" [value]="categoria.idCategoria">{{ categoria.nombre }}</option>
+            </select>
+          </div>
+          <div class="form-group mb-3">
+            <label>Nombre</label>
+            <input class="nm-input" formControlName="nombre" type="text" placeholder="Ej. Pizza Hawaiana" />
+          </div>
+          <div class="form-group mb-3">
+            <label>Descripción</label>
+            <textarea class="nm-input" formControlName="descripcion" rows="3" placeholder="Descripción breve..."></textarea>
+          </div>
+          <div class="form-group mb-3">
+            <label>URL de Imagen</label>
+            <input class="nm-input" formControlName="imagenUrl" type="text" placeholder="https://ejemplo.com/imagen.jpg" />
+          </div>
+        </div>
+        <div class="nm-footer">
+          <button type="button" class="dp-btn ghost" (click)="closeNuevoProductoModal()">Cancelar</button>
+          <button type="submit" class="dp-btn primary">Guardar Producto</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ── Modal: Editar Producto ── -->
+  <div class="modal-overlay" [class.open]="showEditarProductoModal" [style.pointer-events]="showEditarProductoModal ? 'auto' : 'none'" (click)="closeEditarProductoModal()">
+    <div class="nm-modal" (click)="$event.stopPropagation()" [style.top]="modalTop">
+      <div class="nm-header">
+        <div class="nm-title">Editar <em>Producto</em></div>
+        <button class="modal-close" type="button" (click)="closeEditarProductoModal()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <form [formGroup]="myForm" (ngSubmit)="actualizarProducto()">
+        <div class="nm-body">
+          <div class="form-group mb-3">
+            <label>Categoría</label>
+            <select class="nm-input" formControlName="idCategoria">
+              <option value="">Seleccione una categoría</option>
+              <option *ngFor="let categoria of categorias" [value]="categoria.idCategoria">{{ categoria.nombre }}</option>
+            </select>
+          </div>
+          <div class="form-group mb-3">
+            <label>Nombre</label>
+            <input class="nm-input" formControlName="nombre" type="text" />
+          </div>
+          <div class="form-group mb-3">
+            <label>Descripción</label>
+            <textarea class="nm-input" formControlName="descripcion" rows="3"></textarea>
+          </div>
+          <div class="form-group mb-3">
+            <label>URL de Imagen</label>
+            <input class="nm-input" formControlName="imagenUrl" type="text" />
+          </div>
+        </div>
+        <div class="nm-footer">
+          <button type="button" class="dp-btn ghost" (click)="closeEditarProductoModal()">Cancelar</button>
+          <button type="submit" class="dp-btn primary">Guardar Cambios</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ── Modal: Eliminar Producto ── -->
+  <div class="modal-overlay" [class.open]="showEliminarProductoModal" [style.pointer-events]="showEliminarProductoModal ? 'auto' : 'none'" (click)="closeEliminarProductoModal()">
+    <div class="nm-modal" (click)="$event.stopPropagation()" [style.top]="modalTop">
+      <div class="nm-header">
+        <div class="nm-title">Eliminar <em>Producto</em></div>
+        <button class="modal-close" type="button" (click)="closeEliminarProductoModal()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
       <div class="nm-body">
-        <div class="form-group mb-3">
-          <label>Categoría</label>
-          <select class="nm-input" formControlName="idCategoria">
-            <option value="">Seleccione una categoría</option>
-            <option *ngFor="let categoria of categorias" [value]="categoria.idCategoria">
-              {{ categoria.nombre }}
-            </option>
-          </select>
-        </div>
-
-        <div class="form-group mb-3">
-          <label>Nombre</label>
-          <input class="nm-input" formControlName="nombre" type="text" placeholder="Ej. Pizza Hawaiana" />
-        </div>
-
-        <div class="form-group mb-3">
-          <label>Descripción</label>
-          <textarea class="nm-input" formControlName="descripcion" rows="3" placeholder="Descripción breve..."></textarea>
-        </div>
-
-        <div class="form-group mb-3">
-          <label>URL de Imagen</label>
-          <input class="nm-input" formControlName="imagenUrl" type="text" placeholder="https://ejemplo.com/imagen.jpg" />
-        </div>
+        <p style="text-align: center; font-size: 3rem; margin-bottom: 0;">🗑️</p>
+        <p class="mb-3" style="text-align: center; color: var(--white);">Esta acción no se puede deshacer.</p>
+        <p class="mb-0" style="text-align: center; color: var(--muted);">
+          El producto <strong style="color: var(--white);">{{ selectedProducto?.nombre }}</strong> será eliminado permanentemente.
+        </p>
       </div>
-      
       <div class="nm-footer">
-        <button type="button" class="dp-btn ghost" (click)="closeNuevoProductoModal()">Cancelar</button>
-        <button type="submit" class="dp-btn primary">Guardar Producto</button>
+        <button type="button" class="dp-btn ghost" (click)="closeEliminarProductoModal()">Cancelar</button>
+        <button type="button" class="dp-btn primary" style="background: var(--red);" (click)="confirmEliminar(selectedProducto?.idProducto || selectedProducto?.id_producto)">Eliminar Permanentemente</button>
       </div>
-    </form>
-  </div>
-</div>
-<!-- Modal para nuevo producto -->
-
-<!-- ---------------------------- -->
-
-<!-- Modal para editar producto -->
-<div class="modal-overlay" [class.open]="showEditarProductoModal" [style.pointer-events]="showEditarProductoModal ? 'auto' : 'none'" (click)="closeEditarProductoModal()">
-  <div class="nm-modal" (click)="$event.stopPropagation()" [style.top]="modalTop">
-    <div class="nm-header">
-      <div class="nm-title">Editar <em>Producto</em></div>
-      <button class="modal-close" type="button" (click)="closeEditarProductoModal()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </button>
-    </div>
-    
-    <form [formGroup]="myForm" (ngSubmit)="actualizarProducto()">
-      <div class="nm-body">
-        <div class="form-group mb-3">
-          <label>Categoría</label>
-          <select class="nm-input" formControlName="idCategoria">
-            <option value="">Seleccione una categoría</option>
-            <option *ngFor="let categoria of categorias" [value]="categoria.idCategoria">
-              {{ categoria.nombre }}
-            </option>
-          </select>
-        </div>
-
-        <div class="form-group mb-3">
-          <label>Nombre</label>
-          <input class="nm-input" formControlName="nombre" type="text" />
-        </div>
-
-        <div class="form-group mb-3">
-          <label>Descripción</label>
-          <textarea class="nm-input" formControlName="descripcion" rows="3"></textarea>
-        </div>
-
-        <div class="form-group mb-3">
-          <label>URL de Imagen</label>
-          <input class="nm-input" formControlName="imagenUrl" type="text" />
-        </div>
-      </div>
-      
-      <div class="nm-footer">
-        <button type="button" class="dp-btn ghost" (click)="closeEditarProductoModal()">Cancelar</button>
-        <button type="submit" class="dp-btn primary">Guardar Cambios</button>
-      </div>
-    </form>
-  </div>
-</div>
-<!-- Modal para editar producto -->
-
-<!-- ---------------------------- -->
-
-<!-- Modal para CONFIRMAR ELIMINACIÓN de producto -->
-<div class="modal-overlay" [class.open]="showEliminarProductoModal" [style.pointer-events]="showEliminarProductoModal ? 'auto' : 'none'" (click)="closeEliminarProductoModal()">
-  <div class="nm-modal" (click)="$event.stopPropagation()" [style.top]="modalTop">
-    <div class="nm-header">
-      <div class="nm-title">Eliminar <em>Producto</em></div>
-      <button class="modal-close" type="button" (click)="closeEliminarProductoModal()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </button>
-    </div>
-    <div class="nm-body">
-      <p style="text-align: center; font-size: 3rem; margin-bottom: 0;">🗑️</p>
-      <p class="mb-3" style="text-align: center; color: var(--white);">Esta acción no se puede deshacer.</p>
-      <p class="mb-0" style="text-align: center; color: var(--muted);">
-        El producto <strong style="color: var(--white);">{{ selectedProducto?.nombre }}</strong> será eliminado permanentemente.
-      </p>
-    </div>
-    <div class="nm-footer">
-      <button type="button" class="dp-btn ghost" (click)="closeEliminarProductoModal()">Cancelar</button>
-      <button type="button" class="dp-btn primary" style="background: var(--red);" (click)="confirmEliminar(selectedProducto?.idProducto || selectedProducto?.id_producto)">Eliminar Permanentemente</button>
     </div>
   </div>
-</div>
-<!-- Modal para eliminar producto -->
 
-<!-- ---------------------------- -->
-
-<!-- Toast -->
-
-<c-toaster [placement]="'top-end'" class="p-3" position="fixed" style="pointer-events: none; z-index: 1070;">
-  <c-toast *ngFor="let toast of toasts" [autohide]="true" [fade]="true" [visible]="true" [color]="toast.type" style="min-width: 220px; margin-bottom: 8px; pointer-events: auto;">
-    <c-toast-body>{{ toast.message }}</c-toast-body>
-  </c-toast>
-</c-toaster>
+  <!-- ── Toast ── -->
+  <c-toaster [placement]="'top-end'" class="p-3" position="fixed" style="pointer-events: none; z-index: 1070;">
+    <c-toast *ngFor="let toast of toasts" [autohide]="true" [fade]="true" [visible]="true" [color]="toast.type" style="min-width: 220px; margin-bottom: 8px; pointer-events: auto;">
+      <c-toast-body>{{ toast.message }}</c-toast-body>
+    </c-toast>
+  </c-toaster>
 
 </div>

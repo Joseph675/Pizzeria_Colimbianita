@@ -7,7 +7,28 @@
       "Bash(Select-Object Name)",
       "Bash(ls -la \"c:/Users/Kevin/Documents/GitHub\" | grep -i colombianita)",
       "Read(//c/Users/Kevin/Documents/GitHub/**)",
-      "Read(//c/Users/Kevin/Documents/GitHub/Colombianita_Java_Oracle/**)"
+      "Read(//c/Users/Kevin/Documents/GitHub/Colombianita_Java_Oracle/**)",
+      "Bash(grep -E \"\\\\.\\(json|ts|js\\)$\")",
+      "Bash(xargs ls -la)",
+      "Bash(xargs grep -l \"data-coreui-theme\")",
+      "Bash(npm start *)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:4200)",
+      "Bash(npx --yes playwright screenshot --browser chromium http://localhost:4200 /tmp/screenshot.png)",
+      "Bash(npx playwright *)",
+      "Bash(node -e ' *)",
+      "Bash(where playwright *)",
+      "Bash(npm list *)",
+      "Bash(npx --yes playwright install)",
+      "Bash(node -e \"console.log\\(require.resolve\\('playwright-core'\\)\\)\")",
+      "Bash(dir \"%LOCALAPPDATA%\\\\npm-cache\\\\_npx\" /b)",
+      "Bash(find ~/.npm/_npx -name \"playwright-core\" -type d 2>/dev/null | head -3)",
+      "Read(//c/Users/Kevin/.npm/**)",
+      "Bash(ls /c/Users/Kevin/AppData/Roaming/npm/node_modules/ 2>/dev/null | head -20)",
+      "Read(//c/Users/Kevin/AppData/Roaming/npm/node_modules//**)",
+      "Bash(find /c/Users/Kevin -name \"playwright\" -type f -executable 2>/dev/null | grep -v \"AppData/Local/ms-playwright\" | head -5)",
+      "Read(//c/Users/Kevin/**)",
+      "Bash(npm install *)",
+      "WebSearch"
     ]
   }
 }

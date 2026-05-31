@@ -30,6 +30,10 @@ export class AppComponent implements OnInit {
     this.#iconSetService.icons = { ...iconSubset };
     this.#colorModeService.localStorageItemName.set('coreui-free-angular-admin-template-theme-default');
     this.#colorModeService.eventName.set('ColorSchemeChange');
+    const savedTheme = localStorage.getItem('coreui-free-angular-admin-template-theme-default');
+    if (!savedTheme) {
+      this.#colorModeService.colorMode.set('light');
+    }
   }
 
   ngOnInit(): void {
